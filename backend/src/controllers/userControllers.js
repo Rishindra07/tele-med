@@ -18,11 +18,19 @@ const registerUser = async(req,res)=>{
             role,
             location,
             specialization,
+            qualification,
+            bio,
             experience,
             medicalLicense,
+            hospitalName,
+            consultationFee,
             pharmacyName,
             licenseNumber
         } = req.body;
+
+        if(!name || !email || !phone || !password || !role){
+            return res.status(400).json({message : "All fields are required"});
+        }
 
         //Validate role
         if(!['patient','doctor','pharmacist'].includes(role)){
@@ -53,23 +61,31 @@ const registerUser = async(req,res)=>{
         //create role based profile
         if(role==='patient'){
             await PatientProfile.create({
-                user : user_.id,
+                user : user._id,
                 location,
             });
         }
 
         if(role==='doctor'){
+            if (!specialization || !qualification || !medicalLicense || !hospitalName) {
+                return res.status(400).json({ message: "Doctor profile fields are required" });
+            }
+
             await DoctorProfile.create({
-                user : user_.id,
+                user : user._id,
                 specialization,
+                qualification,
+                bio,
                 experience,
-                medicalLicense
+                medicalLicense,
+                hospitalName,
+                consultationFee
             });
         }
 
         if(role==='pharmacist'){
             await PharmacyProfile.create({
-                user : user_.id,
+                user : user._id,
                 pharmacyName,
                 licenseNumber,
                 location

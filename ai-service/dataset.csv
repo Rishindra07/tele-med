@@ -1,0 +1,8 @@
+fever,cough,headache,chest_pain,fatigue,diarrhea,disease
+1,1,0,0,1,0,Flu
+1,1,1,0,1,0,Common Cold
+0,0,1,0,0,0,Migraine
+0,0,0,1,1,0,Heart Disease
+1,0,0,0,1,1,Food Poisoning
+0,1,0,0,1,0,Bronchitis
+1,0,1,0,1,0,Viral Fever
