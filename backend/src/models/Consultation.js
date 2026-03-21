@@ -33,6 +33,17 @@ const consultationSchema = new mongoose.Schema(
             type: String,
             enum: ["Scheduled", "Completed", "Cancelled"],
             default: "Scheduled"
+        },
+
+        reminders: {
+            email24hSentAt: {
+                type: Date,
+                default: null
+            },
+            email1hSentAt: {
+                type: Date,
+                default: null
+            }
         }
     },
     { timestamps: true }
