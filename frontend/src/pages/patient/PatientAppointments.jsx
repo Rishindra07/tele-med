@@ -1,50 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  CssBaseline,
-  AppBar,
-  Toolbar,
-  Typography,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Container,
-  Paper,
-  Button,
-  CircularProgress
-} from '@mui/material';
-import {
-  Dashboard as DashboardIcon,
-  EventNote as EventIcon,
-  FolderShared as MedicalIcon,
-  Logout as LogoutIcon,
-  Person as PersonIcon
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Paper, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination } from '@mui/material';
 import { getMyAppointments } from '../../api/appointmentApi';
-
-const drawerWidth = 240;
+import PatientLayout from '../../components/PatientLayout';
+import StatusBadge from '../../components/StatusBadge';
 
 function PatientAppointments() {
-  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
+  const [error, setError] = useState(false);
+  
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const fetchAppointments = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await getMyAppointments();
       setAppointments(res.appointments || []);
-    } catch (error) {
+    } catch (err) {
+      setError(true);
       setAppointments([]);
     } finally {
       setLoading(false);
@@ -55,112 +30,76 @@ function PatientAppointments() {
     fetchAppointments();
   }, []);
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
+    <PatientLayout title="My Appointments">
+      <Paper sx={{ p: 4 }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Appointment History
+        </Typography>
+        <Typography color="text.secondary" mb={4}>
+          Track your upcoming and past consultations with doctors.
+        </Typography>
 
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Seva TeleHealth - Patient Appointments
-          </Typography>
-          <Button color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
-
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            <ListItem button onClick={() => navigate("/patient")}>
-              <ListItemIcon>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
-            <ListItem button selected>
-              <ListItemIcon>
-                <EventIcon />
-              </ListItemIcon>
-              <ListItemText primary="My Appointments" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <MedicalIcon />
-              </ListItemIcon>
-              <ListItemText primary="Medical Records" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItem>
-          </List>
-          <Divider />
-        </Box>
-      </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                My Appointments
-              </Typography>
-              <Button variant="outlined" onClick={fetchAppointments} disabled={loading}>
-                Refresh
-              </Button>
-            </Box>
-
-            {loading ? (
-              <CircularProgress size={24} />
-            ) : appointments.length === 0 ? (
-              <Typography color="text.secondary">
-                No appointments found.
-              </Typography>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
-                    <th style={{ padding: '10px' }}>Doctor</th>
-                    <th style={{ padding: '10px' }}>Specialization</th>
-                    <th style={{ padding: '10px' }}>Date</th>
-                    <th style={{ padding: '10px' }}>Time</th>
-                    <th style={{ padding: '10px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.map((appointment) => (
-                    <tr key={appointment._id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '10px' }}>
-                        {appointment.doctor?.name || 'Doctor'}
-                      </td>
-                      <td style={{ padding: '10px' }}>{appointment.specialization}</td>
-                      <td style={{ padding: '10px' }}>
-                        {new Date(appointment.appointmentDate).toLocaleDateString()}
-                      </td>
-                      <td style={{ padding: '10px' }}>{appointment.timeSlot}</td>
-                      <td style={{ padding: '10px' }}>{appointment.status}</td>
-                    </tr>
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={4}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+           <Alert severity="error">Failed to load appointments. Please try again.</Alert>
+        ) : appointments.length === 0 ? (
+          <Box py={5} textAlign="center">
+            <Typography variant="h6" color="text.secondary">No appointments found.</Typography>
+          </Box>
+        ) : (
+          <>
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Doctor</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Specialization</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Time</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {appointments
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((apt) => (
+                    <TableRow key={apt._id} hover>
+                      <TableCell sx={{ fontWeight: 500 }}>Dr. {apt.doctor?.name || 'Unknown'}</TableCell>
+                      <TableCell color="text.secondary">{apt.specialization}</TableCell>
+                      <TableCell>{new Date(apt.appointmentDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
+                      <TableCell>{apt.timeSlot}</TableCell>
+                      <TableCell><StatusBadge status={apt.status} /></TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            )}
-          </Paper>
-        </Container>
-      </Box>
-    </Box>
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={appointments.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </>
+        )}
+      </Paper>
+    </PatientLayout>
   );
 }
 
