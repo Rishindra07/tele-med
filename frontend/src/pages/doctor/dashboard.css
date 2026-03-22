@@ -1,0 +1,141 @@
+.dashboard-container {
+  background-color: #F8FAFC;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+.premium-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 24px;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-5px);
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.summary-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.summary-icon-wrapper.cyan { background: #ECFEFF; color: #0891B2; }
+.summary-icon-wrapper.indigo { background: #EEF2FF; color: #4F46E5; }
+
+.status-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-ongoing { background: #D1FAE5; color: #10B981; }
+.status-time { background: #FEF3C7; color: #F59E0B; }
+.status-cancelled { background: #FEE2E2; color: #EF4444; }
+
+.patient-history-tag {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tag-asthma, .tag-hypertension, .tag-fever { background: #CCFBF1; color: #0D9488; }
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-call { background: #2563EB; color: white; }
+.btn-doc { background: #F1F5F9; color: #475569; }
+.btn-chat { background: #F1F5F9; color: #475569; }
+
+.review-bar {
+  height: 6px;
+  width: 200px;
+  border-radius: 3px;
+  background: #F1F5F9;
+  position: relative;
+  overflow: hidden;
+}
+
+.review-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.progress-excellent { background: #2563EB; width: 80%; }
+.progress-great { background: #10B981; width: 60%; }
+.progress-good { background: #F59E0B; width: 40%; }
+.progress-average { background: #06B6D4; width: 20%; }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 15px;
+  text-align: center;
+}
+
+.calendar-day {
+  padding: 8px;
+  font-size: 0.875rem;
+  color: #64748B;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.calendar-day.active {
+  background: #2563EB;
+  color: white;
+  font-weight: bold;
+}
+
+.calendar-day.header {
+  font-weight: 600;
+  color: #1E293B;
+  cursor: default;
+}
+
+.search-bar {
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 300px;
+}
+
+.search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+}

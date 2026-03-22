@@ -18,6 +18,9 @@ import HealthRecords from "./pages/patient/HealthRecords.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments.jsx";
 import PrescriptionForm from "./pages/doctor/PrescriptionForm.jsx";
+import DoctorPatients from "./pages/doctor/DoctorPatients.jsx";
+import DoctorProfile from "./pages/doctor/DoctorProfile.jsx";
+import DoctorSettings from "./pages/doctor/DoctorSettings.jsx";
 import PharmacyDashboard from "./pages/pharmacy/PharmacyDashboard.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 
@@ -107,6 +110,30 @@ function App() {
           <ProtectedRoute>
             <RoleRoute role="doctor">
               <PrescriptionForm />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+
+        <Route path="/doctor/patients" element={
+          <ProtectedRoute>
+            <RoleRoute role="doctor">
+              <DoctorPatients />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+
+        <Route path="/doctor/profile" element={
+          <ProtectedRoute>
+            <RoleRoute role="doctor">
+              <DoctorProfile />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+
+        <Route path="/doctor/settings" element={
+          <ProtectedRoute>
+            <RoleRoute role="doctor">
+              <DoctorSettings />
             </RoleRoute>
           </ProtectedRoute>
         }/>

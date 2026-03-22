@@ -63,13 +63,46 @@ const LandingPage = () => {
               <HealthAndSafetyIcon fontSize="large" sx={{ color: 'secondary.main' }} /> 
               Seva<span style={{ color: '#0F172A' }}>TeleHealth</span>
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Button color="text.primary" onClick={() => navigate('/login')} sx={{ fontWeight: 600 }}>Log In</Button>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/login')}
+                sx={{
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  px: 3,
+                  py: 0.9,
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                  borderWidth: '2px',
+                  transition: 'all 0.25s ease',
+                  '&:hover': {
+                    borderWidth: '2px',
+                    bgcolor: 'rgba(37, 99, 235, 0.06)',
+                    borderColor: 'primary.dark',
+                    color: 'primary.dark',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+                  },
+                }}
+              >
+                Sign In
+              </Button>
               <Button 
                 variant="contained" 
                 color="primary" 
                 onClick={() => navigate('/register')}
-                sx={{ borderRadius: 8, px: 3 }}
+                sx={{
+                  borderRadius: 8,
+                  px: 3,
+                  py: 0.9,
+                  fontWeight: 600,
+                  transition: 'all 0.25s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)',
+                  },
+                }}
               >
                 Sign Up
               </Button>
