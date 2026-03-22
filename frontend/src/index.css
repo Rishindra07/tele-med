@@ -1,13 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 :root {
+  /* Medical Professional Color Tokens */
+  --nav-bg: #0F1C3F;
+  --bg-offwhite: #F7F9FC;
+  --card-bg: #FFFFFF;
+  --primary: #2563EB;
+  --secondary: #0D9488;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --border-light: #E2E8F0;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --shadow-clinical: 0 2px 8px rgba(0,0,0,0.06);
+
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--bg-offwhite);
+  color: var(--text-main);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .heading-font {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
 body {

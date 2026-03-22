@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+  import React, { useState } from 'react';
 import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, IconButton, Avatar, useTheme, useMediaQuery, Badge } from '@mui/material';
-import { Dashboard as DashboardIcon, CalendarToday as CalendarIcon, People as PeopleIcon, Logout as LogoutIcon, Menu as MenuIcon, LocalHospital as HospitalIcon, EditNote as NoteIcon } from '@mui/icons-material';
+import { Dashboard as DashboardIcon, CalendarToday as CalendarIcon, People as PeopleIcon, Logout as LogoutIcon, Menu as MenuIcon, LocalHospital as HospitalIcon, EditNote as NoteIcon, Person as PersonIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const drawerWidth = 260;
@@ -20,24 +20,23 @@ const DoctorLayout = ({ children, title }) => {
 
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/doctor' },
-    { text: 'Appointments', icon: <CalendarIcon />, path: '/doctor/appointments' },
-    { text: 'Write Prescription', icon: <NoteIcon />, path: '/doctor/prescription' },
+    { text: 'Appointment', icon: <CalendarIcon />, path: '/doctor/appointments' },
+    { text: 'Patient', icon: <PeopleIcon />, path: '/doctor/patients' },
+    { text: 'Profile', icon: <PersonIcon />, path: '/doctor/profile' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/doctor/settings' },
   ];
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Toolbar sx={{ px: 2, py: 1, backgroundColor: 'secondary.main', color: 'white' }}>
-        <HospitalIcon sx={{ mr: 1 }} />
-        <Typography variant="h6" noWrap fontWeight="bold">TeleMedi Plus</Typography>
-      </Toolbar>
-      <Divider />
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar sx={{ bgcolor: 'secondary.light', color: 'secondary.dark', fontWeight: 'bold' }}>Dr</Avatar>
-        <Box>
-          <Typography variant="subtitle2" fontWeight="bold">Dr. Sharma</Typography>
-          <Typography variant="caption" color="text.secondary">General Physician</Typography>
-        </Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#0F1C3F' }}>
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Avatar 
+          src="https://img.freepik.com/free-photo/portrait-smiling-handsome-male-doctor-man_231208-6640.jpg"
+          sx={{ width: 100, height: 100, margin: '0 auto', border: '5px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
+        />
+        <Typography variant="h6" fontWeight="bold" sx={{ mt: 2, color: 'white' }}>Dr. Marttin Deo</Typography>
+        <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block' }}>MBBS, FCPS • MD (Medicine), MCPS</Typography>
       </Box>
+      
       <List sx={{ flexGrow: 1, px: 2 }}>
         {navItems.map((item) => {
           const selected = location.pathname === item.path;
@@ -49,12 +48,14 @@ const DoctorLayout = ({ children, title }) => {
               sx={{ 
                 mb: 1, 
                 borderRadius: 2, 
-                backgroundColor: selected ? 'rgba(34, 197, 94, 0.08)' : 'transparent',
-                color: selected ? 'secondary.main' : 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(34, 197, 94, 0.12)', color: 'secondary.main' }
+                px: 3,
+                backgroundColor: selected ? '#2563EB' : 'transparent',
+                color: selected ? 'white' : '#94A3B8',
+                transition: 'all 0.2s',
+                '&:hover': { backgroundColor: selected ? '#1D4ED8' : 'rgba(255, 255, 255, 0.08)', color: 'white' }
               }}
             >
-              <ListItemIcon sx={{ color: selected ? 'secondary.main' : 'inherit', minWidth: 40 }}>
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
                 {item.icon}
               </ListItemIcon>
               <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: selected ? 600 : 500 }} />
@@ -62,9 +63,9 @@ const DoctorLayout = ({ children, title }) => {
           );
         })}
       </List>
-      <Divider />
-      <List sx={{ px: 2, pb: 2 }}>
-        <ListItem button onClick={handleLogout} sx={{ borderRadius: 2, color: 'error.main', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
+      
+      <List sx={{ px: 2, pb: 4 }}>
+        <ListItem button onClick={handleLogout} sx={{ borderRadius: 2, px: 3, color: '#94A3B8', transition: 'all 0.2s', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#EF4444' } }}>
           <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><LogoutIcon /></ListItemIcon>
           <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItem>
@@ -75,6 +76,7 @@ const DoctorLayout = ({ children, title }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
       <AppBar position="fixed" elevation={0} sx={{ 
+        display: { xs: 'block', md: 'none' }, // Added to hide on desktop
         width: { md: `calc(100% - ${drawerWidth}px)` }, 
         ml: { md: `${drawerWidth}px` },
         backgroundColor: 'white',
@@ -102,8 +104,8 @@ const DoctorLayout = ({ children, title }) => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
-        <Toolbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 0, width: { md: `calc(100% - ${drawerWidth}px)` }, bgcolor: '#F7F9FC', minHeight: '100vh' }}>
+        <Toolbar sx={{ display: { xs: 'block', md: 'none' } }} />
         {children}
       </Box>
     </Box>
