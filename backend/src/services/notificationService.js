@@ -104,16 +104,26 @@ const sendEmail = async ({ to, subject, text, html }) => {
   }
 };
 
-// const sendPush = async ({ userId, title, message, data = {} }) => {
-//   if (!userId || !title || !message) return { ok: false, reason: "missing-params" };
-//
-//   // Placeholder for future push provider integration.
-//   console.log("[PUSH]", { userId, title, message, data });
-//   return { ok: true };
-// };
+const sendPush = async ({ userId, title, message, data = {} }) => {
+  if (!userId || !title || !message) {
+    return { ok: false, reason: "missing-params" };
+  }
+
+  // Current app surfaces these through the notification center until
+  // a device push provider is plugged in.
+  await createNotification({
+    userId,
+    title,
+    message,
+    data
+  });
+
+  return { ok: true, channel: "in-app" };
+};
 
 module.exports = {
   createNotification,
   sendEmail,
+  sendPush,
   verifyEmailTransporter
 };

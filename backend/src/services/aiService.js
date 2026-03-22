@@ -1,10 +1,16 @@
 const axios = require("axios");
 
+const DEFAULT_OPENROUTER_MODELS = [
+  "mistralai/mistral-small-3.2-24b-instruct",
+  "mistralai/mistral-small-24b-instruct-2501",
+  "mistralai/mistral-7b-instruct:free"
+];
+
 /* ---------------- NORMALIZERS ---------------- */
 
 function normalizeSymptoms(symptoms) {
   if (!Array.isArray(symptoms)) return [];
-  return symptoms.map(s => s.toLowerCase().trim());
+  return symptoms.map((s) => s.toLowerCase().trim());
 }
 
 function normalizeSeverity(value = "") {
@@ -18,7 +24,7 @@ function normalizeSeverity(value = "") {
 
 function safeParse(content) {
   try {
-    content = content.replace(/```json|```/g, "");
+    content = String(content || "").replace(/```json|```/g, "");
     const match = content.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("No JSON found");
     return JSON.parse(match[0]);
@@ -27,10 +33,21 @@ function safeParse(content) {
   }
 }
 
+function getCloudModels() {
+  const configured = process.env.OPENROUTER_MODELS || process.env.OPENROUTER_MODEL || "";
+  const parsed = configured
+    .split(",")
+    .map((model) => model.trim())
+    .filter(Boolean);
+
+  return parsed.length > 0 ? parsed : DEFAULT_OPENROUTER_MODELS;
+}
+
 /* ---------------- CLOUD AI (OPENROUTER) ---------------- */
 
 async function getCloudDiagnosis(symptoms) {
   const cleanSymptoms = normalizeSymptoms(symptoms);
+  const models = getCloudModels();
 
   const prompt = `
 You are a medical triage assistant for rural telehealth.
@@ -46,12 +63,17 @@ Return ONLY valid JSON:
 `;
 
   try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY missing");
+    }
+
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "mistralai/mistral-7b-instruct",
+        models,
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.1
+        temperature: 0.1,
+        max_tokens: 250
       },
       {
         headers: {
@@ -64,7 +86,11 @@ Return ONLY valid JSON:
       }
     );
 
-    const content = response.data.choices[0].message.content;
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("EMPTY_CLOUD_RESPONSE");
+    }
+
     const parsed = safeParse(content);
 
     return {
@@ -75,9 +101,11 @@ Return ONLY valid JSON:
         advice: parsed.advice || "Consult doctor if symptoms persist"
       }
     };
-
   } catch (err) {
-    console.error("CLOUD AI ERROR:", err.response?.data || err.message);
+    console.error("CLOUD AI ERROR:", {
+      models,
+      error: err.response?.data || err.message
+    });
     throw new Error("CLOUD_FAILED");
   }
 }
@@ -100,8 +128,8 @@ async function getLocalDiagnosis(symptoms) {
         advice: response.data.advice || "Consult doctor"
       }
     };
-
-  } catch {
+  } catch (err) {
+    console.error("LOCAL AI ERROR:", err.response?.data || err.message);
     throw new Error("LOCAL_FAILED");
   }
 }
@@ -109,12 +137,11 @@ async function getLocalDiagnosis(symptoms) {
 /* ---------------- HYBRID FALLBACK ---------------- */
 
 const getDiagnosis = async (symptoms) => {
-
   try {
     console.log("AI: Using Cloud AI (OpenRouter)");
     return await getCloudDiagnosis(symptoms);
   } catch (err) {
-    console.log("AI: Cloud failed → switching to Local AI");
+    console.log("AI: Cloud failed -> switching to Local AI");
   }
 
   try {
