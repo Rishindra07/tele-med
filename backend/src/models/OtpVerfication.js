@@ -17,6 +17,6 @@ const otpSchema = new mongoose.Schema({
 
 otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const OtpVerification = new mongoose.model('OtpVerification',otpSchema);
+const OtpVerification = mongoose.model('OtpVerification',otpSchema);
 
 module.exports = OtpVerification;

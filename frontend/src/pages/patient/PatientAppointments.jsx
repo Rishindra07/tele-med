@@ -148,7 +148,6 @@ const getStatusTone = (status) => {
 };
 
 function PatientAppointments() {
-  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -157,10 +156,12 @@ function PatientAppointments() {
 
   const fetchAppointments = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await getMyAppointments();
       setAppointments(res.appointments || []);
-    } catch (error) {
+    } catch (err) {
+      setError(true);
       setAppointments([]);
     } finally {
       setLoading(false);

@@ -92,7 +92,6 @@ function PatientDashboard() {
   const [allDoctors, setAllDoctors] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [doctorsLoading, setDoctorsLoading] = useState(false);
-  const [doctorsError, setDoctorsError] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [slots, setSlots] = useState([]);
@@ -101,26 +100,17 @@ function PatientDashboard() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
 
-  const resetSelection = () => {
-    setSelectedDoctor(null);
-    setSelectedDate('');
-    setSlots([]);
-    setSelectedSlot('');
-  };
+  const resetSelection = () => { setSelectedDoctor(null); setSelectedDate(''); setSlots([]); setSelectedSlot(''); };
 
   useEffect(() => {
     const fetchDoctors = async () => {
       setDoctorsLoading(true);
-      setDoctorsError('');
       try {
         const res = await getAllDoctors();
-        const loaded = res.doctors || [];
-        setAllDoctors(loaded);
-        setDoctors(loaded);
+        setAllDoctors(res.doctors || []);
+        setDoctors(res.doctors || []);
       } catch (error) {
-        setDoctorsError(error.message || 'Failed to load doctors.');
-        setAllDoctors([]);
-        setDoctors([]);
+        setAllDoctors([]); setDoctors([]);
       } finally {
         setDoctorsLoading(false);
       }
@@ -151,10 +141,7 @@ function PatientDashboard() {
   const handleApplyFilter = async () => {
     const trimmed = specialization.trim().toLowerCase();
     if (!trimmed) {
-      setDoctors(allDoctors);
-      setDoctorsError('');
-      resetSelection();
-      return;
+      setDoctors(allDoctors); resetSelection(); return;
     }
     setDoctorsLoading(true);
     setDoctorsError('');
