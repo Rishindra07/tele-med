@@ -99,6 +99,8 @@ function PatientDashboard() {
   const [selectedSlot, setSelectedSlot] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
+  const [doctorsError, setDoctorsError] = useState('');
+
 
   const resetSelection = () => { setSelectedDoctor(null); setSelectedDate(''); setSlots([]); setSelectedSlot(''); };
 

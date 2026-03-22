@@ -153,6 +153,9 @@ function PatientAppointments() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState('all');
+  const [error, setError] = useState(false);
+  const navigate = useNavigate();
+
 
   const fetchAppointments = async () => {
     setLoading(true);

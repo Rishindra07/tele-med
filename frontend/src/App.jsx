@@ -80,6 +80,10 @@ function App() {
         <ProtectedRoute>
           <RoleRoute role="patient">
             <PatientSettings/>
+            </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      
       <Route path='/patient/consultation' element={
         <ProtectedRoute>
           <RoleRoute role="patient">
@@ -87,6 +91,7 @@ function App() {
           </RoleRoute>
         </ProtectedRoute>
       }/>
+      
      
 
       {/* Symptom Checker Page for Patient */}
