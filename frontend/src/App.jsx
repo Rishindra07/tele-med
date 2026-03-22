@@ -9,6 +9,10 @@ import VerifyOtp from './pages/auth/VerifyOtp.jsx';
 import PatientDashboard from "./pages/patient/PatientDashboard.jsx";
 import SymptomChecker from "./pages/patient/SymptomChecker.jsx";
 import PatientAppointments from "./pages/patient/PatientAppointments.jsx";
+import PatientHealthRecords from "./pages/patient/PatientHealthRecords.jsx";
+import PatientPharmacies from "./pages/patient/PatientPharmacies.jsx";
+import PatientProfile from "./pages/patient/PatientProfile.jsx";
+import PatientSettings from "./pages/patient/PatientSettings.jsx";
 import ConsultationScreen from "./pages/patient/ConsultationScreen.jsx";
 import HealthRecords from "./pages/patient/HealthRecords.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
@@ -48,6 +52,31 @@ function App() {
           </RoleRoute>
         </ProtectedRoute>
       }/>
+      <Route path='/patient/records' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientHealthRecords/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/pharmacies' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientPharmacies/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/profile' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientProfile/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/settings' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientSettings/>
       <Route path='/patient/consultation' element={
         <ProtectedRoute>
           <RoleRoute role="patient">
@@ -55,13 +84,7 @@ function App() {
           </RoleRoute>
         </ProtectedRoute>
       }/>
-      <Route path='/patient/records' element={
-        <ProtectedRoute>
-          <RoleRoute role="patient">
-            <HealthRecords/>
-          </RoleRoute>
-        </ProtectedRoute>
-      }/>
+     
 
       {/* Symptom Checker Page for Patient */}
       <Route path="/symptom-checker" element={<SymptomChecker />} />
