@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage.jsx';
 import Register from './pages/auth/Register.jsx';
 import Login from './pages/auth/Login.jsx'
 import VerifyOtp from './pages/auth/VerifyOtp.jsx';
+import PendingApproval from './pages/auth/PendingApproval.jsx';
 
 import PatientDashboard from "./pages/patient/PatientDashboard.jsx";
 import SymptomChecker from "./pages/patient/SymptomChecker.jsx";
@@ -39,6 +40,11 @@ function App() {
       <Route path='/register' element={<Register/>}/>
       <Route path='/verify' element={<VerifyOtp/>}/>
       <Route path='/login' element={<Login/>}/>
+      <Route path='/pending-approval' element={
+        <ProtectedRoute>
+          <PendingApproval />
+        </ProtectedRoute>
+      }/>
 
       {/* Dashboards */}
       <Route path='/patient' element={

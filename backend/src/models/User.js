@@ -1,39 +1,151 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true,'must provide name']
+const userSchema = new mongoose.Schema(
+  {
+    full_name: {
+      type: String,
+      required: [true, "Full name is required"],
+      trim: true,
+      minlength: [2, "Name must be at least 2 characters"],
+      maxlength: [100, "Name cannot exceed 100 characters"]
     },
-    email:{
-        type : String,
-        required : [true,'must provide email'],
-        unique:true
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      trim: true,
+      match: [/^\+91[6-9]\d{9}$/, "Enter a valid Indian mobile number with +91"]
     },
-    phone:{
-        type:String,
-        required:[true,'must provide phone'],
-        unique : true
+    role: {
+      type: String,
+      required: [true, "Role is required"],
+      enum: {
+        values: ["patient", "doctor", "pharmacist", "admin"],
+        message: "Role must be patient, doctor, pharmacist, or admin"
+      }
     },
-    password : {
-        type:String,
-        required : [true,'must provide password']
+    password_hash: {
+      type: String,
+      required: [true, "Password is required"],
+      select: false
     },
-    role:{
-        type:String,
-        enum : ['patient','doctor','pharmacist','admin'],
-        required:true
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Enter a valid email address"]
     },
-    isVerified:{
-        type :Boolean,
-        default:false
+    email_verified: {
+      type: Boolean,
+      default: false
     },
-    isApproved:{
-        type : Boolean,
-        default:false
+    email_verified_at: {
+      type: Date,
+      default: null
+    },
+    preferred_language: {
+      type: String,
+      default: "EN",
+      enum: ["EN", "HI", "PA", "TA", "TE", "BN", "MR", "GU", "KN"]
+    },
+    is_active: {
+      type: Boolean,
+      default: true
+    },
+    is_approved: {
+      type: Boolean,
+      default: false
+    },
+    approved_at: {
+      type: Date,
+      default: null
+    },
+    deactivated_at: {
+      type: Date,
+      default: null
+    },
+    deactivation_reason: {
+      type: String,
+      default: null
+    },
+    last_login_at: {
+      type: Date,
+      default: null
+    },
+    last_login_ip: {
+      type: String,
+      default: null
     }
-},{timestamps : true});
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform(doc, ret) {
+        delete ret.password_hash;
+        delete ret.__v;
+        return ret;
+      }
+    },
+    toObject: {
+      virtuals: true
+    }
+  }
+);
 
-const User = new mongoose.model('User',userSchema);
+userSchema.virtual("name").get(function getName() {
+  return this.full_name;
+});
 
-module.exports = User;
+userSchema.pre("save", async function hashPassword() {
+  if (!this.isModified("password_hash")) return;
+  this.password_hash = await bcrypt.hash(this.password_hash, 12);
+});
+
+userSchema.pre("validate", function validateRoleBasedFields() {
+  if (this.role === "patient" && this.is_approved === false) {
+    this.is_approved = true;
+  }
+
+  if (this.role === "admin" && this.is_approved === false) {
+    this.is_approved = true;
+  }
+
+  if (this.is_approved && !this.approved_at) {
+    this.approved_at = new Date();
+  }
+
+  if (!this.is_approved) {
+    this.approved_at = null;
+  }
+});
+
+userSchema.methods.comparePassword = function comparePassword(plainPassword) {
+  return bcrypt.compare(plainPassword, this.password_hash);
+};
+
+userSchema.methods.isVerified = function isVerified() {
+  return this.email_verified;
+};
+
+userSchema.methods.canAccess = function canAccess() {
+  if (!this.is_active || !this.isVerified()) return false;
+  if (["doctor", "pharmacist"].includes(this.role)) return this.is_approved;
+  return true;
+};
+
+userSchema.statics.findByPhone = function findByPhone(phone) {
+  return this.findOne({ phone }).select("+password_hash");
+};
+
+userSchema.statics.findByEmail = function findByEmail(email) {
+  return this.findOne({ email: email.toLowerCase() }).select("+password_hash");
+};
+
+userSchema.index({ role: 1 });
+userSchema.index({ is_active: 1, role: 1 });
+
+module.exports = mongoose.model("User", userSchema);

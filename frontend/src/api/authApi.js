@@ -1,47 +1,42 @@
 import API from "./axios";
 
-/**
- * Register new user
- */
-export const registerUser = async (payload) => {
-  return await API.post("/users/register", payload);
-};
+const persistAuth = (res) => {
+  if (!res?.accessToken) return res;
 
-/**
- * Send OTP to phone
- */
-export const sendOtp = async (phone) => {
-  return await API.post("/users/send-otp", { phone });
-};
-
-/**
- * Verify OTP
- */
-export const verifyOtp = async ({ phone, otp }) => {
-  return await API.post("/users/verify-otp", { phone, otp });
-};
-
-/**
- * Login user
- */
-export const loginUser = async ({ phone, password }) => {
-  const res = await API.post("/users/login", { phone, password });
-
-  // store auth safely
-  if (res?.token) {
-    localStorage.setItem("token", res.token);
-    localStorage.setItem("role", res.user.role);
-    localStorage.setItem("user", JSON.stringify(res.user));
-  }
+  localStorage.setItem("token", res.accessToken);
+  localStorage.setItem("refreshToken", res.refreshToken || "");
+  localStorage.setItem("role", res.user?.role || "");
+  localStorage.setItem("user", JSON.stringify(res.user || null));
 
   return res;
 };
 
-/**
- * Logout
- */
+export const registerUser = async (payload) => {
+  return await API.post("/users/register", payload);
+};
+
+export const sendOtp = async (email) => {
+  return await API.post("/users/send-otp", { email });
+};
+
+export const verifyOtp = async ({ email, otp }) => {
+  const res = await API.post("/users/verify-otp", { email, otp });
+  return persistAuth(res);
+};
+
+export const loginUser = async ({ phone, email, password }) => {
+  const payload = { password };
+  if (phone) payload.phone = phone;
+  if (email) payload.email = email;
+
+  const res = await API.post("/users/login", payload);
+  return persistAuth(res);
+};
+
 export const logoutUser = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
   localStorage.removeItem("role");
   localStorage.removeItem("user");
+  localStorage.removeItem("pendingVerification");
 };
