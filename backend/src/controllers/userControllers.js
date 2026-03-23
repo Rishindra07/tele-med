@@ -1,9 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
-const PatientProfile = require("../models/PatientProfile.js");
-const DoctorProfile = require("../models/DoctorProfile.js");
-const PharmacyProfile = require("../models/PharmacyProfile.js");
 const EmailOTP = require("../models/EmailOTP.js");
+const PendingRegistration = require("../models/PendingRegistration.js");
 const RefreshToken = require("../models/RefreshToken.js");
 const { sendEmail } = require("../services/notificationService.js");
 const {
@@ -41,103 +39,46 @@ const sendVerificationOtpEmail = async (email, fullName) => {
 
 const registerUser = async (req, res) => {
   try {
-    const {
-      name,
-      full_name,
-      email,
-      phone,
-      password,
-      role,
-      location,
-      specialization,
-      qualification,
-      bio,
-      experience,
-      medicalLicense,
-      hospitalName,
-      consultationFee,
-      pharmacyName,
-      licenseNumber
-    } = req.body;
+    const { name, full_name, email, password, role } = req.body;
 
     const resolvedName = (full_name || name || "").trim();
     const normalizedEmail = normalizeEmail(email);
 
-    if (!resolvedName || !normalizedEmail || !phone || !password || !role) {
-      return res.status(400).json({ message: "Full name, email, phone, password, and role are required" });
+    if (!resolvedName || !normalizedEmail || !password || !role) {
+      return res.status(400).json({ message: "Full name, email, password, and role are required" });
     }
 
     if (!REGISTRATION_ROLES.includes(role)) {
       return res.status(400).json({ message: "Invalid role selected" });
     }
 
-    const duplicateChecks = [{ phone }];
-    if (normalizedEmail) duplicateChecks.push({ email: normalizedEmail });
-    const existingUser = await User.findOne({ $or: duplicateChecks });
-
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      return res.status(400).json({
-        message: existingUser.phone === phone ? "Phone number already registered" : "Email already registered"
-      });
+      return res.status(400).json({ message: "Email already registered" });
     }
 
-    const user = await User.create({
+    await PendingRegistration.deleteMany({ email: normalizedEmail });
+
+    const pendingRegistration = await PendingRegistration.create({
       full_name: resolvedName,
       email: normalizedEmail,
-      phone,
       password_hash: password,
       role,
-      is_approved: role === "patient" || role === "admin"
+      expires_at: new Date(Date.now() + 15 * 60 * 1000)
     });
-
-    if (role === "patient") {
-      await PatientProfile.create({
-        user: user._id,
-        location
-      });
-    }
-
-    if (role === "doctor") {
-      if (!specialization || !qualification || !medicalLicense || !hospitalName) {
-        await User.findByIdAndDelete(user._id);
-        return res.status(400).json({ message: "Doctor profile fields are required" });
-      }
-
-      await DoctorProfile.create({
-        user: user._id,
-        specialization,
-        qualification,
-        bio,
-        experience,
-        medicalLicense,
-        hospitalName,
-        consultationFee
-      });
-    }
-
-    if (role === "pharmacist") {
-      if (!pharmacyName || !licenseNumber || !location) {
-        await User.findByIdAndDelete(user._id);
-        return res.status(400).json({ message: "Pharmacy profile fields are required" });
-      }
-
-      await PharmacyProfile.create({
-        user: user._id,
-        pharmacyName,
-        licenseNumber,
-        location
-      });
-    }
 
     const emailResult = await sendVerificationOtpEmail(normalizedEmail, resolvedName);
 
     return res.status(201).json({
       success: true,
       message: emailResult.ok
-        ? `${role} registered successfully. Email OTP sent for verification.`
-        : `${role} registered successfully. Email OTP was created, but email delivery is not configured yet.`,
+        ? `${role} registration started. Verify your email OTP to complete account creation.`
+        : `${role} registration started. OTP was created, but email delivery is not configured yet.`,
       email_delivery: emailResult.ok ? "sent" : "pending",
-      user: sanitizeUser(user)
+      pending_registration: {
+        email: pendingRegistration.email,
+        role: pendingRegistration.role
+      }
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -151,12 +92,16 @@ const sendOtp = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
+    const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail });
+    const user = pendingRegistration ? null : await User.findOne({ email: normalizedEmail });
+
+    if (!pendingRegistration && !user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const emailResult = await sendVerificationOtpEmail(user.email, user.full_name);
+    const targetEmail = pendingRegistration ? pendingRegistration.email : user.email;
+    const targetName = pendingRegistration ? pendingRegistration.full_name : user.full_name;
+    const emailResult = await sendVerificationOtpEmail(targetEmail, targetName);
 
     return res.json({
       success: true,
@@ -177,23 +122,46 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     await EmailOTP.verifyOTP(normalizedEmail, otp, "email_verification");
 
-    user.email_verified = true;
-    user.email_verified_at = new Date();
-    await user.save();
+    let user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail }).select("+password_hash");
+
+      if (!pendingRegistration) {
+        return res.status(404).json({ message: "Registration not found or expired. Please register again." });
+      }
+
+      const duplicateUser = await User.findOne({ email: pendingRegistration.email });
+      if (duplicateUser) {
+        await PendingRegistration.deleteOne({ _id: pendingRegistration._id });
+        return res.status(400).json({ message: "Account already exists. Please log in instead." });
+      }
+
+      user = await User.create({
+        full_name: pendingRegistration.full_name,
+        email: pendingRegistration.email,
+        password_hash: pendingRegistration.password_hash,
+        role: pendingRegistration.role,
+        email_verified: true,
+        email_verified_at: new Date(),
+        is_approved: ["patient", "admin"].includes(pendingRegistration.role)
+      });
+
+      await PendingRegistration.deleteOne({ _id: pendingRegistration._id });
+    } else {
+      user.email_verified = true;
+      user.email_verified_at = new Date();
+      await user.save();
+    }
 
     const tokens = await issueAuthTokens(user, req);
 
     return res.json({
       success: true,
       message: ["doctor", "pharmacist"].includes(user.role) && !user.is_approved
-        ? "Email verified successfully. Your account is pending admin approval."
+        ? "Email verified successfully. Complete your profile and wait for admin approval."
         : "Email verified successfully",
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -207,18 +175,37 @@ const verifyOtp = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const normalizedEmail = normalizeEmail(req.body.email);
-    const { phone, password } = req.body;
+    const { password } = req.body;
 
-    if ((!normalizedEmail && !phone) || !password) {
-      return res.status(400).json({ message: "Email or phone, and password are required" });
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = normalizedEmail
-      ? await User.findByEmail(normalizedEmail)
-      : await User.findByPhone(phone);
+    const user = await User.findByEmail(normalizedEmail);
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail }).select("+password_hash");
+
+      if (!pendingRegistration) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const pendingPasswordMatch = await pendingRegistration.comparePassword(password);
+      if (!pendingPasswordMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const emailResult = await sendVerificationOtpEmail(
+        pendingRegistration.email,
+        pendingRegistration.full_name
+      );
+
+      return res.status(403).json({
+        verification_email: pendingRegistration.email,
+        message: emailResult.ok
+          ? "Please verify your email first. A fresh OTP has been sent."
+          : "Please verify your email first. A fresh OTP was created but email delivery is not configured yet."
+      });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -230,7 +217,7 @@ const loginUser = async (req, res) => {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
-    if (["patient", "doctor", "pharmacist", "admin"].includes(user.role) && !user.email_verified) {
+    if (!user.email_verified) {
       const emailResult = await sendVerificationOtpEmail(user.email, user.full_name);
       return res.status(403).json({
         verification_email: user.email,
@@ -241,7 +228,7 @@ const loginUser = async (req, res) => {
     }
 
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
-      return res.status(403).json({ message: "Waiting for admin approval" });
+      return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
     }
 
     user.last_login_at = new Date();

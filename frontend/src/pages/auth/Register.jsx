@@ -17,37 +17,32 @@ import { registerUser } from "../../api/authApi.js";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 
-const toIndianE164 = (phone) => {
-  const digitsOnly = String(phone || "").replace(/\D/g, "");
-  if (digitsOnly.length === 10) return `+91${digitsOnly}`;
-  if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) return `+${digitsOnly}`;
-  if (String(phone).startsWith("+91") && digitsOnly.length === 12) return `+${digitsOnly}`;
-  return phone;
-};
-
 export default function Register() {
   const {
     register,
     handleSubmit,
     watch,
+    getValues,
+    setError,
+    clearErrors,
     formState: { errors }
   } = useForm();
   const role = watch("role", "patient");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
+      clearErrors();
 
       const payload = {
-        ...data,
-        full_name: data.name,
-        phone: toIndianE164(data.phone),
-        email: data.email?.trim()
+        full_name: data.name.trim(),
+        email: data.email.trim(),
+        password: data.password,
+        role: data.role
       };
 
       const response = await registerUser(payload);
@@ -62,17 +57,28 @@ export default function Register() {
         })
       );
 
-      alert(response.message || "Registration successful");
       navigate("/verify");
     } catch (err) {
-      alert(err.message || "Registration failed");
+      const message = err.message || "Registration failed";
+
+      if (/email already registered/i.test(message) || /email/i.test(message)) {
+        setError("email", { type: "server", message });
+      } else if (/full name/i.test(message)) {
+        setError("name", { type: "server", message });
+      } else if (/password/i.test(message)) {
+        setError("password", { type: "server", message });
+      } else if (/role/i.test(message)) {
+        setError("role", { type: "server", message });
+      } else {
+        setError("root.serverError", { type: "server", message });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container component="main" maxWidth="md">
+    <Container component="main" maxWidth="sm">
       <Box
         sx={{
           marginTop: { xs: 4, sm: 8 },
@@ -82,7 +88,7 @@ export default function Register() {
           alignItems: "center"
         }}
       >
-        <Paper elevation={6} sx={{ p: { xs: 3, sm: 6 }, width: "100%", borderRadius: 2 }}>
+        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, width: "100%", borderRadius: 2 }}>
           <Typography
             component="h1"
             variant="h4"
@@ -90,7 +96,6 @@ export default function Register() {
             gutterBottom
             color="primary"
             fontWeight="bold"
-            sx={{ fontSize: { xs: "1.5rem", sm: "2.125rem" } }}
           >
             Join Seva TeleHealth
           </Typography>
@@ -111,20 +116,6 @@ export default function Register() {
 
               <TextField
                 required
-                fullWidth
-                label="Phone Number"
-                {...register("phone", {
-                  required: "Phone Number is required",
-                  pattern: {
-                    value: /^(\+91)?[6-9]\d{9}$/,
-                    message: "Enter a valid Indian mobile number"
-                  }
-                })}
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-              />
-
-              <TextField
                 fullWidth
                 label="Email Address"
                 {...register("email", {
@@ -153,105 +144,6 @@ export default function Register() {
                 <MenuItem value="admin">Admin</MenuItem>
               </TextField>
 
-              {role === "patient" && (
-                <TextField
-                  fullWidth
-                  label="Location/City"
-                  {...register("location", { required: "Location is required for patients" })}
-                  error={!!errors.location}
-                  helperText={errors.location?.message}
-                />
-              )}
-
-              {role === "doctor" && (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Specialization"
-                    {...register("specialization", { required: "Specialization is required" })}
-                    error={!!errors.specialization}
-                    helperText={errors.specialization?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Qualification"
-                    {...register("qualification", { required: "Qualification is required" })}
-                    error={!!errors.qualification}
-                    helperText={errors.qualification?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Experience (years)"
-                    type="number"
-                    {...register("experience", {
-                      required: "Experience is required",
-                      min: { value: 0, message: "Experience cannot be negative" }
-                    })}
-                    error={!!errors.experience}
-                    helperText={errors.experience?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Medical License Number"
-                    {...register("medicalLicense", { required: "License Number is required" })}
-                    error={!!errors.medicalLicense}
-                    helperText={errors.medicalLicense?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Hospital / Clinic Name"
-                    {...register("hospitalName", { required: "Hospital or clinic name is required" })}
-                    error={!!errors.hospitalName}
-                    helperText={errors.hospitalName?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Consultation Fee"
-                    type="number"
-                    {...register("consultationFee", {
-                      min: { value: 0, message: "Consultation fee cannot be negative" }
-                    })}
-                    error={!!errors.consultationFee}
-                    helperText={errors.consultationFee?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Professional Bio"
-                    multiline
-                    minRows={3}
-                    {...register("bio")}
-                    error={!!errors.bio}
-                    helperText={errors.bio?.message}
-                  />
-                </>
-              )}
-
-              {role === "pharmacist" && (
-                <>
-                  <TextField
-                    fullWidth
-                    label="Pharmacy Name"
-                    {...register("pharmacyName", { required: "Pharmacy Name is required" })}
-                    error={!!errors.pharmacyName}
-                    helperText={errors.pharmacyName?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="License Number"
-                    {...register("licenseNumber", { required: "License Number is required" })}
-                    error={!!errors.licenseNumber}
-                    helperText={errors.licenseNumber?.message}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Location"
-                    {...register("location", { required: "Location is required" })}
-                    error={!!errors.location}
-                    helperText={errors.location?.message}
-                  />
-                </>
-              )}
-
               <TextField
                 required
                 fullWidth
@@ -269,8 +161,30 @@ export default function Register() {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
+                      <IconButton onClick={() => setShowPassword((value) => !value)} edge="end">
                         {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+
+              <TextField
+                required
+                fullWidth
+                label="Confirm Password"
+                type={showConfirmPassword ? "text" : "password"}
+                {...register("confirmPassword", {
+                  required: "Confirm password is required",
+                  validate: (value) => value === getValues("password") || "Passwords do not match"
+                })}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowConfirmPassword((value) => !value)} edge="end">
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   )
@@ -278,9 +192,15 @@ export default function Register() {
               />
             </Stack>
 
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1rem" }} disabled={loading}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 4, mb: 2, py: 1.5 }} disabled={loading}>
               {loading ? "Creating Account..." : "Register"}
             </Button>
+
+            {errors.root?.serverError && (
+              <Typography color="error" variant="body2" sx={{ mt: -1, mb: 2 }}>
+                {errors.root.serverError.message}
+              </Typography>
+            )}
 
             <Box display="flex" justifyContent="center">
               <Link component={RouterLink} to="/login" variant="body2">

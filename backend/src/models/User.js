@@ -12,8 +12,9 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Phone number is required"],
+      default: null,
       unique: true,
+      sparse: true,
       trim: true,
       match: [/^\+91[6-9]\d{9}$/, "Enter a valid Indian mobile number with +91"]
     },
@@ -102,15 +103,12 @@ userSchema.virtual("name").get(function getName() {
 
 userSchema.pre("save", async function hashPassword() {
   if (!this.isModified("password_hash")) return;
+  if (/^\$2[aby]\$\d+\$/.test(this.password_hash)) return;
   this.password_hash = await bcrypt.hash(this.password_hash, 12);
 });
 
-userSchema.pre("validate", function validateRoleBasedFields() {
-  if (this.role === "patient" && this.is_approved === false) {
-    this.is_approved = true;
-  }
-
-  if (this.role === "admin" && this.is_approved === false) {
+userSchema.pre("validate", function applyApprovalDefaults() {
+  if (["patient", "admin"].includes(this.role) && this.is_approved === false) {
     this.is_approved = true;
   }
 
@@ -135,10 +133,6 @@ userSchema.methods.canAccess = function canAccess() {
   if (!this.is_active || !this.isVerified()) return false;
   if (["doctor", "pharmacist"].includes(this.role)) return this.is_approved;
   return true;
-};
-
-userSchema.statics.findByPhone = function findByPhone(phone) {
-  return this.findOne({ phone }).select("+password_hash");
 };
 
 userSchema.statics.findByEmail = function findByEmail(email) {

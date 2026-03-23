@@ -9,47 +9,32 @@ import {
   InputAdornment,
   IconButton,
   Paper,
-  Alert,
-  MenuItem
+  Alert
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { loginUser } from "../../api/authApi.js";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-const toIndianE164 = (phone) => {
-  const digitsOnly = String(phone || "").replace(/\D/g, "");
-  if (digitsOnly.length === 10) return `+91${digitsOnly}`;
-  if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) return `+${digitsOnly}`;
-  if (String(phone).startsWith("+91") && digitsOnly.length === 12) return `+${digitsOnly}`;
-  return phone;
-};
-
 export default function Login() {
   const {
     register,
     handleSubmit,
-    watch,
+    setError,
+    clearErrors,
     formState: { errors }
-  } = useForm({
-    defaultValues: {
-      loginMethod: "phone"
-    }
-  });
+  } = useForm();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const loginMethod = watch("loginMethod", "phone");
-
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
+      clearErrors();
 
       const res = await loginUser({
-        phone: loginMethod === "phone" ? toIndianE164(data.phone) : undefined,
-        email: loginMethod === "email" ? data.email?.trim() : undefined,
+        email: data.email?.trim(),
         password: data.password
       });
 
@@ -66,7 +51,7 @@ export default function Login() {
       if (err.status === 403 && /verify your email/i.test(err.message || "")) {
         const pendingEmail = err.verification_email || data.email?.trim();
         if (!pendingEmail) {
-          alert(err.message || "Please verify your email first");
+          console.error("Email verification required", err);
           return;
         }
         localStorage.setItem(
@@ -76,20 +61,22 @@ export default function Login() {
             email: pendingEmail
           })
         );
-        alert(err.message || "Please verify your email first");
+        setError("email", { type: "server", message: err.message || "Please verify your email first" });
         navigate("/verify");
         return;
       }
-      alert(err.message || "Login failed");
+
+      const message = err.message || "Login failed";
+      if (/email/i.test(message)) {
+        setError("email", { type: "server", message });
+      } else if (/password|credentials/i.test(message)) {
+        setError("password", { type: "server", message });
+      } else {
+        setError("root.serverError", { type: "server", message });
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const bypassAdminLogin = () => {
-    // For development/demo purposes
-    localStorage.setItem("user", JSON.stringify({ role: "admin", phone: "0000000000" }));
-    navigate("/admin/analytics");
   };
 
   return (
@@ -111,56 +98,28 @@ export default function Login() {
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
-            <TextField select margin="normal" fullWidth label="Login with" {...register("loginMethod")}>
-              <MenuItem value="phone">Phone</MenuItem>
-              <MenuItem value="email">Email</MenuItem>
-            </TextField>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              autoComplete="email"
+              autoFocus
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
+              })}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+            />
 
-            {loginMethod === "phone" ? (
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="phone"
-                label="Phone Number"
-                autoComplete="tel"
-                autoFocus
-                {...register("phone", {
-                  required: "Phone number is required",
-                  pattern: {
-                    value: /^(\+91)?[6-9]\d{9}$/,
-                    message: "Enter a valid Indian mobile number"
-                  }
-                })}
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-              />
-            ) : (
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                autoComplete="email"
-                autoFocus
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address"
-                  }
-                })}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-              />
-            )}
-
-            {loginMethod === "email" && (
-              <Alert severity="info" sx={{ mt: 1 }}>
-                Email is the verification method for every role. Doctors and pharmacists can log in here and will see a pending approval screen until approved.
-              </Alert>
-            )}
+            <Alert severity="info" sx={{ mt: 1 }}>
+              Register first, verify OTP, then complete your profile. Doctors and pharmacies will remain hidden until admin approval.
+            </Alert>
 
             <TextField
               margin="normal"
@@ -183,7 +142,7 @@ export default function Login() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
+                    <IconButton aria-label="toggle password visibility" onClick={() => setShowPassword((value) => !value)} edge="end">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -194,6 +153,12 @@ export default function Login() {
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2, py: 1.5, fontSize: "1rem" }} disabled={loading}>
               {loading ? "Signing In..." : "Sign In"}
             </Button>
+
+            {errors.root?.serverError && (
+              <Typography color="error" variant="body2" sx={{ mt: -1, mb: 2 }}>
+                {errors.root.serverError.message}
+              </Typography>
+            )}
 
             <Box display="flex" justifyContent="center">
               <Link component={RouterLink} to="/register" variant="body2">

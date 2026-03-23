@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Box, Button, Container, Paper, TextField, Typography } from "@mui/material";
 import { sendOtp, verifyOtp } from "../../api/authApi.js";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 const readPendingVerification = () => {
   try {
@@ -19,10 +20,20 @@ const routeForRole = (role) => {
 };
 
 export default function VerifyOtp() {
-  const [otp, setOtp] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      otp: ""
+    }
+  });
   const pendingVerification = useMemo(() => readPendingVerification(), []);
 
   useEffect(() => {
@@ -34,31 +45,31 @@ export default function VerifyOtp() {
   const handleResendEmailOtp = async () => {
     try {
       setSendingOtp(true);
+      clearErrors("otp");
       await sendOtp(pendingVerification.email);
-      alert(`OTP sent to ${pendingVerification.email}`);
     } catch (err) {
-      alert(err.message || "Failed to resend OTP");
+      setError("otp", { type: "server", message: err.message || "Failed to resend OTP" });
     } finally {
       setSendingOtp(false);
     }
   };
 
-  const handleVerify = async () => {
+  const handleVerify = async (data) => {
     try {
       setVerifying(true);
+      clearErrors();
       const response = await verifyOtp({
         email: pendingVerification.email,
-        otp
+        otp: data.otp
       });
       localStorage.removeItem("pendingVerification");
-      alert(response.message || "Verified successfully");
       if (["doctor", "pharmacist"].includes(response.user.role) && !response.user.is_approved) {
         navigate("/pending-approval");
         return;
       }
       navigate(routeForRole(response.user.role));
     } catch (err) {
-      alert(err.message || "Verification failed");
+      setError("otp", { type: "server", message: err.message || "Verification failed" });
     } finally {
       setVerifying(false);
     }
@@ -79,21 +90,30 @@ export default function VerifyOtp() {
             Enter the email OTP sent to {pendingVerification.email}.
           </Typography>
 
-          <TextField
-            fullWidth
-            label="OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+          <Box component="form" onSubmit={handleSubmit(handleVerify)}>
+            <TextField
+              fullWidth
+              label="OTP"
+              {...register("otp", {
+                required: "OTP is required",
+                pattern: {
+                  value: /^\d{6}$/,
+                  message: "OTP must be 6 digits"
+                }
+              })}
+              error={!!errors.otp}
+              helperText={errors.otp?.message}
+              sx={{ mb: 2 }}
+            />
 
-          <Button fullWidth variant="outlined" sx={{ mb: 2 }} onClick={handleResendEmailOtp} disabled={sendingOtp}>
-            {sendingOtp ? "Sending OTP..." : "Resend Email OTP"}
-          </Button>
+            <Button fullWidth variant="outlined" sx={{ mb: 2 }} onClick={handleResendEmailOtp} disabled={sendingOtp}>
+              {sendingOtp ? "Sending OTP..." : "Resend Email OTP"}
+            </Button>
 
-          <Button fullWidth variant="contained" onClick={handleVerify} disabled={verifying}>
-            {verifying ? "Verifying..." : "Verify"}
-          </Button>
+            <Button type="submit" fullWidth variant="contained" disabled={verifying}>
+              {verifying ? "Verifying..." : "Verify"}
+            </Button>
+          </Box>
         </Paper>
       </Box>
     </Container>

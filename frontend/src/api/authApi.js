@@ -24,12 +24,8 @@ export const verifyOtp = async ({ email, otp }) => {
   return persistAuth(res);
 };
 
-export const loginUser = async ({ phone, email, password }) => {
-  const payload = { password };
-  if (phone) payload.phone = phone;
-  if (email) payload.email = email;
-
-  const res = await API.post("/users/login", payload);
+export const loginUser = async ({ email, password }) => {
+  const res = await API.post("/users/login", { email, password });
   return persistAuth(res);
 };
 
