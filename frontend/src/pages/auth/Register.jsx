@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   TextField,
@@ -14,13 +13,26 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
-import { registerUser, sendOtp } from "../../api/authApi.js";
+import { registerUser } from "../../api/authApi.js";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 
+const toIndianE164 = (phone) => {
+  const digitsOnly = String(phone || "").replace(/\D/g, "");
+  if (digitsOnly.length === 10) return `+91${digitsOnly}`;
+  if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) return `+${digitsOnly}`;
+  if (String(phone).startsWith("+91") && digitsOnly.length === 12) return `+${digitsOnly}`;
+  return phone;
+};
+
 export default function Register() {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
-  const role = watch("role", "patient"); // Default to patient
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm();
+  const role = watch("role", "patient");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,10 +42,27 @@ export default function Register() {
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      await registerUser(data);
-      await sendOtp(data.phone);
 
-      localStorage.setItem("verifyPhone", data.phone);
+      const payload = {
+        ...data,
+        full_name: data.name,
+        phone: toIndianE164(data.phone),
+        email: data.email?.trim()
+      };
+
+      const response = await registerUser(payload);
+
+      localStorage.setItem(
+        "pendingVerification",
+        JSON.stringify({
+          type: "email-otp",
+          email: payload.email,
+          role,
+          full_name: payload.full_name
+        })
+      );
+
+      alert(response.message || "Registration successful");
       navigate("/verify");
     } catch (err) {
       alert(err.message || "Registration failed");
@@ -48,13 +77,21 @@ export default function Register() {
         sx={{
           marginTop: { xs: 4, sm: 8 },
           marginBottom: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
         }}
       >
-        <Paper elevation={6} sx={{ p: { xs: 3, sm: 6 }, width: '100%', borderRadius: 2 }}>
-          <Typography component="h1" variant="h4" align="center" gutterBottom color="primary" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+        <Paper elevation={6} sx={{ p: { xs: 3, sm: 6 }, width: "100%", borderRadius: 2 }}>
+          <Typography
+            component="h1"
+            variant="h4"
+            align="center"
+            gutterBottom
+            color="primary"
+            fontWeight="bold"
+            sx={{ fontSize: { xs: "1.5rem", sm: "2.125rem" } }}
+          >
             Join Seva TeleHealth
           </Typography>
           <Typography component="h2" variant="h6" align="center" sx={{ mb: 3 }}>
@@ -63,7 +100,6 @@ export default function Register() {
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
             <Stack spacing={2}>
-              {/* Common Fields */}
               <TextField
                 required
                 fullWidth
@@ -72,6 +108,7 @@ export default function Register() {
                 error={!!errors.name}
                 helperText={errors.name?.message}
               />
+
               <TextField
                 required
                 fullWidth
@@ -79,15 +116,15 @@ export default function Register() {
                 {...register("phone", {
                   required: "Phone Number is required",
                   pattern: {
-                    value: /^\d{10}$/,
-                    message: "Must be exactly 10 digits"
+                    value: /^(\+91)?[6-9]\d{9}$/,
+                    message: "Enter a valid Indian mobile number"
                   }
                 })}
                 error={!!errors.phone}
                 helperText={errors.phone?.message}
               />
+
               <TextField
-                required
                 fullWidth
                 label="Email Address"
                 {...register("email", {
@@ -116,7 +153,6 @@ export default function Register() {
                 <MenuItem value="admin">Admin</MenuItem>
               </TextField>
 
-              {/* Patient Fields */}
               {role === "patient" && (
                 <TextField
                   fullWidth
@@ -127,7 +163,6 @@ export default function Register() {
                 />
               )}
 
-              {/* Doctor Fields */}
               {role === "doctor" && (
                 <>
                   <TextField
@@ -150,10 +185,7 @@ export default function Register() {
                     type="number"
                     {...register("experience", {
                       required: "Experience is required",
-                      min: {
-                        value: 0,
-                        message: "Experience cannot be negative"
-                      }
+                      min: { value: 0, message: "Experience cannot be negative" }
                     })}
                     error={!!errors.experience}
                     helperText={errors.experience?.message}
@@ -177,10 +209,7 @@ export default function Register() {
                     label="Consultation Fee"
                     type="number"
                     {...register("consultationFee", {
-                      min: {
-                        value: 0,
-                        message: "Consultation fee cannot be negative"
-                      }
+                      min: { value: 0, message: "Consultation fee cannot be negative" }
                     })}
                     error={!!errors.consultationFee}
                     helperText={errors.consultationFee?.message}
@@ -197,7 +226,6 @@ export default function Register() {
                 </>
               )}
 
-              {/* Pharmacy Fields */}
               {role === "pharmacist" && (
                 <>
                   <TextField
@@ -228,7 +256,7 @@ export default function Register() {
                 required
                 fullWidth
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 {...register("password", {
                   required: "Password is required",
                   minLength: {
@@ -241,32 +269,22 @@ export default function Register() {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        edge="end"
-                      >
+                      <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  ),
+                  )
                 }}
               />
             </Stack>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 4, mb: 2, py: 1.5, fontSize: '1rem' }}
-              disabled={loading}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1rem" }} disabled={loading}>
               {loading ? "Creating Account..." : "Register"}
             </Button>
 
             <Box display="flex" justifyContent="center">
               <Link component={RouterLink} to="/login" variant="body2">
-                {"Already have an account? Sign In"}
+                Already have an account? Sign In
               </Link>
             </Box>
           </Box>
