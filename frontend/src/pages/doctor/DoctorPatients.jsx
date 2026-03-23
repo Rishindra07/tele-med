@@ -199,31 +199,33 @@ export default function DoctorPatients() {
             </Typography>
           </Box>
 
-          <TextField
-            size="small"
-            placeholder="Search patient or department"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            sx={{
-              minWidth: { xs: '100%', lg: 320 },
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 3,
-                bgcolor: '#fff'
-              }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: colors.muted }} />
-                </InputAdornment>
-              )
-            }}
-          />
+
         </Stack>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '300px 1fr' }, gap: 3, alignItems: 'start' }}>
-          <Box sx={{ p: 2.2, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-            <Typography sx={{ fontSize: 18, mb: 1.5 }}>All Patients</Typography>
+          <Stack spacing={2}>
+            <TextField
+              size="small"
+              placeholder="Search patient or department"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              sx={{
+                width: '100%',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  bgcolor: '#fff'
+                }
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: colors.muted }} />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <Box sx={{ p: 2.2, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+              <Typography sx={{ fontSize: 18, mb: 1.5 }}>All Patients</Typography>
             <Stack spacing={1}>
               {filtered.map((patient) => {
                 const isSelected = selected?.id === patient.id;
@@ -258,6 +260,7 @@ export default function DoctorPatients() {
               })}
             </Stack>
           </Box>
+        </Stack>
 
           {selected && (
             <Stack spacing={3}>

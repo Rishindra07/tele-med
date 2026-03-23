@@ -113,6 +113,7 @@ export default function Register() {
                 <MenuItem value="patient">Patient</MenuItem>
                 <MenuItem value="doctor">Doctor</MenuItem>
                 <MenuItem value="pharmacist">Pharmacist</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
               </TextField>
 
               {/* Patient Fields */}

@@ -30,14 +30,21 @@ export default function Login() {
       const res = await loginUser(data);
 
       if (res.user.role === "patient") navigate("/patient");
-      if (res.user.role === "doctor") navigate("/doctor");
-      if (res.user.role === "pharmacist") navigate("/pharmacy");
+      else if (res.user.role === "doctor") navigate("/doctor");
+      else if (res.user.role === "pharmacist") navigate("/pharmacy");
+      else if (res.user.role === "admin") navigate("/admin/analytics");
 
     } catch (err) {
       alert(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  const bypassAdminLogin = () => {
+    // For development/demo purposes
+    localStorage.setItem("user", JSON.stringify({ role: "admin", phone: "0000000000" }));
+    navigate("/admin/analytics");
   };
 
   return (
@@ -114,10 +121,20 @@ export default function Login() {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem' }}
+              sx={{ mt: 3, mb: 1, py: 1.5, fontSize: '1rem' }}
               disabled={loading}
             >
               {loading ? "Signing In..." : "Sign In"}
+            </Button>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              color="secondary"
+              onClick={bypassAdminLogin}
+              sx={{ mb: 2, py: 1, textTransform: 'none', fontWeight: 600 }}
+            >
+              Dev: Login as Admin (Bypass)
             </Button>
             
             <Box display="flex" justifyContent="center">
