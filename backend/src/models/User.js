@@ -13,8 +13,6 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       default: null,
-      unique: true,
-      sparse: true,
       trim: true,
       match: [/^\+91[6-9]\d{9}$/, "Enter a valid Indian mobile number with +91"]
     },
@@ -39,14 +37,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Enter a valid email address"]
     },
-    email_verified: {
-      type: Boolean,
-      default: false
-    },
-    email_verified_at: {
-      type: Date,
-      default: null
-    },
+    // Verification fields removed
     preferred_language: {
       type: String,
       default: "EN",
@@ -103,7 +94,7 @@ userSchema.virtual("name").get(function getName() {
 
 userSchema.pre("save", async function hashPassword() {
   if (!this.isModified("password_hash")) return;
-  if (/^\$2[aby]\$\d+\$/.test(this.password_hash)) return;
+  if (/^\$2[aby]\$\d+/.test(this.password_hash)) return;
   this.password_hash = await bcrypt.hash(this.password_hash, 12);
 });
 
@@ -126,11 +117,11 @@ userSchema.methods.comparePassword = function comparePassword(plainPassword) {
 };
 
 userSchema.methods.isVerified = function isVerified() {
-  return this.email_verified;
+  return true; // Simple auth, always verified
 };
 
 userSchema.methods.canAccess = function canAccess() {
-  if (!this.is_active || !this.isVerified()) return false;
+  if (!this.is_active) return false;
   if (["doctor", "pharmacist"].includes(this.role)) return this.is_approved;
   return true;
 };

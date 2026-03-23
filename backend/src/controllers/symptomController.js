@@ -1,6 +1,6 @@
-const axios = require("axios");
 const SymptomLog = require('../models/SymptomLog.js');
 const getDiagnosis = require('../services/aiService.js')
+
 const checkSymptoms = async (req, res) => {
   try {
     let { symptoms } = req.body;
@@ -47,4 +47,21 @@ const checkSymptoms = async (req, res) => {
   }
 };
 
-module.exports = checkSymptoms;
+const getMySymptomLogs = async (req, res) => {
+  try {
+    const logs = await SymptomLog.find({ patient: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      logs
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  checkSymptoms,
+  getMySymptomLogs
+};

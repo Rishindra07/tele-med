@@ -6,9 +6,11 @@ import {
   CircularProgress,
   InputAdornment,
   MenuItem,
+  Snackbar,
   Stack,
   TextField,
-  Typography
+  Typography,
+  Alert
 } from '@mui/material';
 import {
   AccessTimeRounded as TimeIcon,
@@ -19,96 +21,26 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
-import { getMyAppointments } from '../../api/appointmentApi';
+import { fetchMyAppointments, cancelAppointment } from '../../api/patientApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  soft: '#e7dfd3',
-  muted: '#8a857d',
-  text: '#2c2b28',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  gray: '#8b8b8b',
-  graySoft: '#f1eee7',
-  lime: '#7aa63d',
-  red: '#d9635b'
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  danger: '#d93025',
+  dangerSoft: '#fce8e6',
+  gray: '#9aa0a6'
 };
-
-const fallbackAppointments = [
-  {
-    id: 'upcoming-1',
-    doctorName: 'Dr. Priya Sharma',
-    specialization: 'General Physician',
-    dateLabel: 'Mon, 23 Mar 2026',
-    timeLabel: '10:00 AM',
-    status: 'confirmed',
-    notes: 'Session opens in 18 hrs',
-    category: 'upcoming'
-  },
-  {
-    id: 'followup-1',
-    doctorName: 'Dr. Manish Rao',
-    specialization: 'Cardiologist',
-    dateLabel: 'Fri, 27 Mar 2026',
-    timeLabel: '3:30 PM',
-    status: 'follow-up',
-    notes: 'Reason: Hypertension follow-up check · Ref: Consultation 2 Mar',
-    category: 'follow-up'
-  },
-  {
-    id: 'completed-1',
-    doctorName: 'Dr. Priya Sharma',
-    specialization: 'General Physician',
-    dateLabel: 'Tue, 18 Mar 2026',
-    timeLabel: '11:00 AM',
-    status: 'completed',
-    notes: 'Prescription issued',
-    category: 'completed'
-  },
-  {
-    id: 'completed-2',
-    doctorName: 'Dr. Manish Rao',
-    specialization: 'Cardiologist',
-    dateLabel: 'Mon, 2 Mar 2026',
-    timeLabel: '4:00 PM',
-    status: 'completed',
-    notes: 'Prescription issued',
-    category: 'completed'
-  }
-];
-
-const reminders = [
-  ['SMS reminder - Dr. Priya Sharma consultation', 'Tomorrow', colors.green],
-  ['Push alert - Join session link sent', 'Tomorrow', colors.blue],
-  ['Follow-up reminder - Dr. Manish Rao', '24 Mar', colors.amber],
-  ['Prescription expiry - Amoxicillin course ends', '25 Mar', colors.gray]
-];
-
-const quickBookOptions = [
-  'General Physician',
-  'Cardiologist',
-  'Dentist',
-  'Eye Specialist',
-  'Neurologist',
-  'Gynaecologist'
-];
-
-const monthDays = [
-  ['', '', '', '', '', '', ''],
-  ['23', '24', '25', '26', '27', '28', ''],
-  ['2', '3', '4', '5', '6', '7', '8'],
-  ['9', '10', '11', '12', '13', '14', '15'],
-  ['16', '17', '18', '19', '20', '21', '22'],
-  ['23', '24', '25', '26', '27', '28', '29'],
-  ['30', '31', '', '', '', '', '']
-];
-
-const markedDays = new Set(['3', '18', '23', '27']);
 
 const getInitials = (name) =>
   name
@@ -131,20 +63,22 @@ const formatDateLabel = (value) => {
 };
 
 const normalizeStatus = (status = '') => {
-  const value = status.toLowerCase();
+  const value = String(status).toLowerCase();
   if (value.includes('complete')) return 'completed';
   if (value.includes('cancel')) return 'cancelled';
   if (value.includes('follow')) return 'follow-up';
   if (value.includes('confirm')) return 'confirmed';
+  if (value.includes('schedule')) return 'upcoming';
   return 'upcoming';
 };
 
 const getStatusTone = (status) => {
-  if (status === 'confirmed' || status === 'upcoming') return [colors.green, colors.greenSoft];
-  if (status === 'completed') return [colors.gray, colors.graySoft];
-  if (status === 'follow-up') return [colors.blue, colors.blueSoft];
-  if (status === 'cancelled') return [colors.lime, '#eef6de'];
-  return [colors.amber, colors.amberSoft];
+  status = normalizeStatus(status);
+  if (status === 'confirmed' || status === 'upcoming') return [colors.primary, colors.primarySoft];
+  if (status === 'completed') return [colors.gray, colors.soft];
+  if (status === 'follow-up') return [colors.warning, colors.warningSoft];
+  if (status === 'cancelled') return [colors.danger, colors.dangerSoft];
+  return [colors.muted, colors.soft];
 };
 
 function PatientAppointments() {
@@ -154,15 +88,15 @@ function PatientAppointments() {
   const [query, setQuery] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState('all');
   const [error, setError] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
-
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(false);
     try {
-      const res = await getMyAppointments();
-      setAppointments(res.appointments || []);
+      const res = await fetchMyAppointments();
+      if (res.success) setAppointments(res.appointments || []);
     } catch (err) {
       setError(true);
       setAppointments([]);
@@ -171,13 +105,24 @@ function PatientAppointments() {
     }
   };
 
+  const handleCancel = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
+    try {
+       const res = await cancelAppointment(id);
+       if (res.success) {
+          setSnackbar({ open: true, message: 'Appointment cancelled successfully', severity: 'success' });
+          fetchAppointments();
+       }
+    } catch (err) {
+       setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to cancel appointment', severity: 'error' });
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
   }, []);
 
   const normalizedAppointments = useMemo(() => {
-    if (!appointments.length) return fallbackAppointments;
-
     return appointments.map((appointment, index) => {
       const status = normalizeStatus(appointment.status);
       const specialization = appointment.specialization || 'General Physician';
@@ -242,219 +187,138 @@ function PatientAppointments() {
   }, [normalizedAppointments]);
 
   const summaryCards = [
-    ['Upcoming', counts.upcoming || 2, 'Scheduled this week', 'Next: tomorrow 10 AM', colors.green],
-    ['Completed', counts.completed || 10, 'This year', 'Last: 18 Mar 2026', colors.blue],
-    ['Follow-ups', counts.followUp || 1, 'Pending follow-up', 'Due: 27 Mar 2026', colors.amber],
-    ['Cancelled', counts.cancelled || 0, 'This month', 'All attended', colors.lime]
+    ['Upcoming', counts.upcoming || 0, 'Scheduled consultations'],
+    ['Completed', counts.completed || 0, 'Total done'],
+    ['Follow-ups', counts.followUp || 0, 'Pending follow-up'],
+    ['Cancelled', counts.cancelled || 0, 'Missed or cancelled']
   ];
 
   const renderAppointmentCard = (appointment) => {
     const [accent, badgeBg] = getStatusTone(appointment.status);
     const isCompleted = appointment.category === 'completed';
     const isFollowUp = appointment.category === 'follow-up';
+    const isCancelled = appointment.category === 'cancelled';
 
     return (
       <Box
         key={appointment.id}
         sx={{
           p: 2.5,
-          borderRadius: 3,
-          border: `1px solid ${colors.soft}`,
+          borderRadius: 2,
+          border: `1px solid ${colors.line}`,
           bgcolor: '#fff',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
         }}
       >
         <Box sx={{ position: 'absolute', inset: '0 auto 0 0', width: 4, bgcolor: accent }} />
-        <Stack direction="row" spacing={2} alignItems="flex-start">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="flex-start">
           <Box
             sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
+              width: 52,
+              height: 52,
+              borderRadius: 1.5,
               bgcolor: badgeBg,
               color: accent,
               display: 'grid',
               placeItems: 'center',
-              fontWeight: 700,
-              fontSize: 24,
+              fontWeight: 600,
+              fontSize: 20,
               flexShrink: 0
             }}
           >
             {getInitials(appointment.doctorName)}
           </Box>
 
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
+          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }}>
               <Box>
-                <Typography sx={{ fontSize: 17, fontWeight: 500, lineHeight: 1.15 }}>
-                  {appointment.doctorName}
+                <Typography sx={{ fontSize: 17, fontWeight: 600, color: colors.text }}>
+                  Dr. {appointment.doctorName}
                 </Typography>
-                <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.15 }}>
+                <Typography sx={{ color: colors.muted, fontSize: 14 }}>
                   {appointment.specialization}
                 </Typography>
               </Box>
               <Chip
-                label={
-                  appointment.status === 'confirmed'
-                    ? 'Confirmed'
-                    : appointment.status === 'completed'
-                      ? 'Completed'
-                      : appointment.status === 'follow-up'
-                        ? 'Follow-up'
-                        : appointment.status === 'cancelled'
-                          ? 'Cancelled'
-                          : 'Upcoming'
-                }
+                label={appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                 sx={{
-                  height: 28,
+                  height: 26,
                   bgcolor: badgeBg,
                   color: accent,
-                  fontSize: 13
+                  fontSize: 13,
+                  fontWeight: 500,
+                  borderRadius: 1
                 }}
               />
             </Stack>
 
-            <Stack spacing={0.8} sx={{ mt: 1.5 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={3} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={0.75} alignItems="center">
                 <CalendarIcon sx={{ fontSize: 16, color: colors.muted }} />
-                <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>{appointment.dateLabel}</Typography>
+                <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>{appointment.dateLabel}</Typography>
               </Stack>
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={0.75} alignItems="center">
                 <TimeIcon sx={{ fontSize: 16, color: colors.muted }} />
-                <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>{appointment.timeLabel}</Typography>
+                <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>{appointment.timeLabel}</Typography>
               </Stack>
-              {!isCompleted && (
-                <Stack direction="row" spacing={1} alignItems="center">
+              {!isCompleted && !isCancelled && (
+                <Stack direction="row" spacing={0.75} alignItems="center">
                   <VideoIcon sx={{ fontSize: 16, color: colors.muted }} />
-                  <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>Video call</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>Video call</Typography>
                 </Stack>
               )}
             </Stack>
 
             <Box
               sx={{
-                mt: 1.5,
+                mt: 2,
                 px: 1.5,
-                py: 0.85,
-                borderRadius: 999,
+                py: 1,
+                borderRadius: 1,
                 display: 'inline-block',
-                bgcolor: isCompleted ? '#f5fbf7' : badgeBg,
-                color: isCompleted ? colors.green : accent,
-                fontSize: 14
+                bgcolor: colors.soft,
+                color: colors.muted,
+                fontSize: 13,
+                fontWeight: 500
               }}
             >
-              {appointment.notes}
+              Notes: {appointment.notes}
             </Box>
 
-            <Stack spacing={1.1} sx={{ mt: 1.7, maxWidth: 170 }}>
+            <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }} flexWrap="wrap" useFlexGap>
               {isCompleted ? (
                 <>
-                  <Button
-                    sx={{
-                      py: 1,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
+                  <Button variant="outlined" sx={{ borderRadius: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', py: 0.75 }}>
                     View Prescription
                   </Button>
-                  <Button
-                    onClick={() => navigate('/patient')}
-                    sx={{
-                      py: 1,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
+                  <Button variant="contained" onClick={() => navigate('/patient')} sx={{ borderRadius: 1.5, bgcolor: colors.primary, boxShadow: 'none', textTransform: 'none', py: 0.75, '&:hover': { bgcolor: colors.primaryDark, boxShadow: 'none' } }}>
                     Book Follow-up
                   </Button>
                 </>
               ) : isFollowUp ? (
                 <>
-                  <Button
-                    sx={{
-                      py: 1,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
-                    Add to Calendar
-                  </Button>
-                  <Button
-                    sx={{
-                      py: 1,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
+                  <Button variant="outlined" sx={{ borderRadius: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', py: 0.75 }}>
                     View Past Notes
                   </Button>
-                  <Button
-                    sx={{
-                      py: 0.9,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15,
-                      alignSelf: 'flex-start',
-                      px: 3
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    sx={{
-                      py: 1,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
+                  <Button variant="contained" sx={{ borderRadius: 1.5, bgcolor: colors.primary, boxShadow: 'none', textTransform: 'none', py: 0.75, '&:hover': { bgcolor: colors.primaryDark, boxShadow: 'none' } }}>
                     Join Consultation
                   </Button>
-                  <Button
-                    sx={{
-                      py: 0.9,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15
-                    }}
-                  >
+                </>
+              ) : isCancelled ? (
+                <Button variant="outlined" disabled sx={{ borderRadius: 1.5, textTransform: 'none', py: 0.75 }}>
+                  Cancelled
+                </Button>
+              ) : (
+                <>
+                  <Button variant="contained" sx={{ borderRadius: 1.5, bgcolor: colors.primary, boxShadow: 'none', textTransform: 'none', py: 0.75, '&:hover': { bgcolor: colors.primaryDark, boxShadow: 'none' } }}>
+                    Join Consultation
+                  </Button>
+                  <Button variant="outlined" sx={{ borderRadius: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', py: 0.75 }}>
                     Reschedule
                   </Button>
-                  <Button
-                    sx={{
-                      py: 0.9,
-                      borderRadius: 2.2,
-                      border: `1px solid ${colors.line}`,
-                      color: colors.text,
-                      textTransform: 'none',
-                      fontSize: 15,
-                      alignSelf: 'flex-start',
-                      px: 3
-                    }}
-                  >
+                  <Button onClick={() => handleCancel(appointment.id)} sx={{ borderRadius: 1.5, color: colors.danger, textTransform: 'none', py: 0.75 }}>
                     Cancel
                   </Button>
                 </>
@@ -468,81 +332,40 @@ function PatientAppointments() {
 
   return (
     <PatientShell activeItem="appointments">
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Stack
           direction={{ xs: 'column', lg: 'row' }}
           justifyContent="space-between"
           alignItems={{ xs: 'flex-start', lg: 'center' }}
           spacing={2}
-          sx={{ mb: 3 }}
+          sx={{ mb: 4 }}
         >
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
               Appointments
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 440, lineHeight: 1.2 }}>
-              Manage your upcoming and past consultations
+            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
+              Manage your upcoming schedule and past consultations.
             </Typography>
           </Box>
 
           <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
-            <Box
-              sx={{
-                px: 2.5,
-                py: 1.25,
-                borderRadius: 4,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#f7f3ea',
-                fontSize: 17,
-                lineHeight: 1.15
-              }}
-            >
-              {new Date().toLocaleDateString('en-GB', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}
-            </Box>
-            <Button
-              sx={{
-                minWidth: 48,
-                width: 48,
-                height: 48,
-                borderRadius: 3,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#fff',
-                color: colors.text,
-                position: 'relative'
-              }}
-            >
-              <NotificationIcon />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  bgcolor: colors.red
-                }}
-              />
-            </Button>
             <Button
               onClick={() => navigate('/patient')}
               sx={{
                 px: 3,
                 py: 1.25,
-                borderRadius: 3,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#fff',
-                color: colors.text,
+                borderRadius: 2,
+                bgcolor: colors.primary,
+                color: '#fff',
                 textTransform: 'none',
-                fontSize: 16
+                fontWeight: 600,
+                fontSize: 15,
+                boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
+                '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' }
               }}
             >
-              Book Appointment
+              + Book Appointment
             </Button>
           </Stack>
         </Stack>
@@ -551,278 +374,136 @@ function PatientAppointments() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
-            gap: 2,
-            mb: 3
+            gap: 3,
+            mb: 4
           }}
         >
-          {summaryCards.map(([title, value, subtitle, helper, dot]) => (
+          {summaryCards.map(([title, value, subtitle]) => (
             <Box
               key={title}
               sx={{
-                minHeight: 156,
-                p: 2.5,
-                borderRadius: 3.5,
+                p: 3,
+                borderRadius: 2,
                 border: `1px solid ${colors.line}`,
-                bgcolor: colors.paper
+                bgcolor: colors.paper,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
               }}
             >
-              <Stack direction="row" spacing={0.8} alignItems="center">
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dot }} />
-                <Typography sx={{ fontSize: 16, color: colors.muted }}>{title}</Typography>
-              </Stack>
-              <Typography sx={{ mt: 1.2, fontSize: 30, lineHeight: 1 }}>{value}</Typography>
-              <Typography sx={{ mt: 1, color: '#a29b92', fontSize: 15, lineHeight: 1.15 }}>{subtitle}</Typography>
-              <Typography sx={{ mt: 1, color: dot, fontSize: 15, lineHeight: 1.15 }}>{helper}</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</Typography>
+              <Typography sx={{ mt: 1, fontSize: 32, fontWeight: 600, color: colors.text }}>{value}</Typography>
+              <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14 }}>{subtitle}</Typography>
             </Box>
           ))}
         </Box>
 
-        <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3} alignItems="flex-start">
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mb: 1.8 }}>
-              {[
-                ['all', 'All'],
-                ['upcoming', 'Upcoming'],
-                ['completed', 'Completed'],
-                ['follow-up', 'Follow-up'],
-                ['cancelled', 'Cancelled']
-              ].map(([value, label]) => (
-                <Button
-                  key={value}
-                  onClick={() => setActiveFilter(value)}
-                  sx={{
-                    px: 2.5,
-                    py: 0.95,
-                    borderRadius: 999,
-                    border: `1px solid ${activeFilter === value ? colors.green : colors.line}`,
-                    bgcolor: activeFilter === value ? colors.green : '#fff',
-                    color: activeFilter === value ? '#fff' : '#67625b',
-                    textTransform: 'none',
-                    fontSize: 15
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
-            </Stack>
+        <Box sx={{ bgcolor: colors.paper, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
+             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+               {[
+                 ['all', 'All'],
+                 ['upcoming', 'Upcoming'],
+                 ['completed', 'Completed'],
+                 ['follow-up', 'Follow-up'],
+                 ['cancelled', 'Cancelled']
+               ].map(([value, label]) => (
+                 <Chip
+                   key={value}
+                   label={label}
+                   clickable
+                   onClick={() => setActiveFilter(value)}
+                   sx={{
+                     px: 1,
+                     py: 2,
+                     borderRadius: 1.5,
+                     border: `1px solid ${activeFilter === value ? colors.primary : colors.line}`,
+                     bgcolor: activeFilter === value ? colors.primary : '#fff',
+                     color: activeFilter === value ? '#fff' : colors.muted,
+                     fontSize: 14,
+                     fontWeight: 500,
+                     '&:hover': { bgcolor: activeFilter === value ? colors.primaryDark : colors.soft }
+                   }}
+                 />
+               ))}
+             </Stack>
 
-            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1.5} sx={{ mb: 1.8 }}>
-              <TextField
-                placeholder="Search doctor, specialization"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
-                    bgcolor: '#fff'
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: colors.muted }} />
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Stack>
-
-            <TextField
-              select
-              fullWidth
-              value={specializationFilter}
-              onChange={(event) => setSpecializationFilter(event.target.value)}
-              sx={{
-                mb: 2.5,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  bgcolor: '#fff'
-                }
-              }}
-            >
-              <MenuItem value="all">All specializations</MenuItem>
-              {specializationOptions
-                .filter((item) => item !== 'all')
-                .map((item) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-            </TextField>
-
-            {loading ? (
-              <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
-                <CircularProgress size={30} sx={{ color: colors.green }} />
-              </Box>
-            ) : (
-              <Stack spacing={2}>
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1 }}>UPCOMING</Typography>
-                {groupedAppointments.upcoming.length ? (
-                  groupedAppointments.upcoming.map(renderAppointmentCard)
-                ) : (
-                  <Box sx={{ p: 3, borderRadius: 3, border: `1px dashed ${colors.line}`, bgcolor: colors.paper }}>
-                    <Typography sx={{ color: colors.muted, fontSize: 16 }}>
-                      No upcoming appointments match your filters.
-                    </Typography>
-                  </Box>
-                )}
-
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, pt: 1 }}>COMPLETED</Typography>
-                {groupedAppointments.completed.length ? (
-                  groupedAppointments.completed.map(renderAppointmentCard)
-                ) : (
-                  <Box sx={{ p: 3, borderRadius: 3, border: `1px dashed ${colors.line}`, bgcolor: colors.paper }}>
-                    <Typography sx={{ color: colors.muted, fontSize: 16 }}>
-                      No completed appointments match your filters.
-                    </Typography>
-                  </Box>
-                )}
-
-                {groupedAppointments.cancelled.length > 0 && (
-                  <>
-                    <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, pt: 1 }}>CANCELLED</Typography>
-                    {groupedAppointments.cancelled.map(renderAppointmentCard)}
-                  </>
-                )}
-              </Stack>
-            )}
-          </Box>
-
-          <Stack spacing={3} sx={{ width: { xs: '100%', xl: 330 }, flexShrink: 0 }}>
-            <Box
-              sx={{
-                p: 2.5,
-                borderRadius: 3.5,
-                border: `1px solid ${colors.line}`,
-                bgcolor: colors.paper
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.6 }}>
-                <Button
-                  sx={{
-                    minWidth: 38,
-                    width: 38,
-                    height: 32,
-                    borderRadius: 2,
-                    border: `1px solid ${colors.line}`,
-                    color: colors.text
-                  }}
-                >
-                  {'<'}
-                </Button>
-                <Typography sx={{ fontSize: 16.5 }}>March 2026</Typography>
-                <Box sx={{ width: 38 }} />
-              </Stack>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(7, 1fr)',
-                  gap: 1,
-                  textAlign: 'center'
-                }}
-              >
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                  <Typography key={day} sx={{ color: '#b1aaa1', fontSize: 13 }}>
-                    {day}
-                  </Typography>
-                ))}
-
-                {monthDays.flat().map((day, index) => (
-                  <Box key={`${day}-${index}`} sx={{ minHeight: 34 }}>
-                    {day && (
-                      <Box sx={{ display: 'grid', justifyItems: 'center', gap: 0.5 }}>
-                        <Typography sx={{ fontSize: 14.5, color: '#4c4842' }}>{day}</Typography>
-                        {markedDays.has(day) && (
-                          <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: colors.green }} />
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                p: 2.5,
-                borderRadius: 3.5,
-                border: `1px solid ${colors.line}`,
-                bgcolor: colors.paper
-              }}
-            >
-              <Typography sx={{ fontSize: 18, mb: 2 }}>Quick book by specialization</Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.2 }}>
-                {quickBookOptions.map((item, index) => (
-                  <Button
-                    key={item}
-                    sx={{
-                      minHeight: 60,
-                      borderRadius: 2.5,
-                      border: `1px solid ${index === 0 ? colors.green : colors.line}`,
-                      bgcolor: index === 0 ? '#eef9f4' : '#fff',
-                      color: '#4e4a45',
-                      textTransform: 'none',
-                      fontSize: 14
-                    }}
-                  >
-                    {item}
-                  </Button>
-                ))}
-              </Box>
-              <Button
-                onClick={() => navigate('/patient')}
-                sx={{
-                  mt: 1.8,
-                  width: '100%',
-                  py: 1.2,
-                  borderRadius: 2.5,
-                  border: `1px solid ${colors.line}`,
-                  color: colors.text,
-                  textTransform: 'none',
-                  fontSize: 16
-                }}
-              >
-                Find Available Doctors
-              </Button>
-            </Box>
-
-            <Box
-              sx={{
-                p: 2.5,
-                borderRadius: 3.5,
-                border: `1px solid ${colors.line}`,
-                bgcolor: colors.paper
-              }}
-            >
-              <Typography sx={{ fontSize: 18, mb: 2 }}>Upcoming reminders</Typography>
-              <Stack spacing={1.5}>
-                {reminders.map(([label, time, dot]) => (
-                  <Stack
-                    key={label}
-                    direction="row"
-                    spacing={1.25}
-                    justifyContent="space-between"
-                    alignItems="center"
-                    sx={{
-                      pt: 0.5,
-                      borderTop: `1px solid ${colors.soft}`,
-                      '&:first-of-type': { borderTop: 'none', pt: 0 }
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.2} alignItems="flex-start" sx={{ minWidth: 0 }}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: dot, mt: 0.7, flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14.5, color: '#4a4641', lineHeight: 1.3 }}>{label}</Typography>
-                    </Stack>
-                    <Typography sx={{ color: '#b1aaa1', fontSize: 13.5, flexShrink: 0 }}>{time}</Typography>
-                  </Stack>
-                ))}
-              </Stack>
-            </Box>
+             <Stack direction="row" spacing={1.5}>
+               <TextField
+                 placeholder="Search doctor..."
+                 value={query}
+                 onChange={(event) => setQuery(event.target.value)}
+                 size="small"
+                 sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                 InputProps={{
+                   startAdornment: (
+                     <InputAdornment position="start">
+                       <SearchIcon fontSize="small" sx={{ color: colors.muted }} />
+                     </InputAdornment>
+                   )
+                 }}
+               />
+               <TextField
+                 select
+                 value={specializationFilter}
+                 onChange={(event) => setSpecializationFilter(event.target.value)}
+                 size="small"
+                 sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+               >
+                 <MenuItem value="all">Every Specialization</MenuItem>
+                 {specializationOptions
+                   .filter((item) => item !== 'all')
+                   .map((item) => (
+                     <MenuItem key={item} value={item}>
+                       {item}
+                     </MenuItem>
+                   ))}
+               </TextField>
+             </Stack>
           </Stack>
-        </Stack>
+
+          {loading ? (
+            <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
+              <CircularProgress size={30} sx={{ color: colors.primary }} />
+            </Box>
+          ) : filteredAppointments.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
+               <CalendarIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
+               <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>No appointments found</Typography>
+               <Typography sx={{ color: colors.muted, fontSize: 14, mt: 1 }}>{query || activeFilter !== 'all' ? 'Try adjusting your search or filters.' : 'You have not booked any appointments yet.'}</Typography>
+               {!(query || activeFilter !== 'all') && (
+                 <Button onClick={() => navigate('/patient')} variant="outlined" sx={{ mt: 3, borderRadius: 1.5, borderColor: colors.primary, color: colors.primary, textTransform: 'none', fontWeight: 600 }}>
+                   Book an Appointment
+                 </Button>
+               )}
+            </Box>
+          ) : (
+            <Stack spacing={4}>
+              {groupedAppointments.upcoming.length > 0 && (
+                <Box>
+                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Upcoming & Follow-up</Typography>
+                  <Stack spacing={2}>{groupedAppointments.upcoming.map(renderAppointmentCard)}</Stack>
+                </Box>
+              )}
+              {groupedAppointments.completed.length > 0 && (
+                <Box>
+                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Completed</Typography>
+                  <Stack spacing={2}>{groupedAppointments.completed.map(renderAppointmentCard)}</Stack>
+                </Box>
+              )}
+              {groupedAppointments.cancelled.length > 0 && (
+                <Box>
+                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Cancelled</Typography>
+                  <Stack spacing={2}>{groupedAppointments.cancelled.map(renderAppointmentCard)}</Stack>
+                </Box>
+              )}
+            </Stack>
+          )}
+        </Box>
       </Box>
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </PatientShell>
   );
 }

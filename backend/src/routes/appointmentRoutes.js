@@ -8,7 +8,8 @@ const {
   setDoctorSlots,
   bookAppointment,
   getMyAppointments,
-  getDoctorAppointments
+  getDoctorAppointments,
+  cancelAppointment
 } = require("../controllers/appointmentController.js");
 
 const  protect  = require("../middleware/authMiddleware.js");
@@ -27,5 +28,7 @@ router.post("/book", protect, allowRoles("patient"), bookAppointment);
 router.get("/my", protect, allowRoles("patient"), getMyAppointments);
 
 router.get("/doctor", protect, allowRoles("doctor"), getDoctorAppointments);
+
+router.put("/cancel/:id", protect, allowRoles("patient"), cancelAppointment);
 
 module.exports = router;

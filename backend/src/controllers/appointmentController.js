@@ -305,3 +305,39 @@ exports.getDoctorAppointments = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+/* ---------------- CANCEL APPOINTMENT ---------------- */
+exports.cancelAppointment = async (req, res) => {
+  try {
+    const appointment = await Consultation.findOne({
+      _id: req.params.id,
+      patient: req.user._id
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    if (appointment.status === "Cancelled") {
+      return res.status(400).json({ message: "Appointment already cancelled" });
+    }
+
+    appointment.status = "Cancelled";
+    await appointment.save();
+
+    // Notify doctor
+    await createNotification({
+      userId: appointment.doctor,
+      title: "Appointment Cancelled",
+      message: `The appointment on ${appointment.appointmentDate.toISOString().split("T")[0]} at ${appointment.timeSlot} has been cancelled by the patient.`
+    });
+
+    res.json({
+      success: true,
+      message: "Appointment cancelled successfully"
+    });
+
+  } catch (error) {
+     res.status(500).json({ message: "Failed to cancel appointment" });
+  }
+};

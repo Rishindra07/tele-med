@@ -10,26 +10,26 @@ import {
   Typography
 } from '@mui/material';
 import {
-  NotificationsNoneRounded as NotificationIcon,
   SaveRounded as SaveIcon,
   WarningAmberRounded as WarningIcon
 } from '@mui/icons-material';
 import { useSearchParams } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
+import { fetchPatientProfile, updatePatientSettings as savePatientSettings } from '../../api/patientApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  soft: '#e9e2d8',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  blue: '#4a90e2',
-  amber: '#c57d17',
-  amberSoft: '#fbefdc',
-  red: '#d9635b',
-  redSoft: '#fdeaea'
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  danger: '#d93025',
+  gray: '#9aa0a6'
 };
 
 const titles = {
@@ -67,11 +67,11 @@ function Row({ name, desc, action, danger = false }) {
       justifyContent="space-between"
       alignItems={{ xs: 'flex-start', md: 'center' }}
       spacing={2}
-      sx={{ py: 1.7, borderBottom: `1px solid ${danger ? '#f7d4d4' : colors.soft}` }}
+      sx={{ py: 2, borderBottom: `1px solid ${danger ? '#fad2d2' : colors.soft}`, '&:last-child': { borderBottom: 'none' } }}
     >
       <Box sx={{ pr: 2 }}>
-        <Typography sx={{ fontSize: 15, color: danger ? '#892727' : colors.text }}>{name}</Typography>
-        <Typography sx={{ mt: 0.35, color: danger ? '#a24a4a' : colors.muted, fontSize: 13.5, lineHeight: 1.45 }}>
+        <Typography sx={{ fontSize: 15, fontWeight: 500, color: danger ? colors.danger : colors.text }}>{name}</Typography>
+        <Typography sx={{ mt: 0.5, color: danger ? '#d35c5c' : colors.muted, fontSize: 13.5, lineHeight: 1.45 }}>
           {desc}
         </Typography>
       </Box>
@@ -82,19 +82,21 @@ function Row({ name, desc, action, danger = false }) {
 
 function PillGroup({ options, selected }) {
   return (
-    <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
+    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
       {options.map((option) => (
         <Button
           key={option}
           sx={{
-            px: 1.8,
-            py: 0.7,
-            borderRadius: 999,
-            border: `1px solid ${selected === option ? colors.green : colors.line}`,
-            bgcolor: selected === option ? colors.greenSoft : '#fff',
-            color: selected === option ? '#0d5d49' : '#67625b',
+            px: 2,
+            py: 0.5,
+            borderRadius: 1.5,
+            border: `1px solid ${selected === option ? colors.primary : colors.line}`,
+            bgcolor: selected === option ? colors.primarySoft : '#fff',
+            color: selected === option ? colors.primaryDark : colors.text,
             textTransform: 'none',
-            fontSize: 13.5
+            fontSize: 14,
+            fontWeight: selected === option ? 600 : 400,
+            '&:hover': { bgcolor: selected === option ? colors.primarySoft : colors.soft }
           }}
         >
           {option}
@@ -107,6 +109,8 @@ function PillGroup({ options, selected }) {
 export default function PatientSettings() {
   const [searchParams] = useSearchParams();
   const section = sectionOrder.includes(searchParams.get('section')) ? searchParams.get('section') : '';
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [toggles, setToggles] = useState({
     compact: false,
     animations: true,
@@ -136,6 +140,23 @@ export default function PatientSettings() {
     helperMode: false
   });
 
+  React.useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchPatientProfile();
+        if (res.success && res.profile && res.profile.settings) {
+          setToggles(prev => ({ ...prev, ...res.profile.settings }));
+        }
+      } catch (err) {
+        console.error('Failed to load settings', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || '{}');
@@ -145,21 +166,38 @@ export default function PatientSettings() {
   }, []);
 
   const current = section || '';
-  const header = current ? titles[current] : ['Settings', 'Select a section from the sidebar to begin'];
+  const header = current ? titles[current] : ['Settings', 'Select a section from the sidebar to begin.'];
 
   const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+      const res = await savePatientSettings(toggles);
+      if (res.success) {
+        setToggles(prev => ({ ...prev, ...res.settings }));
+      }
+    } catch (err) {
+      console.error('Failed to save settings', err);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const actionButton = (label, kind = 'outline') => (
     <Button
       sx={{
-        px: 2.2,
-        py: 0.8,
-        borderRadius: 2.2,
-        border: `1px solid ${kind === 'danger' ? colors.red : kind === 'outline' ? colors.green : colors.line}`,
-        bgcolor: kind === 'filled' ? colors.green : '#fff',
-        color: kind === 'filled' ? '#fff' : kind === 'danger' ? colors.red : kind === 'outline' ? colors.green : colors.text,
+        px: 2,
+        py: 0.75,
+        borderRadius: 1.5,
+        border: `1px solid ${kind === 'danger' ? colors.danger : kind === 'outline' ? colors.primary : colors.line}`,
+        bgcolor: kind === 'filled' ? colors.primary : '#fff',
+        color: kind === 'filled' ? '#fff' : kind === 'danger' ? colors.danger : kind === 'outline' ? colors.primary : colors.text,
         textTransform: 'none',
-        fontSize: 13.5
+        fontSize: 14,
+        fontWeight: 500,
+        '&:hover': { bgcolor: kind === 'filled' ? colors.primaryDark : colors.soft }
       }}
     >
       {label}
@@ -169,13 +207,13 @@ export default function PatientSettings() {
   const renderPanel = () => {
     if (!current) {
       return (
-        <Box sx={{ p: 8, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, textAlign: 'center' }}>
-          <Box sx={{ width: 52, height: 52, borderRadius: 3, bgcolor: '#f5f1e9', display: 'grid', placeItems: 'center', mx: 'auto', mb: 2 }}>
-            <SaveIcon sx={{ color: '#b2aaa0' }} />
+        <Box sx={{ py: 10, px: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ width: 64, height: 64, borderRadius: 1.5, bgcolor: colors.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
+            <SaveIcon sx={{ color: colors.gray, fontSize: 32 }} />
           </Box>
-          <Typography sx={{ fontSize: 18, color: '#5a554e' }}>Click Settings in the sidebar</Typography>
-          <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, lineHeight: 1.6 }}>
-            The settings menu will expand in the sidebar. Click any sub-section to view its options here.
+          <Typography sx={{ fontSize: 18, color: colors.text, fontWeight: 600 }}>Select a category to structure settings</Typography>
+          <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 300, mx: 'auto' }}>
+            Click an item on the left sidebar to find and modify the settings associated with it.
           </Typography>
         </Box>
       );
@@ -183,20 +221,19 @@ export default function PatientSettings() {
 
     if (current === 'appearance') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Row name="Theme" desc="Choose between light, dark or system default" action={<PillGroup options={['Light', 'Dark', 'System']} selected="Light" />} />
-          <Row name="Accent color" desc="Main brand color used across the app" action={<Stack direction="row" spacing={1}>{['#1D9E75','#378ADD','#7F77DD','#D85A30','#BA7517','#888780'].map((color, i) => <Box key={color} sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: color, border: i===0 ? '2px solid #222' : '2px solid transparent' }} />)}</Stack>} />
           <Row name="Text size" desc="Adjust for better readability on small screens" action={<PillGroup options={['Small', 'Medium', 'Large']} selected="Medium" />} />
-          <Row name="Compact layout" desc="Show more content with tighter spacing" action={<Switch checked={toggles.compact} onChange={() => toggle('compact')} />} />
-          <Row name="Animations" desc="Enable smooth transitions and motion effects" action={<Switch checked={toggles.animations} onChange={() => toggle('animations')} />} />
+          <Row name="Compact layout" desc="Show more content with tighter spacing" action={<Switch checked={toggles.compact} onChange={() => toggle('compact')} color="primary" />} />
+          <Row name="Animations" desc="Enable smooth transitions and motion effects" action={<Switch checked={toggles.animations} onChange={() => toggle('animations')} color="primary" />} />
         </Box>
       );
     }
 
     if (current === 'language') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 1.2 }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
             {[
               ['English', 'English', true],
               ['हिन्दी', 'Hindi'],
@@ -206,9 +243,9 @@ export default function PatientSettings() {
               ['বাংলা', 'Bengali'],
               ['मराठी', 'Marathi']
             ].map(([native, eng, active]) => (
-              <Box key={native} sx={{ p: 1.5, borderRadius: 2.5, border: `1px solid ${active ? colors.green : colors.line}`, bgcolor: active ? colors.greenSoft : '#fff', textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 15 }}>{native}</Typography>
-                <Typography sx={{ mt: 0.2, color: colors.muted, fontSize: 12 }}>{eng}</Typography>
+              <Box key={native} sx={{ p: 2, borderRadius: 1.5, border: `1px solid ${active ? colors.primary : colors.line}`, bgcolor: active ? colors.primarySoft : '#fff', textAlign: 'center', cursor: 'pointer', '&:hover': { bgcolor: active ? colors.primarySoft : colors.soft } }}>
+                <Typography sx={{ fontSize: 15, fontWeight: active ? 600 : 500, color: active ? colors.primaryDark : colors.text }}>{native}</Typography>
+                <Typography sx={{ mt: 0.5, color: active ? colors.primary : colors.muted, fontSize: 13 }}>{eng}</Typography>
               </Box>
             ))}
           </Box>
@@ -218,48 +255,40 @@ export default function PatientSettings() {
 
     if (current === 'notifications') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1 }}>Appointments</Typography>
-          <Row name="Appointment reminders" desc="Get notified before your consultation" action={<Switch checked={toggles.appointmentReminder} onChange={() => toggle('appointmentReminder')} />} />
-          <Row name="Reminder timing" desc="How early to send the first reminder" action={<Select size="small" value="24 hours before"><MenuItem value="24 hours before">24 hours before</MenuItem></Select>} />
-          <Row name="Follow-up reminders" desc="Notify when a follow-up is due" action={<Switch checked={toggles.followup} onChange={() => toggle('followup')} />} />
-          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>Prescriptions & Pharmacy</Typography>
-          <Row name="Prescription ready alert" desc="SMS when pharmacy marks medicines as ready" action={<Switch checked />} />
-          <Row name="Medicine expiry warnings" desc="Alert when a prescribed course is about to end" action={<Switch checked />} />
-          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>Channels</Typography>
-          <Row name="SMS notifications" desc="Alerts to +91 98140 55872" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} />} />
-          <Row name="Push notifications" desc="In-app and browser push alerts" action={<Switch checked={toggles.push} onChange={() => toggle('push')} />} />
-          <Row name="Email notifications" desc={`Summary emails to ${user?.email || 'ramesh.kumar83@gmail.com'}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
-          <Row name="Do not disturb" desc="Silence non-emergency alerts at night" action={<Stack direction="row" spacing={1}><Select size="small" value="10 PM"><MenuItem value="10 PM">10 PM</MenuItem></Select><Typography sx={{ alignSelf: 'center', color: colors.muted, fontSize: 12 }}>to</Typography><Select size="small" value="7 AM"><MenuItem value="7 AM">7 AM</MenuItem></Select></Stack>} />
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Typography sx={{ color: colors.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1, mt: 1 }}>Appointments</Typography>
+          <Row name="Appointment reminders" desc="Get notified before your consultation" action={<Switch checked={toggles.appointmentReminder} onChange={() => toggle('appointmentReminder')} color="primary" />} />
+          <Row name="Reminder timing" desc="How early to send the first reminder" action={<Select size="small" value="24 hours before" sx={{fontSize: 14}}><MenuItem value="24 hours before">24 hours before</MenuItem></Select>} />
+          <Row name="Follow-up reminders" desc="Notify when a follow-up is due" action={<Switch checked={toggles.followup} onChange={() => toggle('followup')} color="primary" />} />
+          
+          <Typography sx={{ color: colors.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1, mt: 4 }}>Channels</Typography>
+          <Row name="SMS notifications" desc="Alerts to +91 98140 *****" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} color="primary" />} />
+          <Row name="Push notifications" desc="In-app and browser push alerts" action={<Switch checked={toggles.push} onChange={() => toggle('push')} color="primary" />} />
+          <Row name="Email notifications" desc={`Summary emails to ${user?.email || 'user@example.com'}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} color="primary" />} />
         </Box>
       );
     }
 
     if (current === 'connectivity') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Box sx={{ mb: 1.8, px: 1.5, py: 1, borderRadius: 2.2, bgcolor: colors.greenSoft, color: '#0d5d49', fontSize: 13.5 }}>Connected - 3G · 320 kbps detected</Box>
-          <Row name="Low bandwidth mode" desc="Compress images and reduce video quality automatically" action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} />} />
-          <Row name="Video quality" desc="Default quality for video consultations" action={<Select size="small" value="Auto (recommended)"><MenuItem value="Auto (recommended)">Auto (recommended)</MenuItem></Select>} />
-          <Row name="Auto-switch to audio only" desc="Drop to audio if video is unstable" action={<Switch checked={toggles.audioOnly} onChange={() => toggle('audioOnly')} />} />
-          <Row name="Auto-switch to text chat" desc="Fall back to chat if audio also fails" action={<Switch checked={toggles.textFallback} onChange={() => toggle('textFallback')} />} />
-          <Row name="Offline mode" desc="Cache records locally for use without internet" action={<Switch checked={toggles.offline} onChange={() => toggle('offline')} />} />
-          <Row name="Background sync" desc="Sync pending actions when internet reconnects" action={<Switch checked={toggles.backgroundSync} onChange={() => toggle('backgroundSync')} />} />
-          <Row name="Sync only on Wi-Fi" desc="Avoid data charges by syncing only on Wi-Fi" action={<Switch checked={toggles.wifiOnly} onChange={() => toggle('wifiOnly')} />} />
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ mb: 3, px: 2, py: 1.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 14, fontWeight: 500 }}>Connected - 3G · 320 kbps detected</Box>
+          <Row name="Low bandwidth mode" desc="Compress images and reduce video quality automatically" action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} color="primary" />} />
+          <Row name="Auto-switch to audio only" desc="Drop to audio if video is unstable" action={<Switch checked={toggles.audioOnly} onChange={() => toggle('audioOnly')} color="primary" />} />
+          <Row name="Auto-switch to text chat" desc="Fall back to chat if audio also fails" action={<Switch checked={toggles.textFallback} onChange={() => toggle('textFallback')} color="primary" />} />
         </Box>
       );
     }
 
     if (current === 'privacy') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Row name="Share records with doctors" desc="Doctors can view your full medical history during consultations" action={<Switch checked={toggles.shareDoctors} onChange={() => toggle('shareDoctors')} />} />
-          <Row name="Share with pharmacists" desc="Pharmacists receive your prescription and contact details" action={<Switch checked={toggles.sharePharmacy} onChange={() => toggle('sharePharmacy')} />} />
-          <Row name="Contribute to research" desc="Anonymised data helps improve rural healthcare in India" action={<Switch checked={toggles.research} onChange={() => toggle('research')} />} />
-          <Row name="Location access" desc="Used to show nearby pharmacies and doctors" action={<Switch checked={toggles.location} onChange={() => toggle('location')} />} />
-          <Row name="Analytics & usage data" desc="Help us improve the app with anonymised usage patterns" action={<Switch checked={toggles.analytics} onChange={() => toggle('analytics')} />} />
-          <Box sx={{ mt: 1.8, p: 1.6, borderRadius: 2.5, bgcolor: '#f5f1e9', color: colors.muted, fontSize: 13.5, lineHeight: 1.6 }}>
-            Seva TeleHealth complies with India's DISHA Digital Health Data Act and the IT Act 2000. Your data is encrypted at rest and in transit. We never sell your data to advertisers.
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Row name="Share records with doctors" desc="Doctors can view your full medical history during consultations" action={<Switch checked={toggles.shareDoctors} onChange={() => toggle('shareDoctors')} color="primary" />} />
+          <Row name="Share with pharmacists" desc="Pharmacists receive your prescription and contact details" action={<Switch checked={toggles.sharePharmacy} onChange={() => toggle('sharePharmacy')} color="primary" />} />
+          <Row name="Location access" desc="Used to show nearby pharmacies and doctors" action={<Switch checked={toggles.location} onChange={() => toggle('location')} color="primary" />} />
+          <Row name="Analytics & usage data" desc="Help us improve the app with anonymised usage patterns" action={<Switch checked={toggles.analytics} onChange={() => toggle('analytics')} color="primary" />} />
+          <Box sx={{ mt: 3, p: 2, borderRadius: 1.5, bgcolor: colors.soft, color: colors.text, fontSize: 13, lineHeight: 1.6 }}>
+            Seva TeleHealth complies with data protection regulations. Your data is encrypted at rest and in transit. We never sell your data to advertisers.
           </Box>
         </Box>
       );
@@ -267,12 +296,11 @@ export default function PatientSettings() {
 
     if (current === 'security') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Row name="Password" desc="Last changed 3 months ago" action={actionButton('Change password')} />
-          <Row name="Two-factor authentication" desc="OTP sent to +91 98140 55872 on each login" action={<Box sx={{ px: 1.3, py: 0.5, borderRadius: 999, bgcolor: colors.greenSoft, color: colors.green, fontSize: 12.5 }}>Enabled</Box>} />
-          <Row name="Biometric login" desc="Use fingerprint or face ID to unlock the app" action={<Switch checked={toggles.biometric} onChange={() => toggle('biometric')} />} />
-          <Row name="Auto-lock timeout" desc="Lock the app after inactivity" action={<Select size="small" value="5 minutes"><MenuItem value="5 minutes">5 minutes</MenuItem></Select>} />
-          <Row name="Login alerts" desc="SMS alert whenever a new login is detected" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} />} />
+          <Row name="Two-factor authentication" desc="OTP sent to mobile on each login" action={<Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 13, fontWeight: 600 }}>Enabled</Box>} />
+          <Row name="Auto-lock timeout" desc="Lock the app after inactivity" action={<Select size="small" value="5 minutes" sx={{fontSize: 14}}><MenuItem value="5 minutes">5 minutes</MenuItem><MenuItem value="15 minutes">15 minutes</MenuItem></Select>} />
+          <Row name="Login alerts" desc="SMS alert whenever a new login is detected" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} color="primary" />} />
           <Row name="Export my data" desc="Download all your health records as a PDF archive" action={actionButton('Export PDF', 'gray')} />
         </Box>
       );
@@ -280,69 +308,58 @@ export default function PatientSettings() {
 
     if (current === 'storage') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Box sx={{ mb: 2.2 }}>
-            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-              <Typography sx={{ fontSize: 14.5 }}>Offline cache</Typography>
-              <Typography sx={{ fontSize: 14.5, color: colors.green }}>6.2 MB / 10 MB</Typography>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ mb: 4 }}>
+            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography sx={{ fontSize: 15, fontWeight: 500 }}>Offline cache</Typography>
+              <Typography sx={{ fontSize: 15, color: colors.primaryDark, fontWeight: 600 }}>0.0 MB / 50 MB</Typography>
             </Stack>
-            <LinearProgress variant="determinate" value={62} sx={{ height: 8, borderRadius: 999, bgcolor: '#f0efe8', '& .MuiLinearProgress-bar': { bgcolor: colors.green } }} />
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.6 }}>
-              <Typography sx={{ color: '#a7a198', fontSize: 12 }}>6.2 MB used</Typography>
-              <Typography sx={{ color: '#a7a198', fontSize: 12 }}>3.8 MB free</Typography>
+            <LinearProgress variant="determinate" value={0} sx={{ height: 8, borderRadius: 4, bgcolor: colors.soft, '& .MuiLinearProgress-bar': { bgcolor: colors.primary } }} />
+            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+              <Typography sx={{ color: colors.muted, fontSize: 13 }}>0.0 MB used</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 13 }}>50.0 MB free</Typography>
             </Stack>
           </Box>
-          <Row name="Cache limit" desc="Maximum storage for offline health records" action={<Select size="small" value="10 MB"><MenuItem value="10 MB">10 MB</MenuItem></Select>} />
-          <Row name="Auto-cache prescriptions" desc="Automatically save new prescriptions for offline access" action={<Switch checked />} />
-          <Row name="Auto-cache lab reports" desc="Automatically save new lab reports offline" action={<Switch checked />} />
-          <Row name="Clear offline cache" desc="Remove all locally stored files - 6.2 MB will be freed" action={actionButton('Clear cache', 'danger')} />
-          <Row name="Last synced" desc="All records are up to date" action={<Box sx={{ px: 1.3, py: 0.5, borderRadius: 999, bgcolor: colors.greenSoft, color: colors.green, fontSize: 12.5 }}>Today 10:30 AM</Box>} />
+          <Row name="Clear offline cache" desc="Remove all locally stored files" action={actionButton('Clear cache', 'outline')} />
         </Box>
       );
     }
 
     if (current === 'accessibility') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Row name="High contrast mode" desc="Increase contrast for better visibility in sunlight" action={<Switch checked={toggles.highContrast} onChange={() => toggle('highContrast')} />} />
-          <Row name="Large tap targets" desc="Make buttons bigger for easier tapping on phones" action={<Switch checked={toggles.largeTap} onChange={() => toggle('largeTap')} />} />
-          <Row name="Screen reader support" desc="Optimise for TalkBack and VoiceOver" action={<Switch checked={toggles.screenReader} onChange={() => toggle('screenReader')} />} />
-          <Row name="Voice input" desc="Use voice to fill forms and describe symptoms" action={<Switch checked={toggles.voiceInput} onChange={() => toggle('voiceInput')} />} />
-          <Row name="Reduce motion" desc="Minimise animations for motion-sensitive users" action={<Switch checked={toggles.reduceMotion} onChange={() => toggle('reduceMotion')} />} />
-          <Row name="Community helper mode" desc="Simplified interface for assisted use by ASHA/ANM workers" action={<Switch checked={toggles.helperMode} onChange={() => toggle('helperMode')} />} />
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Row name="High contrast mode" desc="Increase contrast for better visibility in sunlight" action={<Switch checked={toggles.highContrast} onChange={() => toggle('highContrast')} color="primary" />} />
+          <Row name="Large tap targets" desc="Make buttons bigger for easier tapping on phones" action={<Switch checked={toggles.largeTap} onChange={() => toggle('largeTap')} color="primary" />} />
+          <Row name="Reduce motion" desc="Minimise animations for motion-sensitive users" action={<Switch checked={toggles.reduceMotion} onChange={() => toggle('reduceMotion')} color="primary" />} />
         </Box>
       );
     }
 
     if (current === 'account') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Row name="Full name" desc={user?.name || 'Ramesh Kumar'} action={actionButton('Edit')} />
-          <Row name="Mobile number" desc="+91 98140 55872 · Verified" action={actionButton('Change', 'gray')} />
-          <Row name="Email address" desc={user?.email || 'ramesh.kumar83@gmail.com'} action={actionButton('Edit')} />
-          <Row name="Location" desc="Garhshankar, Hoshiarpur, Punjab - 146105" action={actionButton('Edit')} />
-          <Row name="Aadhaar" desc="XXXX XXXX 4821 · Linked & verified" action={<Box sx={{ px: 1.3, py: 0.5, borderRadius: 999, bgcolor: colors.greenSoft, color: colors.green, fontSize: 12.5 }}>Verified</Box>} />
-          <Row name="ABHA Health ID" desc="7826 5491 3302 8841 · Ayushman Bharat" action={<Box sx={{ px: 1.3, py: 0.5, borderRadius: 999, bgcolor: colors.greenSoft, color: colors.green, fontSize: 12.5 }}>Linked</Box>} />
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Row name="Full name" desc={user?.name || 'Set your name'} action={actionButton('Edit')} />
+          <Row name="Mobile number" desc="Verified mobile number" action={actionButton('Change', 'gray')} />
+          <Row name="Email address" desc={user?.email || 'Set your email'} action={actionButton('Edit')} />
         </Box>
       );
     }
 
     if (current === 'devices') {
       return (
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           {[
-            ['Android - Samsung Galaxy M12', 'Hoshiarpur, Punjab · Active now', 'This device'],
-            ['Chrome - Windows PC', 'Chandigarh · Last active 2 days ago', 'Sign out']
+            ['Current Browser', 'Active now', 'This device']
           ].map(([name, meta, action], index) => (
-            <Stack key={name} direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ py: 1.7, borderBottom: `1px solid ${colors.soft}` }}>
+            <Stack key={name} direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ py: 2 }}>
               <Box>
-                <Typography sx={{ fontSize: 15 }}>{name}</Typography>
-                <Typography sx={{ mt: 0.35, color: colors.muted, fontSize: 13.5 }}>{meta}</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 500 }}>{name}</Typography>
+                <Typography sx={{ mt: 0.5, color: colors.success, fontSize: 13, fontWeight: 500 }}>{meta}</Typography>
               </Box>
-              {index === 0 ? <Box sx={{ px: 1.3, py: 0.5, borderRadius: 999, bgcolor: colors.greenSoft, color: colors.green, fontSize: 12.5 }}>This device</Box> : actionButton(action, 'danger')}
+              <Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 13, fontWeight: 600 }}>This device</Box>
             </Stack>
           ))}
-          <Button sx={{ mt: 2, width: '100%', py: 1.05, borderRadius: 2.5, border: `1px solid ${colors.red}`, color: colors.red, textTransform: 'none', fontSize: 14.5 }}>
+          <Button sx={{ mt: 3, width: '100%', py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.danger}`, color: colors.danger, textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.dangerSoft } }}>
             Sign out of all other devices
           </Button>
         </Box>
@@ -350,22 +367,22 @@ export default function PatientSettings() {
     }
 
     return (
-      <Box sx={{ p: 0, borderRadius: 3.5, bgcolor: 'transparent' }}>
-        <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid #f0a2a2`, bgcolor: '#fff' }}>
-          <Stack direction="row" spacing={1.2} alignItems="center" sx={{ pb: 1.8, mb: 1.2, borderBottom: '1px solid #f7d4d4' }}>
-            <Box sx={{ width: 30, height: 30, borderRadius: 2, bgcolor: '#fcebeb', display: 'grid', placeItems: 'center', color: '#a32d2d' }}>
-              <WarningIcon sx={{ fontSize: 18 }} />
+      <Box sx={{ p: 0, borderRadius: 2, bgcolor: 'transparent' }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.danger}`, bgcolor: '#fff', boxShadow: '0 2px 8px rgba(217,48,37,0.1)' }}>
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pb: 2, mb: 1, borderBottom: '1px solid #fad2d2' }}>
+            <Box sx={{ width: 36, height: 36, borderRadius: 1.5, bgcolor: colors.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.danger }}>
+              <WarningIcon sx={{ fontSize: 20 }} />
             </Box>
-            <Typography sx={{ fontSize: 16, color: '#a32d2d' }}>Danger zone</Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.danger }}>Danger zone</Typography>
           </Stack>
           <Row danger name="Deactivate account" desc="Temporarily disable your account. You can reactivate later." action={actionButton('Deactivate', 'danger')} />
           <Row danger name="Delete all health records" desc="Permanently remove all your stored medical data." action={actionButton('Delete records', 'danger')} />
-          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ pt: 1.7 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ pt: 2 }}>
             <Box>
-              <Typography sx={{ fontSize: 15, color: '#892727' }}>Delete account permanently</Typography>
-              <Typography sx={{ mt: 0.35, color: '#a24a4a', fontSize: 13.5 }}>This cannot be undone. All data will be erased forever.</Typography>
+              <Typography sx={{ fontSize: 15, fontWeight: 500, color: colors.danger }}>Delete account permanently</Typography>
+              <Typography sx={{ mt: 0.5, color: '#d35c5c', fontSize: 13.5 }}>This cannot be undone. All data will be erased forever.</Typography>
             </Box>
-            <Button sx={{ px: 2.2, py: 0.8, borderRadius: 2.2, bgcolor: '#a32d2d', color: '#fff', textTransform: 'none', fontSize: 13.5 }}>
+            <Button sx={{ px: 2.5, py: 1, borderRadius: 1.5, bgcolor: colors.danger, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: '#b82116' } }}>
               Delete account
             </Button>
           </Stack>
@@ -376,34 +393,24 @@ export default function PatientSettings() {
 
   return (
     <PatientShell activeSetting="settings" activeSettingSection={current}>
-      <Box>
-        <Box sx={{ px: { xs: 2, md: 4 }, py: 2.5, bgcolor: '#fff', borderBottom: `1px solid ${colors.soft}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: colors.bg, minHeight: '100vh' }}>
+        <Box sx={{ px: { xs: 2, md: 4 }, py: 3, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
-            <Typography sx={{ color: '#a7a198', fontSize: 14 }}>
-              Home {current ? `› Settings › ${titles[current][0]}` : '› Settings'}
-            </Typography>
-            <Typography sx={{ mt: 0.5, fontSize: { xs: 34, md: 42 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
               {header[0]}
             </Typography>
-            <Typography sx={{ mt: 0.6, color: colors.muted, fontSize: 15.5 }}>
+            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
               {header[1]}
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1.2} alignItems="center" useFlexGap flexWrap="wrap">
-            <Box sx={{ px: 2.2, py: 1.1, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f5f4f0', fontSize: 15.5 }}>
-              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-            </Box>
-            <Button sx={{ minWidth: 42, width: 42, height: 42, borderRadius: 2.2, border: `1px solid ${colors.line}`, bgcolor: '#f5f4f0', color: colors.text, position: 'relative' }}>
-              <NotificationIcon />
-              <Box sx={{ position: 'absolute', top: 9, right: 9, width: 7, height: 7, borderRadius: '50%', bgcolor: colors.red }} />
-            </Button>
-            <Button startIcon={<SaveIcon />} sx={{ px: 2.2, py: 1.05, borderRadius: 2.2, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}>
-              Save Changes
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Button onClick={handleSaveSettings} disabled={saving} startIcon={saving ? null : <SaveIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: colors.primaryDark } }}>
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </Stack>
         </Box>
 
-        <Box sx={{ p: { xs: 2, md: 4 } }}>
+        <Box sx={{ p: { xs: 2, md: 4 }, flexGrow: 1 }}>
           {renderPanel()}
         </Box>
       </Box>

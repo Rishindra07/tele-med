@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Avatar, Box, Button, CssBaseline, Stack, Typography } from '@mui/material';
 import {
   ChevronRightRounded as ChevronRightIcon,
-  DashboardRounded as DashboardIcon,
+  HomeRounded as HomeIcon,
   EventNoteRounded as EventIcon,
   FavoriteBorderRounded as HealthRecordsIcon,
   LocalHospitalRounded as HospitalIcon,
@@ -14,16 +14,16 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const colors = {
-  bg: '#f5f1e8',
-  line: '#d8d0c4',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57'
+  bg: '#f8f9fa',
+  line: '#e0e0e0',
+  muted: '#5f6368',
+  green: '#1a73e8',
+  greenSoft: '#e8f0fe',
+  greenDark: '#1557b0'
 };
 
 const navItems = [
-  { label: 'Dashboard', icon: DashboardIcon, action: 'dashboard' },
+  { label: 'Home', icon: HomeIcon, action: 'dashboard' },
   { label: 'Appointments', icon: EventIcon, action: 'appointments' },
   { label: 'Health Records', icon: HealthRecordsIcon, action: 'records' },
   { label: 'Symptom Checker', icon: SearchIcon, action: 'symptoms' },
@@ -188,8 +188,8 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                   textTransform: 'none',
                   fontSize: 16,
                   color: active ? colors.greenDark : '#3d3d3d',
-                  bgcolor: active ? colors.greenSoft : 'transparent',
-                  '&:hover': { bgcolor: active ? colors.greenSoft : '#f3eee4' }
+          bgcolor: active ? colors.greenSoft : 'transparent',
+          '&:hover': { bgcolor: active ? colors.greenSoft : '#f0f0f0' }
                 }}
               >
                 {icon}
@@ -258,7 +258,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                             width: 6,
                             height: 6,
                             borderRadius: '50%',
-                            bgcolor: key === 'danger' ? '#f0a2a2' : active ? colors.green : '#c6c0b6',
+                            bgcolor: key === 'danger' ? '#f0a2a2' : active ? colors.green : '#bdbdbd',
                             flexShrink: 0
                           }}
                         />
@@ -296,12 +296,12 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
             ))}
           </Stack>
 
-          <Box sx={{ mt: 3.5, p: 2, borderRadius: 3, bgcolor: '#f2efe6', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Avatar
-              src={profileImage}
-              alt={patientName}
-              sx={{ width: 48, height: 48, bgcolor: '#d8efe8', color: colors.greenDark, fontWeight: 700 }}
-            >
+        <Box sx={{ mt: 3.5, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar
+            src={profileImage}
+            alt={patientName}
+            sx={{ width: 48, height: 48, bgcolor: colors.greenSoft, color: colors.greenDark, fontWeight: 700 }}
+          >
               {initials(patientName)}
             </Avatar>
             <Box>
@@ -322,9 +322,9 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
               border: `1px solid ${colors.line}`,
               bgcolor: '#fff',
               color: '#34322f',
-              textTransform: 'none',
-              fontSize: 15.5,
-              '&:hover': { bgcolor: '#f7f3ea' }
+            textTransform: 'none',
+            fontSize: 15.5,
+            '&:hover': { bgcolor: '#f0f0f0' }
             }}
           >
             Logout

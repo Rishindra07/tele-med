@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -10,28 +10,31 @@ import {
 } from '@mui/material';
 import {
   CheckCircleRounded as CheckIcon,
-  NotificationsNoneRounded as NotificationIcon,
   SearchRounded as SearchIcon,
   InfoOutlined as InfoIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { checkSymptoms } from '../../api/symptomApi';
+import { checkSymptomsAI, fetchSymptomLogs } from '../../api/patientApi';
 import PatientShell from '../../components/patient/PatientShell';
+import { 
+  HistoryRounded as HistoryIcon,
+  TimelineRounded as TimelineIcon
+} from '@mui/icons-material';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  soft: '#e9e2d8',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  blue: '#4a90e2',
-  blueSoft: '#d9ebff',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  red: '#de5a59',
-  redSoft: '#fdeaea'
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  warning: '#f9ab00',
+  danger: '#d93025',
+  gray: '#9aa0a6'
 };
 
 const symptomGroups = {
@@ -63,26 +66,33 @@ const commonIllnesses = [
   ['Diabetes', 'Thirst, fatigue, frequent urination']
 ];
 
-const historyChecks = [
-  ['Fever · Headache · Chills', 'Today · Moderate concern', 'Viral fever likely', colors.amber, colors.amberSoft],
-  ['Cough · Sore throat', '10 Mar 2026 · Mild', 'Common cold', colors.green, colors.greenSoft],
-  ['Chest pain · Shortness of breath', '2 Mar 2026 · High concern', 'Doctor consulted', colors.red, colors.redSoft]
-];
-
 const durationOptions = ['Today', '2–3 days', '1 week', '2+ weeks'];
 const severityOptions = ['Mild', 'Moderate', 'Severe'];
 
 export default function SymptomChecker() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState(['Fever', 'Headache', 'Chills']);
+  const [selected, setSelected] = useState([]);
   const [bodyArea, setBodyArea] = useState('Chest & Lungs');
-  const [duration, setDuration] = useState('2–3 days');
-  const [severity, setSeverity] = useState('Moderate');
+  const [duration, setDuration] = useState('Today');
+  const [severity, setSeverity] = useState('Mild');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [input, setInput] = useState(
-    "I have a headache and fever since yesterday"
-  );
+  const [input, setInput] = useState('');
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const loadHistory = async () => {
+    try {
+      const res = await fetchSymptomLogs();
+      if (res.success) setHistory(res.logs || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  React.useEffect(() => {
+    loadHistory();
+  }, []);
 
   const toggleSymptom = (symptom) => {
     setSelected((prev) =>
@@ -97,15 +107,16 @@ export default function SymptomChecker() {
   };
 
   const handleSubmit = async () => {
-    const payload = selected.length ? selected.map((item) => item.toLowerCase()) : input.split(' ').filter(Boolean);
-    if (!payload.length) return;
+    const symptoms = selected.length ? selected : input.split(',').map(s => s.trim()).filter(Boolean);
+    if (!symptoms.length) return;
 
     try {
       setLoading(true);
-      const res = await checkSymptoms(payload);
+      const res = await checkSymptomsAI(symptoms);
       setResult(res);
+      loadHistory();
     } catch (error) {
-      alert(error.message);
+      alert(error.response?.data?.message || 'AI service error');
     } finally {
       setLoading(false);
     }
@@ -122,106 +133,64 @@ export default function SymptomChecker() {
 
   return (
     <PatientShell activeItem="symptoms">
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Stack
           direction={{ xs: 'column', lg: 'row' }}
           justifyContent="space-between"
           alignItems={{ xs: 'flex-start', lg: 'center' }}
           spacing={2}
-          sx={{ mb: 3 }}
+          sx={{ mb: 4 }}
         >
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
               Symptom Checker
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 470, lineHeight: 1.2 }}>
-              Describe your symptoms to get AI-powered health guidance
+            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16, maxWidth: 470 }}>
+              Describe your symptoms to get AI-powered health guidance.
             </Typography>
           </Box>
-
-          <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
-            <Box
-              sx={{
-                px: 2.5,
-                py: 1.25,
-                borderRadius: 4,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#f7f3ea',
-                fontSize: 17,
-                lineHeight: 1.15
-              }}
-            >
-              {new Date().toLocaleDateString('en-GB', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}
-            </Box>
-            <Button
-              sx={{
-                minWidth: 48,
-                width: 48,
-                height: 48,
-                borderRadius: 3,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#fff',
-                color: colors.text,
-                position: 'relative'
-              }}
-            >
-              <NotificationIcon />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  bgcolor: colors.red
-                }}
-              />
-            </Button>
-          </Stack>
+          <Button startIcon={<HistoryIcon />} onClick={() => setShowHistory(!showHistory)} sx={{ color: colors.primary, textTransform: 'none', fontWeight: 600 }}>
+             {showHistory ? 'Back to Checker' : 'View Past Checks'}
+          </Button>
         </Stack>
 
         <Box
           sx={{
-            p: 2.2,
-            borderRadius: 3.5,
-            border: '1px solid #9dcbff',
-            bgcolor: colors.blueSoft,
-            mb: 3
+            p: 2.5,
+            borderRadius: 2,
+            border: `1px solid ${colors.primary}`,
+            bgcolor: colors.primarySoft,
+            mb: 4
           }}
         >
-          <Stack direction="row" spacing={1.6} alignItems="flex-start">
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
             <Box
               sx={{
                 width: 32,
                 height: 32,
-                borderRadius: 2,
-                bgcolor: '#b8d9ff',
-                display: 'grid',
-                placeItems: 'center',
-                color: '#1f5fae',
+                borderRadius: 1.5,
+                bgcolor: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors.primary,
                 flexShrink: 0
               }}
             >
               <InfoIcon fontSize="small" />
             </Box>
             <Box>
-              <Typography sx={{ fontSize: 17, color: '#1f5fae' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark }}>
                 For guidance only — not a medical diagnosis
               </Typography>
-              <Typography sx={{ mt: 0.6, color: '#2461a8', fontSize: 15.2, lineHeight: 1.5 }}>
+              <Typography sx={{ mt: 0.5, color: colors.primaryDark, fontSize: 14, lineHeight: 1.5 }}>
                 This AI tool provides preliminary suggestions based on your symptoms. Always consult a qualified doctor before taking any medication or making health decisions.
               </Typography>
             </Box>
           </Stack>
         </Box>
 
-        <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 4 }}>
           {[
             ['1', 'Select Body Area', true],
             ['2', 'Choose Symptoms', true],
@@ -232,15 +201,16 @@ export default function SymptomChecker() {
               key={label}
               sx={{
                 px: 2,
-                py: 1.2,
-                borderRadius: 999,
-                border: `1px solid ${active ? colors.green : colors.line}`,
-                bgcolor: index === 1 ? colors.green : active ? colors.greenSoft : '#fff',
-                color: index === 1 ? '#fff' : active ? colors.greenDark || colors.green : '#a09a92',
+                py: 1.25,
+                borderRadius: 2,
+                border: `1px solid ${active ? colors.primary : colors.line}`,
+                bgcolor: index === 1 ? colors.primary : active ? colors.paper : '#fff',
+                color: index === 1 ? '#fff' : active ? colors.primaryDark : colors.muted,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
-                minHeight: 58
+                gap: 1.5,
+                minHeight: 48,
+                boxShadow: active ? '0 1px 3px rgba(0,0,0,0.02)' : 'none'
               }}
             >
               <Box
@@ -248,16 +218,18 @@ export default function SymptomChecker() {
                   width: 24,
                   height: 24,
                   borderRadius: '50%',
-                  bgcolor: index === 1 ? 'rgba(255,255,255,0.18)' : active ? colors.green : '#f3efe7',
-                  color: index === 1 ? '#fff' : active ? '#fff' : '#a09a92',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 14
+                  bgcolor: index === 1 ? 'rgba(255,255,255,0.2)' : active ? colors.primarySoft : colors.soft,
+                  color: index === 1 ? '#fff' : active ? colors.primaryDark : colors.muted,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 600
                 }}
               >
                 {index === 0 ? <CheckIcon sx={{ fontSize: 16 }} /> : step}
               </Box>
-              <Typography sx={{ fontSize: 15.5, lineHeight: 1.1 }}>{label}</Typography>
+              <Typography sx={{ fontSize: 15, fontWeight: 500 }}>{label}</Typography>
             </Box>
           ))}
         </Stack>
@@ -269,15 +241,16 @@ export default function SymptomChecker() {
                 sx={{
                   flex: 1,
                   width: '100%',
-                  p: 2.5,
-                  borderRadius: 3.5,
+                  p: 3,
+                  borderRadius: 2,
                   border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper
+                  bgcolor: colors.paper,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                  <Typography sx={{ fontSize: 18, lineHeight: 1.2 }}>Describe your symptoms</Typography>
-                  <Button onClick={clearAll} sx={{ color: colors.green, textTransform: 'none', fontSize: 14.5 }}>
+                  <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Describe your symptoms</Typography>
+                  <Button onClick={clearAll} sx={{ color: colors.primary, textTransform: 'none', fontSize: 14 }}>
                     Clear all
                   </Button>
                 </Stack>
@@ -293,14 +266,14 @@ export default function SymptomChecker() {
                     mt: 2,
                     width: '100%',
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2.5,
+                      borderRadius: 1.5,
                       bgcolor: '#fff'
                     }
                   }}
                 />
 
-                <Typography sx={{ mt: 2, color: colors.muted, fontSize: 15 }}>Selected symptoms</Typography>
-                <Box sx={{ mt: 1, p: 1.3, borderRadius: 2.5, bgcolor: '#f3f0e9' }}>
+                <Typography sx={{ mt: 3, color: colors.text, fontSize: 15, fontWeight: 500 }}>Selected symptoms</Typography>
+                <Box sx={{ mt: 1.5, p: 2, borderRadius: 1.5, bgcolor: colors.soft }}>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                     {selected.length ? (
                       selected.map((symptom) => (
@@ -309,22 +282,25 @@ export default function SymptomChecker() {
                           label={symptom}
                           onDelete={() => toggleSymptom(symptom)}
                           sx={{
-                            bgcolor: colors.green,
+                            bgcolor: colors.primary,
                             color: '#fff',
-                            '& .MuiChip-deleteIcon': { color: '#fff' }
+                            fontWeight: 500,
+                            borderRadius: 1.5,
+                            '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.7)' },
+                            '& .MuiChip-deleteIcon:hover': { color: '#fff' }
                           }}
                         />
                       ))
                     ) : (
-                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No symptoms selected yet.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14 }}>No symptoms selected clinically.</Typography>
                     )}
                   </Stack>
                 </Box>
 
-                <Stack spacing={2.2} sx={{ mt: 2.2 }}>
+                <Stack spacing={3} sx={{ mt: 4 }}>
                   {Object.entries(symptomGroups).map(([group, items]) => (
                     <Box key={group}>
-                      <Typography sx={{ color: colors.muted, fontSize: 15, mb: 1 }}>{group}</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600, mb: 1.5 }}>{group}</Typography>
                       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                         {items.map((symptom) => {
                           const active = selected.includes(symptom);
@@ -334,14 +310,15 @@ export default function SymptomChecker() {
                               onClick={() => toggleSymptom(symptom)}
                               sx={{
                                 px: 2,
-                                py: 0.7,
-                                borderRadius: 999,
-                                border: `1px solid ${active ? colors.green : colors.line}`,
-                                bgcolor: active ? colors.greenSoft : '#fff',
-                                color: active ? colors.green : '#5f5a52',
+                                py: 0.75,
+                                borderRadius: 1.5,
+                                border: `1px solid ${active ? colors.primary : colors.line}`,
+                                bgcolor: active ? colors.primarySoft : '#fff',
+                                color: active ? colors.primaryDark : colors.text,
                                 textTransform: 'none',
-                                fontSize: 15,
-                                minHeight: 40
+                                fontSize: 14,
+                                minHeight: 40,
+                                '&:hover': { bgcolor: active ? colors.primarySoft : colors.soft }
                               }}
                             >
                               {symptom}
@@ -357,16 +334,17 @@ export default function SymptomChecker() {
               <Stack spacing={3} sx={{ width: { xs: '100%', lg: 330 }, flexShrink: 0 }}>
                 <Box
                   sx={{
-                    p: 2.5,
-                    borderRadius: 3.5,
+                    p: 3,
+                    borderRadius: 2,
                     border: `1px solid ${colors.line}`,
-                    bgcolor: colors.paper
+                    bgcolor: colors.paper,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                   }}
                 >
-                  <Typography sx={{ fontSize: 18, mb: 2 }}>Affected body area</Typography>
-                  <Stack spacing={1.1}>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>Affected body area</Typography>
+                  <Stack spacing={1}>
                     {bodyAreas.map((area, index) => {
-                      const active = area === bodyArea || index < 3;
+                      const active = area === bodyArea;
                       return (
                         <Button
                           key={area}
@@ -375,12 +353,14 @@ export default function SymptomChecker() {
                             justifyContent: 'flex-start',
                             px: 2,
                             py: 1,
-                            borderRadius: 2.2,
-                            border: `1px solid ${active ? colors.green : colors.line}`,
-                            bgcolor: active ? '#eef9f4' : '#fff',
-                            color: active ? '#235d4d' : '#5f5a52',
+                            borderRadius: 1.5,
+                            border: `1px solid ${active ? colors.primary : 'transparent'}`,
+                            bgcolor: active ? colors.primarySoft : 'transparent',
+                            color: active ? colors.primaryDark : colors.text,
                             textTransform: 'none',
-                            fontSize: 15
+                            fontSize: 14,
+                            fontWeight: active ? 600 : 400,
+                            '&:hover': { bgcolor: active ? colors.primarySoft : colors.soft }
                           }}
                         >
                           {area}
@@ -392,26 +372,27 @@ export default function SymptomChecker() {
 
                 <Box
                   sx={{
-                    p: 2.5,
-                    borderRadius: 3.5,
+                    p: 3,
+                    borderRadius: 2,
                     border: `1px solid ${colors.line}`,
-                    bgcolor: colors.paper
+                    bgcolor: colors.paper,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                   }}
                 >
-                  <Typography sx={{ fontSize: 18, mb: 2 }}>Common illnesses</Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.2 }}>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>Common illnesses</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 1.5 }}>
                     {commonIllnesses.map(([title, desc]) => (
                       <Box
                         key={title}
                         sx={{
-                          p: 1.5,
-                          borderRadius: 2.5,
+                          p: 2,
+                          borderRadius: 1.5,
                           border: `1px solid ${colors.line}`,
-                          bgcolor: '#fff'
+                          bgcolor: colors.soft
                         }}
                       >
-                        <Typography sx={{ fontSize: 15.5, lineHeight: 1.15 }}>{title}</Typography>
-                        <Typography sx={{ mt: 0.6, color: colors.muted, fontSize: 13.5, lineHeight: 1.25 }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{title}</Typography>
+                        <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 13, lineHeight: 1.4 }}>
                           {desc}
                         </Typography>
                       </Box>
@@ -419,61 +400,39 @@ export default function SymptomChecker() {
                   </Box>
                 </Box>
 
-                <Box
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 3.5,
-                    border: `1px solid ${colors.line}`,
-                    bgcolor: colors.paper
-                  }}
-                >
-                  <Typography sx={{ fontSize: 18, mb: 2 }}>Past symptom checks</Typography>
-                  <Stack spacing={1.5}>
-                    {historyChecks.map(([title, meta, tag, dot, bg]) => (
-                      <Box key={title} sx={{ pt: 0.5, borderTop: `1px solid ${colors.soft}`, '&:first-of-type': { pt: 0, borderTop: 'none' } }}>
-                        <Stack direction="row" spacing={1.1} alignItems="flex-start">
-                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: dot, mt: 0.8 }} />
-                          <Box>
-                            <Typography sx={{ fontSize: 15.5 }}>{title}</Typography>
-                            <Typography sx={{ color: colors.muted, fontSize: 13.8, mt: 0.25 }}>{meta}</Typography>
-                            <Chip label={tag} sx={{ mt: 0.8, bgcolor: bg, color: dot, fontSize: 13 }} />
-                          </Box>
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Box>
               </Stack>
             </Stack>
 
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 3 }}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
               <Box
                 sx={{
-                  width: { xs: '100%', md: 210 },
-                  p: 2,
-                  borderRadius: 3,
+                  width: { xs: '100%', md: 240 },
+                  p: 3,
+                  borderRadius: 2,
                   border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper
+                  bgcolor: colors.paper,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                 }}
               >
-                <Typography sx={{ color: colors.muted, fontSize: 15, lineHeight: 1.15 }}>
+                <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
                   How long have you had these symptoms?
                 </Typography>
-                <Stack spacing={1.2} sx={{ mt: 1.5 }}>
+                <Stack spacing={1.5} sx={{ mt: 2 }}>
                   {durationOptions.map((item) => (
                     <Button
                       key={item}
                       onClick={() => setDuration(item)}
                       sx={{
                         justifyContent: 'flex-start',
-                        px: 1.6,
-                        py: 0.8,
-                        borderRadius: 999,
-                        border: `1px solid ${duration === item ? colors.green : colors.line}`,
-                        bgcolor: duration === item ? colors.greenSoft : '#fff',
-                        color: duration === item ? colors.green : '#5f5a52',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 1.5,
+                        border: `1px solid ${duration === item ? colors.primary : colors.line}`,
+                        bgcolor: duration === item ? colors.primarySoft : '#fff',
+                        color: duration === item ? colors.primaryDark : colors.text,
                         textTransform: 'none',
-                        fontSize: 15
+                        fontSize: 14,
+                        fontWeight: duration === item ? 600 : 400
                       }}
                     >
                       {item}
@@ -484,37 +443,43 @@ export default function SymptomChecker() {
 
               <Box
                 sx={{
-                  width: { xs: '100%', md: 220 },
-                  p: 2,
-                  borderRadius: 3,
+                  width: { xs: '100%', md: 260 },
+                  p: 3,
+                  borderRadius: 2,
                   border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper
+                  bgcolor: colors.paper,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                 }}
               >
-                <Typography sx={{ color: colors.muted, fontSize: 15, lineHeight: 1.15 }}>
+                <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
                   How severe are your symptoms?
                 </Typography>
-                <Stack direction="row" spacing={0.7} sx={{ mt: 2, mb: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ mt: 3, mb: 2 }}>
                   {[0, 1, 2].map((index) => (
                     <Box
                       key={index}
                       sx={{
-                        width: 18,
+                        flex: 1,
                         height: 8,
-                        borderRadius: 999,
-                        bgcolor: severityBars[severity][index] ? colors.amber : '#eee8db'
+                        borderRadius: 1,
+                        bgcolor: severityBars[severity][index] ? colors.warning : colors.soft
                       }}
                     />
                   ))}
                 </Stack>
-                <Stack direction="row" spacing={1.1}>
+                <Stack direction="row" justifyContent="space-between">
                   {severityOptions.map((item) => (
-                    <Typography key={item} sx={{ color: colors.muted, fontSize: 13.5 }}>
+                    <Button 
+                      key={item}
+                      onClick={()=>setSeverity(item)}
+                      autoCapitalize="none"
+                      sx={{ p: 0, minWidth: 'auto', textTransform: 'none', color: severity === item ? colors.warning : colors.muted, fontSize: 13, fontWeight: severity === item ? 600 : 400 }}
+                    >
                       {item}
-                    </Typography>
+                    </Button>
                   ))}
                 </Stack>
-                <Typography sx={{ mt: 1.2, color: colors.amber, fontSize: 15 }}>
+                <Typography sx={{ mt: 2, color: colors.warning, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>
                   {severity} selected
                 </Typography>
               </Box>
@@ -525,16 +490,19 @@ export default function SymptomChecker() {
               disabled={loading || (!selected.length && !input.trim())}
               startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SearchIcon />}
               sx={{
-                mt: 2.5,
-                px: 3,
-                py: 1.45,
-                borderRadius: 2.5,
-                border: `1px solid ${colors.line}`,
-                bgcolor: '#fff',
-                color: colors.text,
+                mt: 4,
+                width: { xs: '100%', md: 'auto' },
+                px: 4,
+                py: 1.5,
+                borderRadius: 1.5,
+                bgcolor: colors.primary,
+                color: '#fff',
                 textTransform: 'none',
-                fontSize: 18,
-                minWidth: 245
+                fontWeight: 600,
+                fontSize: 16,
+                boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
+                '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' },
+                '&:disabled': { bgcolor: colors.line, color: colors.muted }
               }}
             >
               {loading ? 'Analysing...' : 'Analyse Symptoms with AI'}
@@ -543,47 +511,99 @@ export default function SymptomChecker() {
             {result && (
               <Box
                 sx={{
-                  mt: 2.5,
-                  p: 2.5,
-                  borderRadius: 3.5,
-                  border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper
+                  mt: 4,
+                  p: 4,
+                  borderRadius: 2,
+                  border: `1px solid ${colors.primaryDark}`,
+                  bgcolor: colors.primarySoft,
+                  boxShadow: '0 4px 12px rgba(26,115,232,0.1)'
                 }}
               >
-                <Typography sx={{ fontSize: 18, mb: 1.2 }}>AI result</Typography>
-                <Typography sx={{ color: colors.muted, fontSize: 14.8 }}>
+                <Typography sx={{ fontSize: 20, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>AI Analysis Result</Typography>
+                <Typography sx={{ color: colors.primaryDark, fontSize: 14, mb: 3 }}>
                   Source: {result.aiUsed || result.source}
                 </Typography>
-                <Typography sx={{ mt: 1.2, fontSize: 15.5 }}>
-                  Condition: {result.prediction.conditions.join(', ')}
-                </Typography>
-                <Typography sx={{ mt: 0.8, fontSize: 15.5 }}>
-                  Severity: {result.prediction.severity}
-                </Typography>
-                <Typography sx={{ mt: 1.2, color: '#5c564f', fontSize: 15.2, lineHeight: 1.6 }}>
+                
+                <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 1.5, mb: 3, border: `1px solid ${colors.line}` }}>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
+                    Possible Conditions:
+                  </Typography>
+                  <Typography sx={{ fontSize: 15, color: colors.muted, mb: 2 }}>
+                    {result.prediction.conditions.join(', ')}
+                  </Typography>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
+                    Severity Level:
+                  </Typography>
+                  <Chip 
+                    label={result.prediction.severity.toUpperCase()} 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: result.prediction.severity === 'high' ? colors.dangerSoft : result.prediction.severity === 'medium' ? colors.warningSoft : colors.successSoft,
+                      color: result.prediction.severity === 'high' ? colors.danger : result.prediction.severity === 'medium' ? colors.warning : colors.success,
+                      fontWeight: 600,
+                      borderRadius: 1
+                    }} 
+                  />
+                </Box>
+
+                <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>Advice:</Typography>
+                <Typography sx={{ color: colors.text, fontSize: 15, lineHeight: 1.6, mb: 3 }}>
                   {result.prediction.advice}
                 </Typography>
-                {(result.immediateConsult || result.prediction.severity === 'medium') && (
+
+                {(result.immediateConsult || result.prediction.severity === 'medium' || result.prediction.severity === 'high') && (
                   <Button
                     onClick={() => navigate('/patient')}
                     sx={{
-                      mt: 2,
-                      px: 2.5,
-                      py: 1,
-                      borderRadius: 2.5,
-                      bgcolor: colors.green,
+                      px: 4,
+                      py: 1.25,
+                      borderRadius: 1.5,
+                      bgcolor: colors.primary,
                       color: '#fff',
                       textTransform: 'none',
-                      fontSize: 15.5
+                      fontSize: 15,
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
+                      '&:hover': { bgcolor: colors.primaryDark }
                     }}
                   >
-                    Book Appointment
+                    Book Consultation Now
                   </Button>
                 )}
               </Box>
             )}
           </Box>
         </Stack>
+
+        {showHistory && (
+           <Box sx={{ mt: 4, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: '#fff' }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 600, mb: 3 }}>Your Past Reports</Typography>
+              {history.length > 0 ? (
+                 <Stack spacing={2}>
+                    {history.map(log => (
+                       <Box key={log._id} sx={{ p: 2, borderRadius: 1.5, border: `1px solid ${colors.soft}`, bgcolor: colors.bg }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                             <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.muted }}>{new Date(log.createdAt).toLocaleDateString()} at {new Date(log.createdAt).toLocaleTimeString()}</Typography>
+                             <Chip label={log.severity.toUpperCase()} size="small" sx={{ 
+                                bgcolor: log.severity === 'high' ? colors.dangerSoft : log.severity === 'medium' ? colors.warningSoft : colors.successSoft,
+                                color: log.severity === 'high' ? colors.danger : log.severity === 'medium' ? colors.warning : colors.success,
+                                fontWeight: 700, fontSize: 10
+                             }} />
+                          </Stack>
+                          <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 0.5 }}>Symptoms: {log.symptoms.join(', ')}</Typography>
+                          <Typography sx={{ fontSize: 14, color: colors.text, mb: 1 }}>Predicted: {log.predictedConditions.join(', ')}</Typography>
+                          <Typography sx={{ fontSize: 13, color: colors.muted, fontStyle: 'italic' }}>{log.advice}</Typography>
+                       </Box>
+                    ))}
+                 </Stack>
+              ) : (
+                 <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <TimelineIcon sx={{ fontSize: 40, color: colors.gray, mb: 1.5 }} />
+                    <Typography sx={{ color: colors.muted }}>No past reports found.</Typography>
+                 </Box>
+              )}
+           </Box>
+        )}
       </Box>
     </PatientShell>
   );

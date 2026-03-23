@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
-const EmailOTP = require("../models/EmailOTP.js");
-const PendingRegistration = require("../models/PendingRegistration.js");
+const PatientProfile = require("../models/PatientProfile.js");
 const RefreshToken = require("../models/RefreshToken.js");
 const { sendEmail } = require("../services/notificationService.js");
 const {
@@ -20,22 +19,11 @@ const sanitizeUser = (user) => ({
   email: user.email,
   phone: user.phone,
   role: user.role,
-  email_verified: user.email_verified,
   is_active: user.is_active,
   is_approved: user.is_approved
 });
 
-const sendVerificationOtpEmail = async (email, fullName) => {
-  const otp = await EmailOTP.createOTP(email, "email_verification");
-  const emailResult = await sendEmail({
-    to: email,
-    subject: "Verify your Seva Telehealth account",
-    text: `Hi ${fullName}, your Seva Telehealth verification OTP is ${otp}. It expires in 10 minutes.`,
-    html: `<p>Hi ${fullName},</p><p>Your Seva Telehealth verification OTP is <strong>${otp}</strong>.</p><p>It expires in 10 minutes.</p>`
-  });
-
-  return emailResult;
-};
+// OTP logic removed
 
 const registerUser = async (req, res) => {
   try {
@@ -57,155 +45,40 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    await PendingRegistration.deleteMany({ email: normalizedEmail });
-
-    const pendingRegistration = await PendingRegistration.create({
+    const user = await User.create({
       full_name: resolvedName,
       email: normalizedEmail,
       password_hash: password,
-      role,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000)
+      role
     });
-
-    const emailResult = await sendVerificationOtpEmail(normalizedEmail, resolvedName);
-
-    return res.status(201).json({
-      success: true,
-      message: emailResult.ok
-        ? `${role} registration started. Verify your email OTP to complete account creation.`
-        : `${role} registration started. OTP was created, but email delivery is not configured yet.`,
-      email_delivery: emailResult.ok ? "sent" : "pending",
-      pending_registration: {
-        email: pendingRegistration.email,
-        role: pendingRegistration.role
-      }
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-const sendOtp = async (req, res) => {
-  try {
-    const normalizedEmail = normalizeEmail(req.body.email);
-    if (!normalizedEmail) {
-      return res.status(400).json({ message: "Email is required" });
-    }
-
-    const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail });
-    const user = pendingRegistration ? null : await User.findOne({ email: normalizedEmail });
-
-    if (!pendingRegistration && !user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const targetEmail = pendingRegistration ? pendingRegistration.email : user.email;
-    const targetName = pendingRegistration ? pendingRegistration.full_name : user.full_name;
-    const emailResult = await sendVerificationOtpEmail(targetEmail, targetName);
-
-    return res.json({
-      success: true,
-      message: emailResult.ok ? "OTP sent successfully" : "OTP created, but email delivery is not configured yet.",
-      email_delivery: emailResult.ok ? "sent" : "pending"
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-const verifyOtp = async (req, res) => {
-  try {
-    const normalizedEmail = normalizeEmail(req.body.email);
-    const { otp } = req.body;
-
-    if (!normalizedEmail || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
-    }
-
-    await EmailOTP.verifyOTP(normalizedEmail, otp, "email_verification");
-
-    let user = await User.findOne({ email: normalizedEmail });
-
-    if (!user) {
-      const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail }).select("+password_hash");
-
-      if (!pendingRegistration) {
-        return res.status(404).json({ message: "Registration not found or expired. Please register again." });
-      }
-
-      const duplicateUser = await User.findOne({ email: pendingRegistration.email });
-      if (duplicateUser) {
-        await PendingRegistration.deleteOne({ _id: pendingRegistration._id });
-        return res.status(400).json({ message: "Account already exists. Please log in instead." });
-      }
-
-      user = await User.create({
-        full_name: pendingRegistration.full_name,
-        email: pendingRegistration.email,
-        password_hash: pendingRegistration.password_hash,
-        role: pendingRegistration.role,
-        email_verified: true,
-        email_verified_at: new Date(),
-        is_approved: ["patient", "admin"].includes(pendingRegistration.role)
-      });
-
-      await PendingRegistration.deleteOne({ _id: pendingRegistration._id });
-    } else {
-      user.email_verified = true;
-      user.email_verified_at = new Date();
-      await user.save();
-    }
 
     const tokens = await issueAuthTokens(user, req);
 
-    return res.json({
+    return res.status(201).json({
       success: true,
-      message: ["doctor", "pharmacist"].includes(user.role) && !user.is_approved
-        ? "Email verified successfully. Complete your profile and wait for admin approval."
-        : "Email verified successfully",
+      message: `${role} registration successful.`,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: sanitizeUser(user)
     });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
+
+// Removed sendOtp and verifyOtp
 
 const loginUser = async (req, res) => {
   try {
     const normalizedEmail = normalizeEmail(req.body.email);
     const { password } = req.body;
-
     if (!normalizedEmail || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
     const user = await User.findByEmail(normalizedEmail);
-
     if (!user) {
-      const pendingRegistration = await PendingRegistration.findOne({ email: normalizedEmail }).select("+password_hash");
-
-      if (!pendingRegistration) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      const pendingPasswordMatch = await pendingRegistration.comparePassword(password);
-      if (!pendingPasswordMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      const emailResult = await sendVerificationOtpEmail(
-        pendingRegistration.email,
-        pendingRegistration.full_name
-      );
-
-      return res.status(403).json({
-        verification_email: pendingRegistration.email,
-        message: emailResult.ok
-          ? "Please verify your email first. A fresh OTP has been sent."
-          : "Please verify your email first. A fresh OTP was created but email delivery is not configured yet."
-      });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -217,15 +90,7 @@ const loginUser = async (req, res) => {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
-    if (!user.email_verified) {
-      const emailResult = await sendVerificationOtpEmail(user.email, user.full_name);
-      return res.status(403).json({
-        verification_email: user.email,
-        message: emailResult.ok
-          ? "Please verify your email first. A fresh OTP has been sent."
-          : "Please verify your email first. A fresh OTP was created but email delivery is not configured yet."
-      });
-    }
+    // Verification check removed for simplicity
 
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
       return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
@@ -247,6 +112,7 @@ const loginUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 const refreshAccessToken = async (req, res) => {
   try {
@@ -307,13 +173,97 @@ const logoutAllSessions = async (req, res) => {
   }
 };
 
+const getPatientProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    let profile = await PatientProfile.findOne({ user: req.user._id });
+    if (!profile) {
+      profile = await PatientProfile.create({ user: req.user._id, settings: {} });
+    }
+
+    return res.json({
+      success: true,
+      user: sanitizeUser(user),
+      profile
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updatePatientProfile = async (req, res) => {
+  try {
+    const { name, phone, email, dob, gender, bloodGroup, address } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.full_name = name;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+    
+    await user.save();
+
+    let profile = await PatientProfile.findOne({ user: req.user._id });
+    if (!profile) {
+      profile = new PatientProfile({ user: req.user._id, settings: {} });
+    }
+    
+    if (dob !== undefined) profile.dob = dob;
+    if (gender !== undefined) profile.gender = gender;
+    if (bloodGroup !== undefined) profile.bloodGroup = bloodGroup;
+    if (address !== undefined) profile.address = address;
+
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: sanitizeUser(user),
+      profile
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updatePatientSettings = async (req, res) => {
+  try {
+    const { settings } = req.body;
+    
+    let profile = await PatientProfile.findOne({ user: req.user._id });
+    if (!profile) {
+      profile = new PatientProfile({ user: req.user._id, settings: {} });
+    }
+    
+    profile.settings = settings || {};
+    profile.markModified('settings');
+    await profile.save();
+
+    return res.json({
+      success: true,
+      message: "Settings updated successfully",
+      settings: profile.settings
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
-  sendOtp,
-  verifyOtp,
   loginUser,
   refreshAccessToken,
   logoutUser,
   logoutAllSessions,
+  getPatientProfile,
+  updatePatientProfile,
+  updatePatientSettings,
   createAccessToken
 };

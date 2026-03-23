@@ -1,22 +1,22 @@
-import React, { useMemo } from 'react';
-import { Avatar, Box, Button, Chip, Stack, Typography } from '@mui/material';
-import {
-  NotificationsNoneRounded as NotificationIcon,
-  PhotoCameraRounded as CameraIcon
-} from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
+import { Avatar, Box, Button, CircularProgress, Stack, TextField, Typography } from '@mui/material';
+import { PhotoCameraRounded as CameraIcon, EditRounded as EditIcon, SaveRounded as SaveIcon, CloseRounded as CloseIcon } from '@mui/icons-material';
 import PatientShell from '../../components/patient/PatientShell';
+import { fetchPatientProfile, updatePatientProfile } from '../../api/patientApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  soft: '#e9e2d8',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  blueSoft: '#e7f0fe',
-  red: '#d9635b',
-  redSoft: '#fdeaea'
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  danger: '#d93025',
+  gray: '#9aa0a6'
 };
 
 const initials = (name) =>
@@ -25,222 +25,290 @@ const initials = (name) =>
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
-    .join('') || 'RK';
-
-const doctorCards = [
-  ['PS', 'Dr. Priya Sharma', 'General Physician', '12 consultations', '#dff3eb', '#176d57'],
-  ['MR', 'Dr. Manish Rao', 'Cardiologist', '3 consultations', '#e7f0fe', '#2f6db9']
-];
+    .join('') || 'U';
 
 export default function PatientProfile() {
-  const user = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || '{}');
-    } catch {
-      return {};
-    }
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const [profileData, setProfileData] = useState({
+    name: 'User',
+    email: '',
+    phone: '',
+    role: 'Patient',
+    dob: '',
+    gender: '',
+    bloodGroup: '',
+    address: ''
+  });
+
+  const [editForm, setEditForm] = useState({ ...profileData });
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchPatientProfile();
+        if (res.success) {
+          const { user, profile } = res;
+          
+          // Update local storage so the shell reflects changes if any
+          const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+          localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone }));
+
+          const newData = {
+            name: user.full_name || 'User',
+            email: user.email || '',
+            phone: user.phone || '',
+            role: user.role || 'Patient',
+            dob: profile?.dob || '',
+            gender: profile?.gender || '',
+            bloodGroup: profile?.bloodGroup || '',
+            address: profile?.address || ''
+          };
+          setProfileData(newData);
+          setEditForm(newData);
+        }
+      } catch (err) {
+        console.error('Failed to load profile', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
   }, []);
 
-  const patientName = user?.name || 'Ramesh Kumar';
-  const profileImage = user?.profileImage || user?.avatar || user?.image || '';
+  const handleEditClick = () => {
+    setEditForm({ ...profileData });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({ ...profileData });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const res = await updatePatientProfile(editForm);
+      if (res.success) {
+        const { user, profile } = res;
+        
+        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone }));
+        // dispatch custom event to notify shell
+        window.dispatchEvent(new Event('storage'));
+
+        const newData = {
+          name: user.full_name || 'User',
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role || 'Patient',
+          dob: profile?.dob || '',
+          gender: profile?.gender || '',
+          bloodGroup: profile?.bloodGroup || '',
+          address: profile?.address || ''
+        };
+        setProfileData(newData);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error('Failed to update profile', err);
+      alert('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <PatientShell activeSetting="profile">
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress />
+        </Box>
+      </PatientShell>
+    );
+  }
 
   return (
     <PatientShell activeSetting="profile">
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
-        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 3 }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ color: '#a7a198', fontSize: 16 }}>Home › Settings › My Profile</Typography>
-            <Typography sx={{ mt: 0.6, fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
               My Profile
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 460, lineHeight: 1.2 }}>
-              Manage your personal, health and account information
+            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
+              {isEditing ? 'Edit your personal, health and account information' : 'Manage your personal, health and account information'}
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17, lineHeight: 1.15 }}>
-              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-            </Box>
-            <Button sx={{ minWidth: 48, width: 48, height: 48, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, position: 'relative' }}>
-              <NotificationIcon />
-              <Box sx={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: '50%', bgcolor: colors.red }} />
-            </Button>
-            <Button sx={{ px: 3, py: 1.25, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, textTransform: 'none', fontSize: 16 }}>
-              Edit Profile
-            </Button>
-          </Stack>
+          {!isEditing && (
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Button onClick={handleEditClick} startIcon={<EditIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.primary}`, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.primaryDark } }}>
+                Edit Profile
+              </Button>
+            </Stack>
+          )}
+          {isEditing && (
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Button onClick={handleCancelEdit} startIcon={<CloseIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving} startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.primary}`, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.primaryDark } }}>
+                Save Changes
+              </Button>
+            </Stack>
+          )}
         </Stack>
 
-        <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 3 }}>
-          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
+        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Stack direction={{ xs: 'column', lg: 'row' }} spacing={4} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ xs: 'center', md: 'center' }}>
               <Box sx={{ position: 'relative' }}>
                 <Avatar
-                  src={profileImage}
-                  alt={patientName}
                   sx={{
-                    width: 122,
-                    height: 122,
-                    bgcolor: '#dcf6ef',
-                    color: '#0f6550',
-                    border: '4px solid #8fdcc9',
-                    fontSize: 38,
-                    fontWeight: 700
+                    width: 120,
+                    height: 120,
+                    bgcolor: colors.primarySoft,
+                    color: colors.primaryDark,
+                    fontSize: 36,
+                    fontWeight: 600
                   }}
                 >
-                  {initials(patientName)}
+                  {initials(isEditing ? editForm.name : profileData.name)}
                 </Avatar>
-                <Box sx={{ position: 'absolute', right: 2, bottom: 4, width: 28, height: 28, borderRadius: '50%', bgcolor: colors.green, color: '#fff', display: 'grid', placeItems: 'center', border: '2px solid #fff' }}>
-                  <CameraIcon sx={{ fontSize: 16 }} />
-                </Box>
+                {isEditing && (
+                  <Box sx={{ position: 'absolute', right: 0, bottom: 0, width: 32, height: 32, borderRadius: '50%', bgcolor: colors.primary, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff', cursor: 'pointer', '&:hover': { bgcolor: colors.primaryDark } }}>
+                    <CameraIcon sx={{ fontSize: 16 }} />
+                  </Box>
+                )}
               </Box>
 
-              <Box>
-                <Typography sx={{ fontSize: { xs: 34, md: 42 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-                  {patientName}
-                </Typography>
-                <Stack direction="row" spacing={1.2} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-                  <Typography sx={{ color: colors.muted, fontSize: 16.5 }}>Patient ID: SVT-2024-00482</Typography>
-                  <Chip label="Verified" sx={{ bgcolor: colors.greenSoft, color: colors.green, fontSize: 14 }} />
-                </Stack>
-
-                <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mt: 1.8 }}>
-                  {['Male · 42 years', 'B+ Blood Group', 'Hoshiarpur, Punjab'].map((item) => (
-                    <Chip key={item} label={item} sx={{ bgcolor: '#f6f3ec', color: '#66615a', fontSize: 14.5, height: 36 }} />
-                  ))}
-                  {['Hypertension', 'Penicillin Allergy'].map((item) => (
-                    <Chip key={item} label={item} sx={{ bgcolor: colors.redSoft, color: colors.red, border: `1px solid #f5a1a1`, fontSize: 14.5, height: 36 }} />
-                  ))}
+              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                {isEditing ? (
+                  <TextField 
+                    name="name" 
+                    value={editForm.name} 
+                    onChange={handleChange} 
+                    variant="standard" 
+                    InputProps={{ style: { fontSize: 24, fontWeight: 600, color: colors.text } }} 
+                    placeholder="Full Name" 
+                  />
+                ) : (
+                  <Typography sx={{ fontSize: 28, fontWeight: 600, color: colors.text }}>
+                    {profileData.name}
+                  </Typography>
+                )}
+                <Stack direction="row" spacing={1} justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mt: 1 }}>
+                  <Typography sx={{ color: colors.muted, fontSize: 15 }}>Role: {profileData.role}</Typography>
                 </Stack>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={1.6} useFlexGap flexWrap="wrap">
+            <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" justifyContent={{ xs: 'center', lg: 'flex-end' }} sx={{ width: { xs: '100%', lg: 'auto' } }}>
               {[
-                ['12', 'Consultations'],
-                ['4', 'Prescriptions'],
-                ['14', 'Records'],
-                ['2', 'Doctors']
+                ['0', 'Consultations'],
+                ['0', 'Prescriptions'],
+                ['0', 'Records']
               ].map(([value, label]) => (
-                <Box key={label} sx={{ width: 116, p: 1.6, borderRadius: 2.5, bgcolor: '#f5f1e9', textAlign: 'center' }}>
-                  <Typography sx={{ fontSize: 22 }}>{value}</Typography>
-                  <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.15 }}>{label}</Typography>
+                <Box key={label} sx={{ width: 100, p: 2, borderRadius: 1.5, bgcolor: colors.soft, textAlign: 'center' }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 600, color: colors.text }}>{value}</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 13, mt: 0.5 }}>{label}</Typography>
                 </Box>
               ))}
             </Stack>
           </Stack>
         </Box>
 
-        <Box sx={{ p: 1, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 3 }}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
-            {[
-              ['Personal Info', true],
-              ['Health Details', false],
-              ['Emergency Contacts', false],
-              ['Privacy & Security', false]
-            ].map(([label, active]) => (
-              <Button
-                key={label}
-                sx={{
-                  px: 3,
-                  py: 1.25,
-                  borderRadius: 2.5,
-                  bgcolor: active ? colors.green : 'transparent',
-                  color: active ? '#fff' : '#67625b',
-                  textTransform: 'none',
-                  fontSize: 16,
-                  justifyContent: 'flex-start'
-                }}
-              >
-                {label}
-              </Button>
-            ))}
-          </Stack>
-        </Box>
-
-        <Stack spacing={3}>
-          <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
-              <Typography sx={{ fontSize: 18 }}>Basic information</Typography>
-              <Button sx={{ px: 2.6, py: 0.9, borderRadius: 2.5, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15.5 }}>
-                Edit
-              </Button>
+        <Stack spacing={4}>
+          <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Basic Information</Typography>
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
               {[
-                ['Full name', patientName],
-                ['Date of birth', '14 August 1983'],
-                ['Age', '42 years'],
-                ['Gender', 'Male'],
-                ['Blood group', 'B+'],
-                ['Marital status', 'Married']
-              ].map(([label, value]) => (
-                <Box key={label}>
-                  <Typography sx={{ color: colors.muted, fontSize: 15 }}>{label}</Typography>
-                  <Typography sx={{ mt: 0.3, color: label === 'Blood group' ? colors.red : colors.text, fontSize: 17 }}>
-                    {value}
-                  </Typography>
+                ['Date of birth', 'dob', 'e.g. 15 Aug 1990'],
+                ['Gender', 'gender', 'e.g. Male / Female'],
+                ['Blood group', 'bloodGroup', 'e.g. O+']
+              ].map(([label, key, placeholder]) => (
+                <Box key={key}>
+                  <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
+                  {isEditing ? (
+                    <TextField 
+                      name={key}
+                      value={editForm[key]}
+                      onChange={handleChange}
+                      placeholder={placeholder}
+                      fullWidth
+                      size="small"
+                      sx={{ mt: 1 }}
+                    />
+                  ) : (
+                    <Typography sx={{ mt: 0.5, color: profileData[key] ? colors.text : colors.gray, fontSize: 15, fontWeight: profileData[key] ? 500 : 400 }}>
+                      {profileData[key] || 'Not set'}
+                    </Typography>
+                  )}
                 </Box>
               ))}
             </Box>
           </Box>
 
-          <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-            <Typography sx={{ fontSize: 18, mb: 2.5 }}>Contact information</Typography>
-            <Stack spacing={2}>
+          <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Contact Information</Typography>
+            <Stack spacing={0}>
               {[
-                ['Mobile number', '+91 98140 55872', 'Verify'],
-                ['Email address', 'ramesh.kumar83@gmail.com', 'Edit'],
-                ['Village / Town', 'Garhshankar, Hoshiarpur', 'Edit'],
-                ['District & PIN', 'Hoshiarpur, Punjab — 146105', 'Edit'],
-                ['Aadhaar number', 'XXXX XXXX 4821', 'Verified']
-              ].map(([label, value, action]) => (
-                <Stack key={label} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ py: 1.5, borderTop: `1px solid ${colors.soft}`, '&:first-of-type': { borderTop: 'none', pt: 0 } }}>
-                  <Box>
-                    <Typography sx={{ color: colors.muted, fontSize: 15 }}>{label}</Typography>
-                    <Typography sx={{ mt: 0.35, fontSize: 17 }}>{value}</Typography>
+                ['Mobile number', 'phone', 'e.g. +91 9876543210'],
+                ['Email address', 'email', 'e.g. user@example.com'],
+                ['Address', 'address', 'e.g. 123 Health Ave, Mumbai']
+              ].map(([label, key, placeholder]) => (
+                <Stack key={label} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ py: 2, borderBottom: `1px solid ${colors.soft}`, '&:last-child': { borderBottom: 'none', pb: 0 } }}>
+                  <Box sx={{ flex: 1, pr: 2 }}>
+                    <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
+                    {isEditing ? (
+                      <TextField
+                        name={key}
+                        value={editForm[key]}
+                        onChange={handleChange}
+                        placeholder={placeholder}
+                        fullWidth
+                        size="small"
+                        sx={{ mt: 1 }}
+                      />
+                    ) : (
+                      <Typography sx={{ mt: 0.5, fontSize: 15, color: profileData[key] ? colors.text : colors.gray, fontWeight: profileData[key] ? 500 : 400 }}>
+                        {profileData[key] || 'Not provided'}
+                      </Typography>
+                    )}
                   </Box>
-                  <Button
-                    sx={{
-                      minWidth: 104,
-                      px: 2.5,
-                      py: 0.95,
-                      borderRadius: 2.5,
-                      border: `1px solid ${action === 'Verified' ? colors.green : colors.line}`,
-                      bgcolor: action === 'Verified' ? colors.greenSoft : '#fff',
-                      color: action === 'Verified' ? colors.green : colors.text,
-                      textTransform: 'none',
-                      fontSize: 15.5
-                    }}
-                  >
-                    {action}
-                  </Button>
+                  {!isEditing && (
+                    <Button
+                      sx={{
+                        minWidth: 90,
+                        px: 2,
+                        py: 0.75,
+                        borderRadius: 1.5,
+                        border: `1px solid ${profileData[key] ? colors.success : colors.line}`,
+                        bgcolor: profileData[key] ? '#e6f4ea' : '#fff',
+                        color: profileData[key] ? colors.success : colors.text,
+                        textTransform: 'none',
+                        fontSize: 13,
+                        fontWeight: 500
+                      }}
+                    >
+                      {profileData[key] ? 'Verified' : 'Add'}
+                    </Button>
+                  )}
                 </Stack>
               ))}
             </Stack>
-          </Box>
-
-          <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
-              <Typography sx={{ fontSize: 18 }}>My doctors</Typography>
-              <Button sx={{ color: colors.green, textTransform: 'none', fontSize: 15.5 }}>Add doctor</Button>
-            </Stack>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
-              {doctorCards.map(([abbr, name, role, consults, bg, fg]) => (
-                <Box key={name} sx={{ p: 2.2, borderRadius: 3, border: `1px solid ${colors.soft}`, bgcolor: '#fff', display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ width: 56, height: 56, bgcolor: bg, color: fg, fontWeight: 700, fontSize: 24 }}>{abbr}</Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: 17, lineHeight: 1.15 }}>{name}</Typography>
-                    <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.15 }}>{role}</Typography>
-                    <Typography sx={{ mt: 0.6, color: colors.green, fontSize: 15 }}>{consults}</Typography>
-                  </Box>
-                  <Button sx={{ px: 2.6, py: 0.9, borderRadius: 2.4, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15.5 }}>
-                    Book
-                  </Button>
-                </Box>
-              ))}
-            </Box>
           </Box>
         </Stack>
       </Box>

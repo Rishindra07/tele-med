@@ -6,12 +6,16 @@ const patientProfileSchema = new mongoose.Schema({
         ref:'User',
         required : true
     },
-    location:String,
-    age:Number,
+    address:String, // Changed from location
+    dob:String,     // Added DOB
     gender:String,
     bloodGroup:String,
     allergies:[String],
-    chronicDiseases:[String]
+    chronicDiseases:[String],
+    settings: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    }
 },{timestamps:true});
 
 const PatientProfile = new mongoose.model('PatientProfile',patientProfileSchema);
