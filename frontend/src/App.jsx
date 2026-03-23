@@ -23,7 +23,25 @@ import DoctorPatients from "./pages/doctor/DoctorPatients.jsx";
 import DoctorProfile from "./pages/doctor/DoctorProfile.jsx";
 import DoctorSettings from "./pages/doctor/DoctorSettings.jsx";
 import PharmacyDashboard from "./pages/pharmacy/PharmacyDashboard.jsx";
+import PharmacyPrescriptions from "./pages/pharmacy/PharmacyPrescriptions.jsx";
+import PharmacyInventory from "./pages/pharmacy/PharmacyInventory.jsx";
+import PharmacySales from "./pages/pharmacy/PharmacySales.jsx";
+import PharmacyExpiry from "./pages/pharmacy/PharmacyExpiry.jsx";
+import PharmacySuppliers from "./pages/pharmacy/PharmacySuppliers.jsx";
+import PharmacyProfile from "./pages/pharmacy/PharmacyProfile.jsx";
+import PharmacySettings from "./pages/pharmacy/PharmacySettings.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
+import AdminPatients from "./pages/admin/AdminPatients.jsx";
+import AdminDoctors from "./pages/admin/AdminDoctors.jsx";
+import AdminPharmacies from "./pages/admin/AdminPharmacies.jsx";
+import AdminConsultations from "./pages/admin/AdminConsultations.jsx";
+import AdminRecords from "./pages/admin/AdminRecords.jsx";
+import AdminFinancials from "./pages/admin/AdminFinancials.jsx";
+import AdminReports from "./pages/admin/AdminReports.jsx";
+import AdminSystemHealth from "./pages/admin/AdminSystemHealth.jsx";
+import AdminUserManagement from "./pages/admin/AdminUserManagement.jsx";
+import AdminSettings from "./pages/admin/AdminSettings.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
@@ -156,10 +174,136 @@ function App() {
             </RoleRoute>
           </ProtectedRoute>
         }/>
+        <Route path="/pharmacy/prescriptions" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacyPrescriptions />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/inventory" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacyInventory />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/sales" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacySales />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/expiry" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacyExpiry />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/suppliers" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacySuppliers />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/profile" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacyProfile />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/pharmacy/settings" element={
+          <ProtectedRoute>
+            <RoleRoute role="pharmacist">
+              <PharmacySettings />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
         <Route path="/admin" element={
           <ProtectedRoute>
             <RoleRoute role="admin">
               <AdminDashboard />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/analytics" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminAnalytics />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/patients" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminPatients />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/doctors" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminDoctors />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/pharmacies" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminPharmacies />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/consultations" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminConsultations />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/records" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminRecords />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/financials" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminFinancials />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/reports" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminReports />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/health" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminSystemHealth />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/users" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminUserManagement />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/admin/settings" element={
+          <ProtectedRoute>
+            <RoleRoute role="admin">
+              <AdminSettings />
             </RoleRoute>
           </ProtectedRoute>
         }/>

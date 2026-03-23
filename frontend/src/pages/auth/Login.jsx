@@ -86,6 +86,12 @@ export default function Login() {
     }
   };
 
+  const bypassAdminLogin = () => {
+    // For development/demo purposes
+    localStorage.setItem("user", JSON.stringify({ role: "admin", phone: "0000000000" }));
+    navigate("/admin/analytics");
+  };
+
   return (
     <Container component="main" maxWidth="sm">
       <Box
