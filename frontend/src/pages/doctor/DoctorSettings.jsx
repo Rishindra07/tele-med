@@ -1,410 +1,373 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Box, Typography, Stack, Avatar, Button, TextField,
-  Divider, Paper, List, ListItem, ListItemIcon,
-  ListItemText, Switch, Select, MenuItem, FormControl,
-  InputLabel, IconButton, Chip, Grid, Snackbar, Alert,
+  Box,
+  Button,
+  LinearProgress,
+  MenuItem,
+  Select,
+  Stack,
+  Switch,
+  TextField,
+  Typography
 } from '@mui/material';
 import {
-  AccountCircle as AccountIcon,
-  NotificationsNone as NotifIcon,
-  Language as LanguageIcon,
-  LocationOn as RegionIcon,
-  Edit as EditIcon,
-  CameraAlt as CameraIcon,
-  MoreHoriz as MoreIcon,
-  KeyboardArrowDown as ChevronDown,
-  Check as CheckIcon,
+  NotificationsNoneRounded as NotificationIcon,
+  SaveRounded as SaveIcon,
+  WarningAmberRounded as WarningIcon
 } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
 
-/* ─── constants ─────────────────────────────────────── */
-const PRIMARY = '#2563EB';
-const ACCENT  = '#6C63FF';
-const BG      = '#F8FAFC';
-
-const SETTINGS_NAV = [
-  { key: 'account',      label: 'Account',      icon: <AccountIcon  fontSize="small" /> },
-  { key: 'notification', label: 'Notification', icon: <NotifIcon    fontSize="small" /> },
-  { key: 'language',     label: 'Language',     icon: <LanguageIcon fontSize="small" /> },
-  { key: 'region',       label: 'Region',       icon: <RegionIcon   fontSize="small" /> },
-];
-
-/* ─── Notification toggle row ───────────────────────── */
-const NotifRow = ({ label, desc, defaultOn = true }) => {
-  const [on, setOn] = useState(defaultOn);
-  return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5 }}>
-      <Box>
-        <Typography fontSize="0.85rem" fontWeight={600} color="#0F172A">{label}</Typography>
-        <Typography fontSize="0.75rem" color="text.secondary">{desc}</Typography>
-      </Box>
-      <Switch
-        checked={on}
-        onChange={e => setOn(e.target.checked)}
-        size="small"
-        sx={{
-          '& .MuiSwitch-switchBase.Mui-checked': { color: ACCENT },
-          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: ACCENT },
-        }}
-      />
-    </Box>
-  );
+const colors = {
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  soft: '#e9e2d8',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  blue: '#4a90e2',
+  amber: '#c57d17',
+  amberSoft: '#fbefdc',
+  red: '#d9635b',
+  redSoft: '#fdeaea'
 };
 
-/* ─── Language option row ───────────────────────────── */
-const LangRow = ({ flag, name, active }) => (
-  <Box sx={{
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    p: 1.5, borderRadius: 2,
-    bgcolor: active ? '#EFF6FF' : 'transparent',
-    border: active ? `1px solid ${PRIMARY}30` : '1px solid transparent',
-  }}>
-    <Stack direction="row" spacing={1.5} alignItems="center">
-      <Typography fontSize="1.4rem">{flag}</Typography>
-      <Typography fontSize="0.85rem" fontWeight={active ? 700 : 500} color="#0F172A">{name}</Typography>
+const tabs = {
+  account: ['Account', 'Manage your profile, contact and clinic information'],
+  notification: ['Notifications', 'Control when and how patient alerts reach you'],
+  language: ['Language', 'Choose your preferred language and format settings'],
+  region: ['Region & Time', 'Set your timezone, session defaults and local format']
+};
+
+function Row({ name, desc, action, danger = false }) {
+  return (
+    <Stack
+      direction={{ xs: 'column', md: 'row' }}
+      justifyContent="space-between"
+      alignItems={{ xs: 'flex-start', md: 'center' }}
+      spacing={2}
+      sx={{ py: 1.7, borderBottom: `1px solid ${danger ? '#f7d4d4' : colors.soft}` }}
+    >
+      <Box sx={{ pr: 2 }}>
+        <Typography sx={{ fontSize: 15, color: danger ? '#892727' : colors.text }}>{name}</Typography>
+        <Typography sx={{ mt: 0.35, color: danger ? '#a24a4a' : colors.muted, fontSize: 13.5, lineHeight: 1.45 }}>
+          {desc}
+        </Typography>
+      </Box>
+      {action}
     </Stack>
-    {active && <CheckIcon sx={{ fontSize: 16, color: PRIMARY }} />}
-  </Box>
-);
+  );
+}
 
-/* ─── Account Tab ───────────────────────────────────── */
-const AccountTab = () => {
-  const [form, setForm] = useState({
-    name: 'Dr. Farhan Ahmed',
-    phone: '384-728-0541x8699',
-    email: 'farhan@example.com',
-    message: '',
-  });
-  const [saved, setSaved] = useState(false);
-
-  const handleChange = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
-  const handleSave = () => setSaved(true);
-
+function PillGroup({ options, selected, onSelect }) {
   return (
-    <Box>
-      {/* Cover + avatar */}
-      <Box sx={{ position: 'relative', mb: 3 }}>
-        <Box sx={{
-          height: 140, borderRadius: 3, overflow: 'hidden',
-          background: 'linear-gradient(135deg, #C7B8EA 0%, #B8C8F0 50%, #D4C5F9 100%)',
-        }}>
-          {/* decorative lines */}
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Box key={i} sx={{
-              position: 'absolute', left: `${i * 12}%`, top: 0, bottom: 0,
-              width: 1, bgcolor: 'rgba(255,255,255,0.15)',
-              transform: 'rotate(15deg) scaleY(2)',
-            }} />
-          ))}
-        </Box>
-        <IconButton size="small" sx={{
-          position: 'absolute', bottom: 10, right: 12,
-          bgcolor: 'white', boxShadow: 2, '&:hover': { bgcolor: '#F1F5F9' },
-        }}>
-          <CameraIcon sx={{ fontSize: 16, color: '#64748B' }} />
-        </IconButton>
-      </Box>
+    <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
+      {options.map((option) => (
+        <Button
+          key={option}
+          onClick={() => onSelect?.(option)}
+          sx={{
+            px: 1.8,
+            py: 0.7,
+            borderRadius: 999,
+            border: `1px solid ${selected === option ? colors.green : colors.line}`,
+            bgcolor: selected === option ? colors.greenSoft : '#fff',
+            color: selected === option ? '#0d5d49' : '#67625b',
+            textTransform: 'none',
+            fontSize: 13.5
+          }}
+        >
+          {option}
+        </Button>
+      ))}
+    </Stack>
+  );
+}
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ width: '100%' }}>
-        {/* Left — profile info */}
-        <Box sx={{ width: { xs: '100%', md: '35%' }, display: 'flex' }}>
-          <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 3, p: 3, width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography fontSize="0.88rem" fontWeight={700} color="#0F172A">Profile Information</Typography>
-              <IconButton size="small"><MoreIcon fontSize="small" /></IconButton>
-            </Box>
-
-            {/* Avatar with edit badge */}
-            <Box sx={{ position: 'relative', width: 64, mb: 2.5 }}>
-              <Avatar sx={{ width: 64, height: 64, bgcolor: '#DBEAFE', color: PRIMARY, fontWeight: 800, fontSize: '1.6rem', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>F</Avatar>
-              <Box sx={{
-                position: 'absolute', bottom: 0, right: 0,
-                width: 20, height: 20, borderRadius: '50%',
-                bgcolor: ACCENT, border: '2px solid white',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <EditIcon sx={{ fontSize: 10, color: 'white' }} />
-              </Box>
-            </Box>
-
-            {[
-              { label: 'About me', value: 'Cardiologist Surgeon' },
-              { label: 'Work',     value: 'Seva TeleHealth' },
-              { label: 'Country',  value: 'Bangladesh 🇧🇩' },
-            ].map(row => (
-              <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.2, borderBottom: '1px solid #F1F5F9' }}>
-                <Box>
-                  <Typography fontSize="0.82rem" fontWeight={600} color="#0F172A">{row.label}</Typography>
-                  <Typography fontSize="0.72rem" color="text.secondary">{row.value}</Typography>
-                </Box>
-                <IconButton size="small"><EditIcon sx={{ fontSize: 14, color: '#94A3B8' }} /></IconButton>
-              </Box>
-            ))}
-
-            {/* Stats */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, pt: 2, borderTop: '1px solid #F1F5F9' }}>
-              {[{ val: '120', lbl: 'Following' }, { val: '8k+', lbl: 'Follower' }, { val: '151k', lbl: 'Like' }].map(s => (
-                <Box key={s.lbl} textAlign="center">
-                  <Typography fontWeight={800} fontSize="1.1rem" color="#0F172A">{s.val}</Typography>
-                  <Typography fontSize="0.7rem" color="text.secondary">{s.lbl}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </Box>
-
-        {/* Right — edit form */}
-        <Box sx={{ width: { xs: '100%', md: '65%' }, display: 'flex' }}>
-          <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 3, p: 3, width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography fontSize="0.88rem" fontWeight={700} color="#0F172A">Profile Information</Typography>
-              <IconButton size="small"><MoreIcon fontSize="small" /></IconButton>
-            </Box>
-
-            <Stack spacing={2.5}>
-              <Box>
-                <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Full Name</Typography>
-                <TextField
-                  fullWidth size="small" value={form.name}
-                  onChange={handleChange('name')}
-                  placeholder="Dr. Farhan Ahmed"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: '0.85rem', bgcolor: '#FAFAFA' } }}
-                />
-              </Box>
-              <Box>
-                <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Phone Number</Typography>
-                <TextField
-                  fullWidth size="small" value={form.phone}
-                  onChange={handleChange('phone')}
-                  placeholder="Phone number"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: '0.85rem', bgcolor: '#FAFAFA' } }}
-                />
-              </Box>
-              <Box>
-                <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Email Address</Typography>
-                <TextField
-                  fullWidth size="small" value={form.email}
-                  onChange={handleChange('email')}
-                  placeholder="Email address"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: '0.85rem', bgcolor: '#FAFAFA' } }}
-                />
-              </Box>
-              <Box>
-                <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Message / Bio</Typography>
-                <TextField
-                  fullWidth multiline rows={4}
-                  value={form.message}
-                  onChange={handleChange('message')}
-                  placeholder="Type Here..."
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: '0.85rem', bgcolor: '#FAFAFA' } }}
-                />
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  variant="contained"
-                  onClick={handleSave}
-                  sx={{
-                    borderRadius: 2, textTransform: 'none', fontWeight: 700,
-                    px: 4, bgcolor: ACCENT,
-                    '&:hover': { bgcolor: '#5B52D6' },
-                    boxShadow: '0 4px 14px rgba(108,99,255,0.35)',
-                  }}
-                >
-                  Save
-                </Button>
-              </Box>
-            </Stack>
-          </Paper>
-        </Box>
-      </Stack>
-
-      <Snackbar open={saved} autoHideDuration={3000} onClose={() => setSaved(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" sx={{ borderRadius: 2 }}>Profile saved successfully!</Alert>
-      </Snackbar>
+function Card({ children }) {
+  return (
+    <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+      {children}
     </Box>
   );
-};
+}
 
-/* ─── Notification Tab ───────────────────────────────── */
-const NotificationTab = () => (
-  <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 3, p: 3, width: '100%' }}>
-    <Typography fontSize="0.88rem" fontWeight={700} color="#0F172A" sx={{ mb: 0.5 }}>Notification Preferences</Typography>
-    <Typography fontSize="0.75rem" color="text.secondary" sx={{ mb: 2 }}>Choose how and when you want to be notified.</Typography>
-    <Divider sx={{ mb: 1 }} />
-    <NotifRow label="Appointment Reminders" desc="Get notified before each appointment" defaultOn={true} />
-    <NotifRow label="New Patient Requests" desc="Alert when a patient books a slot" defaultOn={true} />
-    <NotifRow label="Messages" desc="Receive notifications for new messages" defaultOn={true} />
-    <NotifRow label="System Updates" desc="Platform news and maintenance alerts" defaultOn={false} />
-    <NotifRow label="Weekly Summary" desc="Get a weekly report every Monday" defaultOn={false} />
-  </Paper>
-);
-
-/* ─── Language Tab ───────────────────────────────────── */
-const LanguageTab = () => {
-  const [selected, setSelected] = useState('English');
-  const langs = [
-    { flag: '🇺🇸', name: 'English' },
-    { flag: '🇧🇩', name: 'Bangla' },
-    { flag: '🇵🇰', name: 'Urdu' },
-    { flag: '🇸🇦', name: 'Arabic' },
-    { flag: '🇫🇷', name: 'French' },
-    { flag: '🇩🇪', name: 'German' },
-  ];
-  return (
-    <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 3, p: 3, width: '100%' }}>
-      <Typography fontSize="0.88rem" fontWeight={700} color="#0F172A" sx={{ mb: 0.5 }}>Display Language</Typography>
-      <Typography fontSize="0.75rem" color="text.secondary" sx={{ mb: 2 }}>Select the language for your dashboard.</Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Stack spacing={1}>
-        {langs.map(l => (
-          <Box key={l.name} onClick={() => setSelected(l.name)} sx={{ cursor: 'pointer' }}>
-            <LangRow flag={l.flag} name={l.name} active={selected === l.name} />
-          </Box>
-        ))}
-      </Stack>
-    </Paper>
-  );
-};
-
-/* ─── Region Tab ─────────────────────────────────────── */
-const RegionTab = () => {
-  const [timezone, setTimezone] = useState('Asia/Dhaka');
-  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
-  const [timeFormat, setTimeFormat] = useState('12h');
-
-  return (
-    <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 3, p: 3, width: '100%' }}>
-      <Typography fontSize="0.88rem" fontWeight={700} color="#0F172A" sx={{ mb: 0.5 }}>Region & Time</Typography>
-      <Typography fontSize="0.75rem" color="text.secondary" sx={{ mb: 2 }}>Configure your local timezone and date preferences.</Typography>
-      <Divider sx={{ mb: 3 }} />
-
-      <Stack spacing={3}>
-        <FormControl size="small" fullWidth>
-          <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Timezone</Typography>
-          <Select value={timezone} onChange={e => setTimezone(e.target.value)} sx={{ borderRadius: 2, fontSize: '0.85rem' }}>
-            <MenuItem value="Asia/Dhaka">Asia/Dhaka (GMT+6)</MenuItem>
-            <MenuItem value="Asia/Kolkata">Asia/Kolkata (GMT+5:30)</MenuItem>
-            <MenuItem value="America/New_York">America/New_York (GMT-5)</MenuItem>
-            <MenuItem value="Europe/London">Europe/London (GMT+0)</MenuItem>
-            <MenuItem value="Asia/Dubai">Asia/Dubai (GMT+4)</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" fullWidth>
-          <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 0.8 }}>Date Format</Typography>
-          <Select value={dateFormat} onChange={e => setDateFormat(e.target.value)} sx={{ borderRadius: 2, fontSize: '0.85rem' }}>
-            <MenuItem value="DD/MM/YYYY">DD/MM/YYYY</MenuItem>
-            <MenuItem value="MM/DD/YYYY">MM/DD/YYYY</MenuItem>
-            <MenuItem value="YYYY-MM-DD">YYYY-MM-DD</MenuItem>
-          </Select>
-        </FormControl>
-
-        <Box>
-          <Typography fontSize="0.75rem" fontWeight={600} color="#64748B" sx={{ mb: 1 }}>Time Format</Typography>
-          <Stack direction="row" spacing={1}>
-            {['12h', '24h'].map(f => (
-              <Button
-                key={f}
-                onClick={() => setTimeFormat(f)}
-                variant={timeFormat === f ? 'contained' : 'outlined'}
-                size="small"
-                sx={{
-                  borderRadius: 2, textTransform: 'none', fontWeight: 600,
-                  minWidth: 70,
-                  bgcolor: timeFormat === f ? ACCENT : 'transparent',
-                  borderColor: timeFormat === f ? ACCENT : '#E2E8F0',
-                  color: timeFormat === f ? 'white' : '#64748B',
-                  boxShadow: 'none',
-                  '&:hover': { bgcolor: timeFormat === f ? '#5B52D6' : '#F8FAFC', borderColor: ACCENT },
-                }}
-              >
-                {f}
-              </Button>
-            ))}
-          </Stack>
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            sx={{
-              borderRadius: 2, textTransform: 'none', fontWeight: 700,
-              px: 4, bgcolor: ACCENT,
-              '&:hover': { bgcolor: '#5B52D6' },
-              boxShadow: '0 4px 14px rgba(108,99,255,0.35)',
-            }}
-          >
-            Save Changes
-          </Button>
-        </Box>
-      </Stack>
-    </Paper>
-  );
-};
-
-/* ─── Main Settings Page ─────────────────────────────── */
 export default function DoctorSettings() {
   const [activeTab, setActiveTab] = useState('account');
+  const [toggles, setToggles] = useState({
+    appointmentAlerts: true,
+    bookingRequests: true,
+    cancellations: true,
+    sms: true,
+    push: true,
+    email: false,
+    autoConfirm: false,
+    lowBandwidth: true,
+    audioFallback: true,
+    biometric: false,
+    loginAlerts: true
+  });
+  const [language, setLanguage] = useState('English');
+  const [timeFormat, setTimeFormat] = useState('12h');
+  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
+  const [timezone, setTimezone] = useState('Asia/Kolkata');
+  const [profile, setProfile] = useState({
+    name: 'Dr. Farhan Ahmed',
+    email: 'farhan@example.com',
+    phone: '+91 98140 55872',
+    specialty: 'Cardiologist',
+    clinic: 'Seva TeleHealth Clinic',
+    bio: 'Rural cardiology specialist focused on tele-consultation and chronic care follow-ups.'
+  });
 
-  const TAB_CONTENT = {
-    account:      <AccountTab />,
-    notification: <NotificationTab />,
-    language:     <LanguageTab />,
-    region:       <RegionTab />,
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const doctorName = user?.name || profile.name;
+  const pageHeader = tabs[activeTab];
+
+  const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const actionButton = (label, kind = 'outline') => (
+    <Button
+      sx={{
+        px: 2.2,
+        py: 0.8,
+        borderRadius: 2.2,
+        border: `1px solid ${kind === 'danger' ? colors.red : kind === 'outline' ? colors.green : colors.line}`,
+        bgcolor: kind === 'filled' ? colors.green : '#fff',
+        color: kind === 'filled' ? '#fff' : kind === 'danger' ? colors.red : kind === 'outline' ? colors.green : colors.text,
+        textTransform: 'none',
+        fontSize: 13.5
+      }}
+    >
+      {label}
+    </Button>
+  );
+
+  const renderPanel = () => {
+    if (activeTab === 'account') {
+      return (
+        <Card>
+          <Row
+            name="Profile overview"
+            desc="Update the details patients see before booking with you"
+            action={actionButton('Save profile', 'filled')}
+          />
+          <Stack spacing={2.1} sx={{ mt: 2 }}>
+            <TextField
+              label="Full name"
+              value={profile.name}
+              onChange={(event) => setProfile((prev) => ({ ...prev, name: event.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Specialty"
+              value={profile.specialty}
+              onChange={(event) => setProfile((prev) => ({ ...prev, specialty: event.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Clinic / Hospital"
+              value={profile.clinic}
+              onChange={(event) => setProfile((prev) => ({ ...prev, clinic: event.target.value }))}
+              fullWidth
+            />
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+              <TextField
+                label="Email"
+                value={profile.email}
+                onChange={(event) => setProfile((prev) => ({ ...prev, email: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Phone"
+                value={profile.phone}
+                onChange={(event) => setProfile((prev) => ({ ...prev, phone: event.target.value }))}
+                fullWidth
+              />
+            </Stack>
+            <TextField
+              label="Professional bio"
+              multiline
+              minRows={4}
+              value={profile.bio}
+              onChange={(event) => setProfile((prev) => ({ ...prev, bio: event.target.value }))}
+              fullWidth
+            />
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2.4 }}>
+            <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: '#f5f1e9', border: `1px solid ${colors.soft}` }}>
+              <Typography sx={{ fontSize: 14.5 }}>Verification status</Typography>
+              <Typography sx={{ mt: 0.4, color: colors.green, fontSize: 13.5 }}>Medical council verified</Typography>
+            </Box>
+            <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: '#f5f1e9', border: `1px solid ${colors.soft}` }}>
+              <Typography sx={{ fontSize: 14.5 }}>Public display name</Typography>
+              <Typography sx={{ mt: 0.4, color: colors.muted, fontSize: 13.5 }}>{doctorName}</Typography>
+            </Box>
+          </Stack>
+        </Card>
+      );
+    }
+
+    if (activeTab === 'notification') {
+      return (
+        <Card>
+          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1 }}>Appointments</Typography>
+          <Row name="Upcoming appointment alerts" desc="Remind you before each consultation starts" action={<Switch checked={toggles.appointmentAlerts} onChange={() => toggle('appointmentAlerts')} />} />
+          <Row name="New booking requests" desc="Alert when a patient requests a slot" action={<Switch checked={toggles.bookingRequests} onChange={() => toggle('bookingRequests')} />} />
+          <Row name="Cancellations and reschedules" desc="Stay informed when patients change plans" action={<Switch checked={toggles.cancellations} onChange={() => toggle('cancellations')} />} />
+          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>Channels</Typography>
+          <Row name="SMS alerts" desc="Quick reminders to your registered mobile number" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} />} />
+          <Row name="Push notifications" desc="In-app alerts on your current device" action={<Switch checked={toggles.push} onChange={() => toggle('push')} />} />
+          <Row name="Email summaries" desc={`Daily schedule summary to ${user?.email || profile.email}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
+          <Row name="Do not disturb" desc="Silence non-urgent alerts outside clinic hours" action={<Stack direction="row" spacing={1}><Select size="small" value="10 PM"><MenuItem value="10 PM">10 PM</MenuItem></Select><Typography sx={{ alignSelf: 'center', color: colors.muted, fontSize: 12 }}>to</Typography><Select size="small" value="7 AM"><MenuItem value="7 AM">7 AM</MenuItem></Select></Stack>} />
+        </Card>
+      );
+    }
+
+    if (activeTab === 'language') {
+      return (
+        <Card>
+          <Row
+            name="Display language"
+            desc="Choose the language used across your dashboard"
+            action={<PillGroup options={['English', 'Hindi', 'Punjabi', 'Tamil']} selected={language} onSelect={setLanguage} />}
+          />
+          <Row
+            name="Time format"
+            desc="Used in appointments, reminders and consultation summaries"
+            action={<PillGroup options={['12h', '24h']} selected={timeFormat} onSelect={setTimeFormat} />}
+          />
+          <Row
+            name="Date format"
+            desc="How dates appear in schedules and patient records"
+            action={<PillGroup options={['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']} selected={dateFormat} onSelect={setDateFormat} />}
+          />
+          <Row
+            name="Prescription language"
+            desc="Default language for prescription notes and patient handouts"
+            action={<Select size="small" value="English"><MenuItem value="English">English</MenuItem><MenuItem value="Hindi">Hindi</MenuItem></Select>}
+          />
+        </Card>
+      );
+    }
+
+    if (activeTab === 'region') {
+      return (
+        <Stack spacing={3}>
+          <Card>
+            <Box sx={{ mb: 2.2 }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                <Typography sx={{ fontSize: 14.5 }}>Connectivity readiness</Typography>
+                <Typography sx={{ fontSize: 14.5, color: colors.green }}>72%</Typography>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={72}
+                sx={{ height: 8, borderRadius: 999, bgcolor: '#f0efe8', '& .MuiLinearProgress-bar': { bgcolor: colors.green } }}
+              />
+              <Typography sx={{ mt: 0.8, color: colors.muted, fontSize: 12.5 }}>
+                Optimised for rural tele-consultations with moderate network quality.
+              </Typography>
+            </Box>
+            <Row name="Timezone" desc="Used for appointments and reminders" action={<Select size="small" value={timezone} onChange={(event) => setTimezone(event.target.value)}><MenuItem value="Asia/Kolkata">Asia/Kolkata</MenuItem><MenuItem value="Asia/Dhaka">Asia/Dhaka</MenuItem><MenuItem value="Asia/Dubai">Asia/Dubai</MenuItem></Select>} />
+            <Row name="Default consultation slot length" desc="Applied when new availability is created" action={<Select size="small" value="20 minutes"><MenuItem value="20 minutes">20 minutes</MenuItem><MenuItem value="30 minutes">30 minutes</MenuItem></Select>} />
+            <Row name="Auto-confirm patient bookings" desc="Immediately confirm without manual approval" action={<Switch checked={toggles.autoConfirm} onChange={() => toggle('autoConfirm')} />} />
+            <Row name="Low bandwidth mode" desc="Reduce video load and prioritize voice stability" action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} />} />
+            <Row name="Audio fallback" desc="Automatically switch to audio if video quality drops" action={<Switch checked={toggles.audioFallback} onChange={() => toggle('audioFallback')} />} />
+          </Card>
+
+          <Card>
+            <Row name="Password" desc="Last changed 2 months ago" action={actionButton('Change password')} />
+            <Row name="Biometric login" desc="Use device fingerprint or face unlock when supported" action={<Switch checked={toggles.biometric} onChange={() => toggle('biometric')} />} />
+            <Row name="Login alerts" desc="Get alerted when a new device signs in" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} />} />
+            <Row name="Clinic emergency contact" desc="+91 98765 43210" action={actionButton('Edit')} />
+          </Card>
+
+          <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid #f0a2a2`, bgcolor: '#fff' }}>
+            <Stack direction="row" spacing={1.2} alignItems="center" sx={{ pb: 1.8, mb: 1.2, borderBottom: '1px solid #f7d4d4' }}>
+              <Box sx={{ width: 30, height: 30, borderRadius: 2, bgcolor: '#fcebeb', display: 'grid', placeItems: 'center', color: '#a32d2d' }}>
+                <WarningIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: 16, color: '#a32d2d' }}>Practice controls</Typography>
+            </Stack>
+            <Row danger name="Pause online bookings" desc="Temporarily hide your appointment slots from patients." action={actionButton('Pause bookings', 'danger')} />
+            <Row danger name="Disable tele-consultation availability" desc="Stop accepting video consultations until re-enabled." action={actionButton('Disable', 'danger')} />
+            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ pt: 1.7 }}>
+              <Box>
+                <Typography sx={{ fontSize: 15, color: '#892727' }}>Request account deactivation</Typography>
+                <Typography sx={{ mt: 0.35, color: '#a24a4a', fontSize: 13.5 }}>Your profile, slots and incoming consultations will be suspended.</Typography>
+              </Box>
+              <Button sx={{ px: 2.2, py: 0.8, borderRadius: 2.2, bgcolor: '#a32d2d', color: '#fff', textTransform: 'none', fontSize: 13.5 }}>
+                Deactivate
+              </Button>
+            </Stack>
+          </Box>
+        </Stack>
+      );
+    }
+
+    return null;
   };
 
   return (
-    <DoctorLayout title="Settings">
-      <Box sx={{ display: 'flex', width: '100%', minHeight: 'calc(100vh - 64px)', bgcolor: BG, fontFamily: '"Outfit", sans-serif' }}>
-
-        {/* ── Settings nav sidebar ──────────────────── */}
-        <Box sx={{
-          width: 220, flexShrink: 0,
-          borderRight: '1px solid #E2E8F0',
-          bgcolor: 'white', p: 2.5,
-        }}>
-          <Typography fontSize="0.68rem" fontWeight={700} color="#94A3B8" textTransform="uppercase" letterSpacing={1} sx={{ mb: 1.5 }}>
-            General Settings
-          </Typography>
-
-          <Stack spacing={0.5}>
-            {SETTINGS_NAV.map(item => {
-              const active = activeTab === item.key;
-              return (
-                <Box
-                  key={item.key}
-                  onClick={() => setActiveTab(item.key)}
-                  sx={{
-                    display: 'flex', alignItems: 'center', gap: 1.5,
-                    px: 1.5, py: 1.2, borderRadius: 2,
-                    cursor: 'pointer',
-                    bgcolor: active ? '#EEF2FF' : 'transparent',
-                    color: active ? ACCENT : '#64748B',
-                    fontWeight: active ? 700 : 500,
-                    fontSize: '0.85rem',
-                    transition: 'all 0.15s',
-                    '&:hover': { bgcolor: active ? '#EEF2FF' : '#F8FAFC', color: active ? ACCENT : '#1E293B' },
-                  }}
-                >
-                  <Box sx={{ color: 'inherit', display: 'flex' }}>{item.icon}</Box>
-                  <Typography fontSize="0.85rem" fontWeight="inherit" color="inherit">{item.label}</Typography>
-                </Box>
-              );
-            })}
+    <DoctorLayout>
+      <Box>
+        <Box sx={{ px: { xs: 2, md: 4 }, py: 2.5, bgcolor: '#fff', borderBottom: `1px solid ${colors.soft}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+          <Box>
+            <Typography sx={{ color: '#a7a198', fontSize: 14 }}>
+              Home {'›'} Settings {'›'} {pageHeader[0]}
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: { xs: 34, md: 42 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+              Settings
+            </Typography>
+            <Typography sx={{ mt: 0.6, color: colors.muted, fontSize: 15.5 }}>
+              {pageHeader[1]}
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1.2} alignItems="center" useFlexGap flexWrap="wrap">
+            <Box sx={{ px: 2.2, py: 1.1, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f5f4f0', fontSize: 15.5 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button sx={{ minWidth: 42, width: 42, height: 42, borderRadius: 2.2, border: `1px solid ${colors.line}`, bgcolor: '#f5f4f0', color: colors.text, position: 'relative' }}>
+              <NotificationIcon />
+              <Box sx={{ position: 'absolute', top: 9, right: 9, width: 7, height: 7, borderRadius: '50%', bgcolor: colors.red }} />
+            </Button>
+            <Button startIcon={<SaveIcon />} sx={{ px: 2.2, py: 1.05, borderRadius: 2.2, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}>
+              Save Changes
+            </Button>
           </Stack>
         </Box>
 
-        {/* ── Settings content ─────────────────────── */}
-        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, width: { xs: '100%', md: 'calc(100% - 220px)' }, overflowY: 'auto', minWidth: 0 }}>
-          <Typography variant="h6" fontWeight={800} color="#0F172A" sx={{ mb: 3 }}>
-            {activeTab === 'account'      && 'Account Setting'}
-            {activeTab === 'notification' && 'Notification Setting'}
-            {activeTab === 'language'     && 'Language Setting'}
-            {activeTab === 'region'       && 'Region Setting'}
-          </Typography>
+        <Box sx={{ p: { xs: 2, md: 4 } }}>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
+            {Object.entries(tabs).map(([key, [label]]) => (
+              <Button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                sx={{
+                  px: 2.5,
+                  py: 1,
+                  borderRadius: 999,
+                  border: `1px solid ${activeTab === key ? colors.green : colors.line}`,
+                  bgcolor: activeTab === key ? colors.green : '#fff',
+                  color: activeTab === key ? '#fff' : '#6c665f',
+                  textTransform: 'none',
+                  fontSize: 14.5
+                }}
+              >
+                {label}
+              </Button>
+            ))}
+          </Stack>
 
-          {TAB_CONTENT[activeTab]}
+          {renderPanel()}
         </Box>
       </Box>
     </DoctorLayout>

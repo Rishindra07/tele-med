@@ -1,373 +1,672 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Box, Typography, Button, Avatar, Stack, Select,
-  MenuItem, FormControl, IconButton, Popover, Chip
+  Box,
+  Button,
+  Chip,
+  InputAdornment,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography
 } from '@mui/material';
 import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  PhoneInTalk as PhoneIcon,
-  CalendarToday as CalendarIcon,
+  AccessTimeRounded as TimeIcon,
+  CalendarMonthRounded as CalendarIcon,
+  NotificationsNoneRounded as NotificationIcon,
+  SearchRounded as SearchIcon,
+  VideocamOutlined as VideoIcon
 } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
 
-/* ─── helpers ─────────────────────────────────────────── */
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const SHORT_DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-const DOT_COLORS = {
-  checkup:   '#2563EB',
-  lab:       '#10B981',
-  emergency: '#EF4444',
+const colors = {
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  soft: '#e7dfd3',
+  muted: '#8a857d',
+  text: '#2c2b28',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  blue: '#4a90e2',
+  blueSoft: '#e7f0fe',
+  amber: '#d18a1f',
+  amberSoft: '#fbefdc',
+  gray: '#8b8b8b',
+  graySoft: '#f1eee7',
+  lime: '#7aa63d',
+  red: '#d9635b'
 };
 
-// Seed appointments for visual richness
-const SEED_APPTS = {
-  '2026-03-02': [{ type: 'checkup' }, { type: 'lab' }],
-  '2026-03-04': [{ type: 'emergency' }],
-  '2026-03-06': [{ type: 'checkup' }, { type: 'lab' }, { type: 'emergency' }],
-  '2026-03-09': [{ type: 'checkup' }],
-  '2026-03-10': [{ type: 'lab' }],
-  '2026-03-11': [{ type: 'checkup' }, { type: 'emergency' }],
-  '2026-03-12': [
-    { type: 'checkup', patient: { name: 'Nathan E. Edwards', title: 'Surgeon', status: 'Online' } },
-    { type: 'lab' },
-  ],
-  '2026-03-14': [{ type: 'emergency' }],
-  '2026-03-15': [{ type: 'checkup' }, { type: 'lab' }],
-  '2026-03-16': [{ type: 'emergency' }],
-  '2026-03-17': [{ type: 'lab' }],
-  '2026-03-18': [{ type: 'checkup' }],
-  '2026-03-19': [{ type: 'lab' }, { type: 'emergency' }],
-  '2026-03-22': [{ type: 'checkup' }],
-  '2026-03-24': [{ type: 'checkup' }, { type: 'lab' }],
-  '2026-03-25': [{ type: 'emergency' }],
-  '2026-03-29': [{ type: 'lab' }],
-  '2026-03-31': [{ type: 'checkup' }, { type: 'lab' }],
+const doctorAppointments = [
+  {
+    id: 'upcoming-1',
+    patientName: 'Ananya Singh',
+    speciality: 'General consultation',
+    dateLabel: 'Mon, 23 Mar 2026',
+    timeLabel: '10:00 AM',
+    status: 'confirmed',
+    notes: 'Video consultation room opens in 18 hrs',
+    category: 'upcoming'
+  },
+  {
+    id: 'followup-1',
+    patientName: 'Rahul Verma',
+    speciality: 'Cardiology follow-up',
+    dateLabel: 'Fri, 27 Mar 2026',
+    timeLabel: '3:30 PM',
+    status: 'follow-up',
+    notes: 'Review BP medication and recovery notes',
+    category: 'follow-up'
+  },
+  {
+    id: 'completed-1',
+    patientName: 'Meena Joseph',
+    speciality: 'General consultation',
+    dateLabel: 'Tue, 18 Mar 2026',
+    timeLabel: '11:00 AM',
+    status: 'completed',
+    notes: 'Prescription shared successfully',
+    category: 'completed'
+  },
+  {
+    id: 'completed-2',
+    patientName: 'Imran Ali',
+    speciality: 'Respiratory review',
+    dateLabel: 'Mon, 2 Mar 2026',
+    timeLabel: '4:00 PM',
+    status: 'completed',
+    notes: 'Consultation summary submitted',
+    category: 'completed'
+  },
+  {
+    id: 'cancelled-1',
+    patientName: 'Kavita Rao',
+    speciality: 'Dermatology review',
+    dateLabel: 'Thu, 19 Mar 2026',
+    timeLabel: '2:00 PM',
+    status: 'cancelled',
+    notes: 'Patient requested a new time slot',
+    category: 'cancelled'
+  }
+];
+
+const reminders = [
+  ['Upcoming consult - Ananya Singh', 'Tomorrow', colors.green],
+  ['Upload prescription after Rahul Verma visit', '24 Mar', colors.blue],
+  ['Pending lab review for Meena Joseph', 'Today', colors.amber],
+  ['Kavita Rao requested reschedule', 'Today', colors.red]
+];
+
+const quickSlots = [
+  'General OPD',
+  'Cardiology',
+  'Tele-consult',
+  'Follow-up',
+  'Lab review',
+  'Emergency'
+];
+
+const monthDays = [
+  ['', '', '', '', '', '', ''],
+  ['23', '24', '25', '26', '27', '28', ''],
+  ['2', '3', '4', '5', '6', '7', '8'],
+  ['9', '10', '11', '12', '13', '14', '15'],
+  ['16', '17', '18', '19', '20', '21', '22'],
+  ['23', '24', '25', '26', '27', '28', '29'],
+  ['30', '31', '', '', '', '', '']
+];
+
+const markedDays = new Set(['3', '12', '18', '23', '27']);
+
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'PT';
+
+const getStatusTone = (status) => {
+  if (status === 'confirmed' || status === 'upcoming') return [colors.green, colors.greenSoft];
+  if (status === 'completed') return [colors.gray, colors.graySoft];
+  if (status === 'follow-up') return [colors.blue, colors.blueSoft];
+  if (status === 'cancelled') return [colors.lime, '#eef6de'];
+  return [colors.amber, colors.amberSoft];
 };
 
-function toKey(year, month, day) {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-// Get first day-of-week (Mon=0) for a given month
-function firstWeekdayOfMonth(year, month) {
-  const d = new Date(year, month, 1).getDay(); // 0=Sun
-  return (d + 6) % 7; // convert to Mon=0
-}
-
-function daysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-/* ─── Dot indicator ────────────────────────────────────── */
-const Dot = ({ color }) => (
-  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
-);
-
-/* ─── Component ───────────────────────────────────────── */
 export default function DoctorAppointments() {
-  const today = new Date();
-  const [view, setView] = useState('month');
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
-  const [selectedDoctor, setSelectedDoctor] = useState('Nathan E. Edwards');
-  const [popover, setPopover] = useState({ anchor: null, day: null });
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [query, setQuery] = useState('');
+  const [specializationFilter, setSpecializationFilter] = useState('all');
 
-  const totalDays = daysInMonth(year, month);
-  const startOffset = firstWeekdayOfMonth(year, month);
+  const filteredAppointments = useMemo(() => {
+    return doctorAppointments.filter((appointment) => {
+      const filterMatch = activeFilter === 'all' || appointment.category === activeFilter;
+      const specializationMatch =
+        specializationFilter === 'all' || appointment.speciality === specializationFilter;
+      const queryMatch =
+        !query.trim() ||
+        appointment.patientName.toLowerCase().includes(query.toLowerCase()) ||
+        appointment.speciality.toLowerCase().includes(query.toLowerCase());
 
-  // Build grid cells: nulls for leading blanks, then 1..totalDays
-  const cells = [
-    ...Array(startOffset).fill(null),
-    ...Array.from({ length: totalDays }, (_, i) => i + 1),
+      return filterMatch && specializationMatch && queryMatch;
+    });
+  }, [activeFilter, query, specializationFilter]);
+
+  const groupedAppointments = {
+    upcoming: filteredAppointments.filter((item) => item.category === 'upcoming' || item.category === 'follow-up'),
+    completed: filteredAppointments.filter((item) => item.category === 'completed'),
+    cancelled: filteredAppointments.filter((item) => item.category === 'cancelled')
+  };
+
+  const specializationOptions = useMemo(() => {
+    const items = Array.from(new Set(doctorAppointments.map((item) => item.speciality)));
+    return ['all', ...items];
+  }, []);
+
+  const counts = useMemo(() => {
+    const upcoming = doctorAppointments.filter((item) => item.category === 'upcoming').length;
+    const completed = doctorAppointments.filter((item) => item.category === 'completed').length;
+    const followUp = doctorAppointments.filter((item) => item.category === 'follow-up').length;
+    const cancelled = doctorAppointments.filter((item) => item.category === 'cancelled').length;
+    return { upcoming, completed, followUp, cancelled };
+  }, []);
+
+  const summaryCards = [
+    ['Upcoming', counts.upcoming || 2, 'Scheduled this week', 'Next: tomorrow 10 AM', colors.green],
+    ['Completed', counts.completed || 10, 'This year', 'Last: 18 Mar 2026', colors.blue],
+    ['Follow-ups', counts.followUp || 1, 'Pending reviews', 'Due: 27 Mar 2026', colors.amber],
+    ['Cancelled', counts.cancelled || 0, 'This month', 'Manage reschedules', colors.lime]
   ];
-  // Pad to complete last row
-  while (cells.length % 7 !== 0) cells.push(null);
 
-  function prevMonth() {
-    if (month === 0) { setYear(y => y - 1); setMonth(11); }
-    else setMonth(m => m - 1);
-  }
-  function nextMonth() {
-    if (month === 11) { setYear(y => y + 1); setMonth(0); }
-    else setMonth(m => m + 1);
-  }
+  const renderAppointmentCard = (appointment) => {
+    const [accent, badgeBg] = getStatusTone(appointment.status);
+    const isCompleted = appointment.category === 'completed';
+    const isFollowUp = appointment.category === 'follow-up';
 
-  function handleDayClick(e, day) {
-    if (!day) return;
-    const key = toKey(year, month, day);
-    const appts = SEED_APPTS[key];
-    if (appts) setPopover({ anchor: e.currentTarget, day, key });
-  }
+    return (
+      <Box
+        key={appointment.id}
+        sx={{
+          p: 2.5,
+          borderRadius: 3,
+          border: `1px solid ${colors.soft}`,
+          bgcolor: '#fff',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ position: 'absolute', inset: '0 auto 0 0', width: 4, bgcolor: accent }} />
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              bgcolor: badgeBg,
+              color: accent,
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: 700,
+              fontSize: 24,
+              flexShrink: 0
+            }}
+          >
+            {getInitials(appointment.patientName)}
+          </Box>
 
-  const isToday = (day) =>
-    day && year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="flex-start">
+              <Box>
+                <Typography sx={{ fontSize: 17, fontWeight: 500, lineHeight: 1.15 }}>
+                  {appointment.patientName}
+                </Typography>
+                <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.15 }}>
+                  {appointment.speciality}
+                </Typography>
+              </Box>
+              <Chip
+                label={
+                  appointment.status === 'confirmed'
+                    ? 'Confirmed'
+                    : appointment.status === 'completed'
+                      ? 'Completed'
+                      : appointment.status === 'follow-up'
+                        ? 'Follow-up'
+                        : appointment.status === 'cancelled'
+                          ? 'Cancelled'
+                          : 'Upcoming'
+                }
+                sx={{
+                  height: 28,
+                  bgcolor: badgeBg,
+                  color: accent,
+                  fontSize: 13
+                }}
+              />
+            </Stack>
 
-  const currentAppts = popover.key ? (SEED_APPTS[popover.key] || []) : [];
-  const featuredPatient = currentAppts.find(a => a.patient)?.patient;
+            <Stack spacing={0.8} sx={{ mt: 1.5 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarIcon sx={{ fontSize: 16, color: colors.muted }} />
+                <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>{appointment.dateLabel}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TimeIcon sx={{ fontSize: 16, color: colors.muted }} />
+                <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>{appointment.timeLabel}</Typography>
+              </Stack>
+              {!isCompleted && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <VideoIcon sx={{ fontSize: 16, color: colors.muted }} />
+                  <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>Consultation room</Typography>
+                </Stack>
+              )}
+            </Stack>
+
+            <Box
+              sx={{
+                mt: 1.5,
+                px: 1.5,
+                py: 0.85,
+                borderRadius: 999,
+                display: 'inline-block',
+                bgcolor: isCompleted ? '#f5fbf7' : badgeBg,
+                color: isCompleted ? colors.green : accent,
+                fontSize: 14
+              }}
+            >
+              {appointment.notes}
+            </Box>
+
+            <Stack spacing={1.1} sx={{ mt: 1.7, maxWidth: 190 }}>
+              {isCompleted ? (
+                <>
+                  <Button sx={{ py: 1, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    View Notes
+                  </Button>
+                  <Button sx={{ py: 1, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    Send Prescription
+                  </Button>
+                </>
+              ) : isFollowUp ? (
+                <>
+                  <Button sx={{ py: 1, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    Review Case
+                  </Button>
+                  <Button sx={{ py: 1, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    Add Notes
+                  </Button>
+                  <Button sx={{ py: 0.9, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15, alignSelf: 'flex-start', px: 3 }}>
+                    Reschedule
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button sx={{ py: 1, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    Start Consultation
+                  </Button>
+                  <Button sx={{ py: 0.9, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                    Add Notes
+                  </Button>
+                  <Button sx={{ py: 0.9, borderRadius: 2.2, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15, alignSelf: 'flex-start', px: 3 }}>
+                    Cancel
+                  </Button>
+                </>
+              )}
+            </Stack>
+          </Box>
+        </Stack>
+      </Box>
+    );
+  };
 
   return (
     <DoctorLayout>
-      <Box sx={{ p: { xs: 2, md: 3 }, fontFamily: '"Outfit", sans-serif' }}>
-
-        {/* ── Page header ─────────────────────────────── */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Typography variant="h5" fontWeight="700" color="#0F172A">
-           
-          </Typography>
-          <Stack direction="row" spacing={1}>
-            {['Months', 'Week', 'Year'].map(v => (
-              <Button
-                key={v}
-                size="small"
-                onClick={() => setView(v.toLowerCase())}
-                variant={view === v.toLowerCase() ? 'contained' : 'outlined'}
-                sx={{
-                  borderRadius: 2,
-                  px: 2.5,
-                  fontWeight: 600,
-                  fontSize: '0.8rem',
-                  borderColor: '#E2E8F0',
-                  color: view === v.toLowerCase() ? 'white' : '#64748B',
-                  bgcolor: view === v.toLowerCase() ? '#2563EB' : 'white',
-                  '&:hover': { bgcolor: view === v.toLowerCase() ? '#1D4ED8' : '#F8FAFC', borderColor: '#C4D0E0' },
-                  boxShadow: 'none',
-                  textTransform: 'none',
-                }}
-              >
-                {v}
-              </Button>
-            ))}
-            {/* Month selector */}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <Select
-                value={month}
-                onChange={e => setMonth(e.target.value)}
-                sx={{ borderRadius: 2, fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', borderColor: '#E2E8F0', bgcolor: 'white' }}
-              >
-                {MONTHS.map((m, i) => <MenuItem key={m} value={i}>{m}</MenuItem>)}
-              </Select>
-            </FormControl>
-          </Stack>
-        </Box>
-
-        {/* ── Sub-row: doctor selector + nav ──────────── */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <Select
-              value={selectedDoctor}
-              onChange={e => setSelectedDoctor(e.target.value)}
-              sx={{ borderRadius: 2, fontSize: '0.85rem', fontWeight: 500, bgcolor: 'white', borderColor: '#E2E8F0' }}
-            >
-              <MenuItem value="Nathan E. Edwards">Nathan E. Edwards</MenuItem>
-              <MenuItem value="Dr. Sarah Johnson">Dr. Sarah Johnson</MenuItem>
-            </Select>
-          </FormControl>
-
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton size="small" onClick={prevMonth} sx={{ bgcolor: 'white', border: '1px solid #E2E8F0', borderRadius: 2 }}>
-              <ChevronLeftIcon fontSize="small" />
-            </IconButton>
-            <Typography fontWeight="700" color="#0F172A" sx={{ minWidth: 180, textAlign: 'center' }}>
-              {MONTHS[month]} {year}
-            </Typography>
-            <IconButton size="small" onClick={nextMonth} sx={{ bgcolor: 'white', border: '1px solid #E2E8F0', borderRadius: 2 }}>
-              <ChevronRightIcon fontSize="small" />
-            </IconButton>
-          </Stack>
-        </Box>
-
-        {/* ── Calendar grid ───────────────────────────── */}
-        <Box sx={{
-          bgcolor: 'white',
-          borderRadius: 4,
-          border: '1px solid #E2E8F0',
-          overflow: 'hidden',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-        }}>
-          {/* Day headers */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #E2E8F0' }}>
-            {DAYS.map((d, i) => (
-              <Box key={d} sx={{
-                py: 1.5,
-                textAlign: 'center',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                color: '#64748B',
-                borderRight: i < 6 ? '1px solid #F1F5F9' : 'none',
-              }}>
-                {d}
-              </Box>
-            ))}
-          </Box>
-
-          {/* Day cells */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-            {cells.map((day, idx) => {
-              const key = day ? toKey(year, month, day) : null;
-              const appts = key ? (SEED_APPTS[key] || []) : [];
-              const today_ = isToday(day);
-              const col = idx % 7;
-
-              return (
-                <Box
-                  key={idx}
-                  onClick={(e) => handleDayClick(e, day)}
-                  sx={{
-                    minHeight: 90,
-                    p: 1,
-                    borderRight: col < 6 ? '1px solid #F1F5F9' : 'none',
-                    borderBottom: idx < cells.length - 7 ? '1px solid #F1F5F9' : 'none',
-                    bgcolor: !day ? '#FAFBFC' : today_ ? '#EFF6FF' : 'white',
-                    cursor: day && appts.length ? 'pointer' : 'default',
-                    transition: 'background 0.15s',
-                    '&:hover': day && appts.length ? { bgcolor: '#F0F7FF' } : {},
-                    position: 'relative',
-                  }}
-                >
-                  {day && (
-                    <>
-                      <Box sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        bgcolor: today_ ? '#2563EB' : 'transparent',
-                        mb: 1,
-                      }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.82rem',
-                            fontWeight: today_ ? 700 : 500,
-                            color: today_ ? 'white' : !day ? '#CBD5E1' : '#1E293B',
-                          }}
-                        >
-                          {String(day).padStart(2, '0')}
-                        </Typography>
-                      </Box>
-
-                      {/* Dot indicators */}
-                      {appts.length > 0 && (
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
-                          {appts.map((a, i) => <Dot key={i} color={DOT_COLORS[a.type]} />)}
-                        </Stack>
-                      )}
-                    </>
-                  )}
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
-
-        {/* ── Legend ──────────────────────────────────── */}
-        <Stack direction="row" spacing={3} alignItems="center" sx={{ mt: 2.5, justifyContent: 'center' }}>
-          {[
-            { label: 'Doctor Checkup', color: DOT_COLORS.checkup },
-            { label: 'Laboratory test', color: DOT_COLORS.lab },
-            { label: 'Emergency Patient', color: DOT_COLORS.emergency },
-          ].map(item => (
-            <Stack key={item.label} direction="row" spacing={0.8} alignItems="center">
-              <Dot color={item.color} />
-              <Typography variant="caption" color="text.secondary" fontWeight={500}>{item.label}</Typography>
-            </Stack>
-          ))}
-        </Stack>
-
-        {/* ── Appointment Popover ──────────────────────── */}
-        <Popover
-          open={Boolean(popover.anchor)}
-          anchorEl={popover.anchor}
-          onClose={() => setPopover({ anchor: null, day: null, key: null })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          PaperProps={{
-            sx: {
-              borderRadius: 3,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-              p: 2.5,
-              width: 260,
-              border: '1px solid #E2E8F0',
-            }
-          }}
+      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
+        <Stack
+          direction={{ xs: 'column', lg: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', lg: 'center' }}
+          spacing={2}
+          sx={{ mb: 3 }}
         >
-          {/* Doctor info */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Avatar sx={{ width: 38, height: 38, bgcolor: '#DBEAFE', color: '#2563EB', fontWeight: 700 }}>
-                {(featuredPatient?.name || selectedDoctor).charAt(0)}
-              </Avatar>
-              <Box>
-                <Typography fontSize="0.85rem" fontWeight={700} color="#0F172A">
-                  {featuredPatient?.name || selectedDoctor}
-                </Typography>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#10B981' }} />
-                  <Typography fontSize="0.7rem" color="#10B981" fontWeight={600}>
-                    {featuredPatient?.status || 'Online'}
-                  </Typography>
-                </Stack>
-              </Box>
-            </Stack>
-            <IconButton size="small" sx={{ bgcolor: '#EFF6FF', borderRadius: 2 }}>
-              <PhoneIcon sx={{ fontSize: 16, color: '#2563EB' }} />
-            </IconButton>
+          <Box>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+              Appointments
+            </Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 440, lineHeight: 1.2 }}>
+              Manage your patient consultations, follow-ups and completed visits
+            </Typography>
           </Box>
 
-          {/* Appointment type chips */}
-          <Stack direction="row" spacing={0.8} flexWrap="wrap" sx={{ mb: 2 }}>
-            {currentAppts.map((a, i) => (
-              <Chip
-                key={i}
-                label={a.type === 'checkup' ? 'Checkup' : a.type === 'lab' ? 'Lab Test' : 'Emergency'}
-                size="small"
+          <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
+            <Box
+              sx={{
+                px: 2.5,
+                py: 1.25,
+                borderRadius: 4,
+                border: `1px solid ${colors.line}`,
+                bgcolor: '#f7f3ea',
+                fontSize: 17,
+                lineHeight: 1.15
+              }}
+            >
+              {new Date().toLocaleDateString('en-GB', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })}
+            </Box>
+            <Button
+              sx={{
+                minWidth: 48,
+                width: 48,
+                height: 48,
+                borderRadius: 3,
+                border: `1px solid ${colors.line}`,
+                bgcolor: '#fff',
+                color: colors.text,
+                position: 'relative'
+              }}
+            >
+              <NotificationIcon />
+              <Box
                 sx={{
-                  bgcolor: DOT_COLORS[a.type] + '20',
-                  color: DOT_COLORS[a.type],
-                  fontWeight: 600,
-                  fontSize: '0.7rem',
-                  border: `1px solid ${DOT_COLORS[a.type]}40`,
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: colors.red
                 }}
               />
-            ))}
+            </Button>
+            <Button
+              sx={{
+                px: 3,
+                py: 1.25,
+                borderRadius: 3,
+                border: `1px solid ${colors.line}`,
+                bgcolor: '#fff',
+                color: colors.text,
+                textTransform: 'none',
+                fontSize: 16
+              }}
+            >
+              New Availability
+            </Button>
           </Stack>
+        </Stack>
 
-          {/* Time slots (decorative) */}
-          <Box sx={{ display: 'flex', gap: 0.8, mb: 2, flexWrap: 'wrap' }}>
-            {['09','10','11','12','13','14','15','16','17','18'].map(t => (
-              <Box key={t} sx={{
-                px: 1, py: 0.3, borderRadius: 1,
-                bgcolor: t === '12' ? '#2563EB' : '#F1F5F9',
-                color: t === '12' ? 'white' : '#64748B',
-                fontSize: '0.65rem', fontWeight: 600,
-                cursor: 'pointer',
-              }}>{t}</Box>
-            ))}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
+            gap: 2,
+            mb: 3
+          }}
+        >
+          {summaryCards.map(([title, value, subtitle, helper, dot]) => (
+            <Box
+              key={title}
+              sx={{
+                minHeight: 156,
+                p: 2.5,
+                borderRadius: 3.5,
+                border: `1px solid ${colors.line}`,
+                bgcolor: colors.paper
+              }}
+            >
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dot }} />
+                <Typography sx={{ fontSize: 16, color: colors.muted }}>{title}</Typography>
+              </Stack>
+              <Typography sx={{ mt: 1.2, fontSize: 30, lineHeight: 1 }}>{value}</Typography>
+              <Typography sx={{ mt: 1, color: '#a29b92', fontSize: 15, lineHeight: 1.15 }}>{subtitle}</Typography>
+              <Typography sx={{ mt: 1, color: dot, fontSize: 15, lineHeight: 1.15 }}>{helper}</Typography>
+            </Box>
+          ))}
+        </Box>
+
+        <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3} alignItems="flex-start">
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mb: 1.8 }}>
+              {[
+                ['all', 'All'],
+                ['upcoming', 'Upcoming'],
+                ['completed', 'Completed'],
+                ['follow-up', 'Follow-up'],
+                ['cancelled', 'Cancelled']
+              ].map(([value, label]) => (
+                <Button
+                  key={value}
+                  onClick={() => setActiveFilter(value)}
+                  sx={{
+                    px: 2.5,
+                    py: 0.95,
+                    borderRadius: 999,
+                    border: `1px solid ${activeFilter === value ? colors.green : colors.line}`,
+                    bgcolor: activeFilter === value ? colors.green : '#fff',
+                    color: activeFilter === value ? '#fff' : '#67625b',
+                    textTransform: 'none',
+                    fontSize: 15
+                  }}
+                >
+                  {label}
+                </Button>
+              ))}
+            </Stack>
+
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1.5} sx={{ mb: 1.8 }}>
+              <TextField
+                placeholder="Search patient, visit type"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 3,
+                    bgcolor: '#fff'
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: colors.muted }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Stack>
+
+            <TextField
+              select
+              fullWidth
+              value={specializationFilter}
+              onChange={(event) => setSpecializationFilter(event.target.value)}
+              sx={{
+                mb: 2.5,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  bgcolor: '#fff'
+                }
+              }}
+            >
+              <MenuItem value="all">All visit types</MenuItem>
+              {specializationOptions
+                .filter((item) => item !== 'all')
+                .map((item) => (
+                  <MenuItem key={item} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+            </TextField>
+
+            <Stack spacing={2}>
+              <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1 }}>UPCOMING</Typography>
+              {groupedAppointments.upcoming.length ? (
+                groupedAppointments.upcoming.map(renderAppointmentCard)
+              ) : (
+                <Box sx={{ p: 3, borderRadius: 3, border: `1px dashed ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ color: colors.muted, fontSize: 16 }}>
+                    No upcoming appointments match your filters.
+                  </Typography>
+                </Box>
+              )}
+
+              <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, pt: 1 }}>COMPLETED</Typography>
+              {groupedAppointments.completed.length ? (
+                groupedAppointments.completed.map(renderAppointmentCard)
+              ) : (
+                <Box sx={{ p: 3, borderRadius: 3, border: `1px dashed ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ color: colors.muted, fontSize: 16 }}>
+                    No completed appointments match your filters.
+                  </Typography>
+                </Box>
+              )}
+
+              {groupedAppointments.cancelled.length > 0 && (
+                <>
+                  <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, pt: 1 }}>CANCELLED</Typography>
+                  {groupedAppointments.cancelled.map(renderAppointmentCard)}
+                </>
+              )}
+            </Stack>
           </Box>
 
-          <Button
-            fullWidth
-            variant="contained"
-            startIcon={<CalendarIcon sx={{ fontSize: 15 }} />}
-            sx={{
-              borderRadius: 2.5,
-              textTransform: 'none',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              py: 1,
-              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-              boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
-              '&:hover': { background: 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)' },
-            }}
-          >
-            Book a appointment
-          </Button>
-        </Popover>
+          <Stack spacing={3} sx={{ width: { xs: '100%', xl: 330 }, flexShrink: 0 }}>
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: 3.5,
+                border: `1px solid ${colors.line}`,
+                bgcolor: colors.paper
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.6 }}>
+                <Button
+                  sx={{
+                    minWidth: 38,
+                    width: 38,
+                    height: 32,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.line}`,
+                    color: colors.text
+                  }}
+                >
+                  {'<'}
+                </Button>
+                <Typography sx={{ fontSize: 16.5 }}>March 2026</Typography>
+                <Box sx={{ width: 38 }} />
+              </Stack>
 
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  gap: 1,
+                  textAlign: 'center'
+                }}
+              >
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                  <Typography key={day} sx={{ color: '#b1aaa1', fontSize: 13 }}>
+                    {day}
+                  </Typography>
+                ))}
+
+                {monthDays.flat().map((day, index) => (
+                  <Box key={`${day}-${index}`} sx={{ minHeight: 34 }}>
+                    {day && (
+                      <Box sx={{ display: 'grid', justifyItems: 'center', gap: 0.5 }}>
+                        <Typography sx={{ fontSize: 14.5, color: '#4c4842' }}>{day}</Typography>
+                        {markedDays.has(day) && (
+                          <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: colors.green }} />
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: 3.5,
+                border: `1px solid ${colors.line}`,
+                bgcolor: colors.paper
+              }}
+            >
+              <Typography sx={{ fontSize: 18, mb: 2 }}>Quick schedule blocks</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.2 }}>
+                {quickSlots.map((item, index) => (
+                  <Button
+                    key={item}
+                    sx={{
+                      minHeight: 60,
+                      borderRadius: 2.5,
+                      border: `1px solid ${index === 0 ? colors.green : colors.line}`,
+                      bgcolor: index === 0 ? '#eef9f4' : '#fff',
+                      color: '#4e4a45',
+                      textTransform: 'none',
+                      fontSize: 14
+                    }}
+                  >
+                    {item}
+                  </Button>
+                ))}
+              </Box>
+              <Button
+                sx={{
+                  mt: 1.8,
+                  width: '100%',
+                  py: 1.2,
+                  borderRadius: 2.5,
+                  border: `1px solid ${colors.line}`,
+                  color: colors.text,
+                  textTransform: 'none',
+                  fontSize: 16
+                }}
+              >
+                Manage Availability
+              </Button>
+            </Box>
+
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: 3.5,
+                border: `1px solid ${colors.line}`,
+                bgcolor: colors.paper
+              }}
+            >
+              <Typography sx={{ fontSize: 18, mb: 2 }}>Upcoming reminders</Typography>
+              <Stack spacing={1.5}>
+                {reminders.map(([label, time, dot]) => (
+                  <Stack
+                    key={label}
+                    direction="row"
+                    spacing={1.25}
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{
+                      pt: 0.5,
+                      borderTop: `1px solid ${colors.soft}`,
+                      '&:first-of-type': { borderTop: 'none', pt: 0 }
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.2} alignItems="flex-start" sx={{ minWidth: 0 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: dot, mt: 0.7, flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14.5, color: '#4a4641', lineHeight: 1.3 }}>{label}</Typography>
+                    </Stack>
+                    <Typography sx={{ color: '#b1aaa1', fontSize: 13.5, flexShrink: 0 }}>{time}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+          </Stack>
+        </Stack>
       </Box>
     </DoctorLayout>
   );
