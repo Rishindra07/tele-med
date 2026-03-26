@@ -10,9 +10,9 @@ const {
   sendTestEmail
 } = require("../controllers/notificationController.js");
 
-router.get("/my", protect, allowRoles("doctor", "patient"), getMyNotifications);
-router.post("/test-email", protect, allowRoles("doctor", "patient"), sendTestEmail);
-router.patch("/read-all", protect, allowRoles("doctor", "patient"), markAllNotificationsRead);
-router.patch("/:id/read", protect, allowRoles("doctor", "patient"), markNotificationRead);
+router.get("/my", protect, allowRoles("doctor", "patient", "pharmacist", "admin"), getMyNotifications);
+router.post("/test-email", protect, allowRoles("doctor", "patient", "pharmacist", "admin"), sendTestEmail);
+router.patch("/read-all", protect, allowRoles("doctor", "patient", "pharmacist", "admin"), markAllNotificationsRead);
+router.patch("/:id/read", protect, allowRoles("doctor", "patient", "pharmacist", "admin"), markNotificationRead);
 
 module.exports = router;

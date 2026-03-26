@@ -17,17 +17,22 @@ import { registerUser } from "../../api/authApi.js";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 
+const routeForRole = (role) => {
+  if (role === "doctor") return "/doctor";
+  if (role === "pharmacist") return "/pharmacy";
+  if (role === "admin") return "/admin";
+  return "/patient";
+};
+
 export default function Register() {
   const {
     register,
     handleSubmit,
-    watch,
     getValues,
     setError,
     clearErrors,
     formState: { errors }
   } = useForm();
-  const role = watch("role", "patient");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,17 +52,17 @@ export default function Register() {
 
       const response = await registerUser(payload);
 
-      localStorage.setItem(
-        "pendingVerification",
-        JSON.stringify({
-          type: "email-otp",
-          email: payload.email,
-          role,
-          full_name: payload.full_name
-        })
-      );
+      // Save to localStorage
+      localStorage.setItem("token", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
+      localStorage.setItem("user", JSON.stringify(response.user));
 
-      navigate("/verify");
+      if (["doctor", "pharmacist"].includes(response.user.role) && !response.user.is_approved) {
+        navigate("/pending-approval");
+        return;
+      }
+
+      navigate(routeForRole(response.user.role));
     } catch (err) {
       const message = err.message || "Registration failed";
 

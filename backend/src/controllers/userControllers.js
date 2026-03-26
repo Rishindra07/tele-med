@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
-const PatientProfile = require("../models/PatientProfile.js");
+const Patient = require("../models/Patient.js");
 const RefreshToken = require("../models/RefreshToken.js");
 const { sendEmail } = require("../services/notificationService.js");
 const {
@@ -20,10 +20,9 @@ const sanitizeUser = (user) => ({
   phone: user.phone,
   role: user.role,
   is_active: user.is_active,
-  is_approved: user.is_approved
+  is_approved: user.is_approved,
+  profile_image: user.profile_image
 });
-
-// OTP logic removed
 
 const registerUser = async (req, res) => {
   try {
@@ -66,8 +65,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Removed sendOtp and verifyOtp
-
 const loginUser = async (req, res) => {
   try {
     const normalizedEmail = normalizeEmail(req.body.email);
@@ -90,8 +87,6 @@ const loginUser = async (req, res) => {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
-    // Verification check removed for simplicity
-
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
       return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
     }
@@ -112,7 +107,6 @@ const loginUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
 
 const refreshAccessToken = async (req, res) => {
   try {
@@ -180,9 +174,9 @@ const getPatientProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     
-    let profile = await PatientProfile.findOne({ user: req.user._id });
+    let profile = await Patient.findOne({ user: req.user._id });
     if (!profile) {
-      profile = await PatientProfile.create({ user: req.user._id, settings: {} });
+      profile = await Patient.create({ user: req.user._id, settings: {} });
     }
 
     return res.json({
@@ -197,7 +191,20 @@ const getPatientProfile = async (req, res) => {
 
 const updatePatientProfile = async (req, res) => {
   try {
-    const { name, phone, email, dob, gender, bloodGroup, address } = req.body;
+    const {
+      name,
+      phone,
+      email,
+      dob,
+      age,
+      gender,
+      bloodGroup,
+      address,
+      profile_image,
+      emergencyContactName,
+      emergencyContactRelation,
+      emergencyContactPhone
+    } = req.body;
     
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -207,18 +214,28 @@ const updatePatientProfile = async (req, res) => {
     if (name) user.full_name = name;
     if (phone) user.phone = phone;
     if (email) user.email = email;
+    if (profile_image !== undefined) user.profile_image = profile_image;
     
     await user.save();
 
-    let profile = await PatientProfile.findOne({ user: req.user._id });
+    let profile = await Patient.findOne({ user: req.user._id });
     if (!profile) {
-      profile = new PatientProfile({ user: req.user._id, settings: {} });
+      profile = new Patient({ user: req.user._id, settings: {} });
     }
     
     if (dob !== undefined) profile.dob = dob;
+    if (age !== undefined) profile.age = age;
     if (gender !== undefined) profile.gender = gender;
     if (bloodGroup !== undefined) profile.bloodGroup = bloodGroup;
     if (address !== undefined) profile.address = address;
+
+    if (emergencyContactName !== undefined || emergencyContactRelation !== undefined || emergencyContactPhone !== undefined) {
+      profile.emergency_contact = {
+        name: emergencyContactName !== undefined ? emergencyContactName : profile.emergency_contact?.name || null,
+        relation: emergencyContactRelation !== undefined ? emergencyContactRelation : profile.emergency_contact?.relation || null,
+        phone: emergencyContactPhone !== undefined ? emergencyContactPhone : profile.emergency_contact?.phone || null
+      };
+    }
 
     await profile.save();
 
@@ -237,9 +254,9 @@ const updatePatientSettings = async (req, res) => {
   try {
     const { settings } = req.body;
     
-    let profile = await PatientProfile.findOne({ user: req.user._id });
+    let profile = await Patient.findOne({ user: req.user._id });
     if (!profile) {
-      profile = new PatientProfile({ user: req.user._id, settings: {} });
+      profile = new Patient({ user: req.user._id, settings: {} });
     }
     
     profile.settings = settings || {};

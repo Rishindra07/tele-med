@@ -18,7 +18,7 @@ export default function PendingApproval() {
             Approval Pending
           </Typography>
           <Typography color="text.secondary" mb={3}>
-            Your email is verified, but your account still needs admin approval before you can use the dashboard.
+            Your account has been created, but it still needs admin approval before you can use the dashboard.
           </Typography>
           <Button variant="contained" onClick={handleBackToLogin}>
             Back to Login

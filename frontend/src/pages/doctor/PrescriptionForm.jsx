@@ -1,20 +1,37 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid, TextField, Button, Autocomplete, Chip, Divider, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper, Grid, TextField, Button, Autocomplete, Chip, Divider, IconButton, Snackbar, Alert } from '@mui/material';
 import { CheckCircle as CheckCircleIcon, Delete as DeleteIcon, Print as PrintIcon } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { generatePrescription } from '../../api/doctorApi';
 
 const medicineOptions = ['Paracetamol 500mg', 'Amoxicillin 250mg', 'Cetirizine 10mg', 'Ibuprofen 400mg', 'Azithromycin 500mg', 'Vitamin C'];
 
 export default function PrescriptionForm() {
   const navigate = useNavigate();
-  const [patient, setPatient] = useState('Rahul Verma');
+  const location = useLocation();
+  const appointment = location.state?.appointment;
+
+  const [patient, setPatient] = useState(appointment?.patientName || 'Patient');
   const [diagnosis, setDiagnosis] = useState('');
   const [medInput, setMedInput] = useState(null);
   const [dosage, setDosage] = useState('');
   const [duration, setDuration] = useState('');
   const [prescriptions, setPrescriptions] = useState([]);
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
+
+  const doctorName = (() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user.full_name || user.name || 'Doctor';
+    } catch { return 'Doctor'; }
+  })();
+
+  useEffect(() => {
+    if (!appointment) navigate('/doctor/appointments');
+  }, [appointment, navigate]);
 
   const handleAddMedicine = () => {
     if (medInput && dosage) {
@@ -27,6 +44,49 @@ export default function PrescriptionForm() {
 
   const removeMedicine = (index) => {
     setPrescriptions(prescriptions.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    // If there's an un-added medicine but the prescriptions list is empty, add it first
+    let currentPrescriptions = [...prescriptions];
+    if (currentPrescriptions.length === 0 && medInput && dosage) {
+      currentPrescriptions.push({ med: medInput, dose: dosage, days: duration });
+    }
+
+    if (!diagnosis) {
+      setSnackbar({ open: true, severity: 'error', message: 'Please provide a diagnosis/symptoms.' });
+      return;
+    }
+
+    if (currentPrescriptions.length === 0) {
+      setSnackbar({ open: true, severity: 'error', message: 'Please add at least one medicine (don\'t forget to click "Add").' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        patientId: appointment.patient?._id || appointment.patient,
+        consultationId: appointment._id,
+        diagnosis,
+        medications: currentPrescriptions.map(p => ({
+          name: typeof p.med === 'string' ? p.med : p.med?.label || String(p.med),
+          dosage: p.dose,
+          duration: p.days ? `${p.days} days` : '',
+        })),
+        additionalInstructions: notes,
+      };
+
+      const res = await generatePrescription(payload);
+      if (res.success) {
+        setSnackbar({ open: true, severity: 'success', message: 'Prescription issued successfully!' });
+        setTimeout(() => navigate('/doctor/appointments'), 1500);
+      }
+    } catch (err) {
+      setSnackbar({ open: true, severity: 'error', message: err.message || 'Failed to issue prescription.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -106,12 +166,24 @@ export default function PrescriptionForm() {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
                 <Button variant="outlined" startIcon={<PrintIcon />}>Print Rx</Button>
-                <Button variant="contained" color="secondary" startIcon={<CheckCircleIcon />}>Issue Prescription</Button>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  startIcon={<CheckCircleIcon />} 
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? 'Issuing...' : 'Issue Prescription'}
+                </Button>
               </Box>
             </Grid>
           </Grid>
         </Paper>
       </Box>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>{snackbar.message}</Alert>
+      </Snackbar>
     </DoctorLayout>
   );
 }

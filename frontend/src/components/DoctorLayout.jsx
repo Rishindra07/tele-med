@@ -26,7 +26,7 @@ const navItems = [
   { text: 'Patients', icon: PeopleIcon, path: '/doctor/patients' },
   { text: 'Profile', icon: PersonIcon, path: '/doctor/profile' },
   { text: 'Settings', icon: SettingsIcon, path: '/doctor/settings' },
-  { text: 'Prescription', icon: NoteIcon, path: '/doctor/prescription' }
+  { text: 'Prescribe', icon: NoteIcon, path: '/doctor/prescribe' }
 ];
 
 const initials = (name) =>
@@ -54,6 +54,8 @@ function DoctorLayout({ children }) {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('refreshToken');
     navigate('/login');
   };
 
@@ -145,7 +147,7 @@ function DoctorLayout({ children }) {
             </Avatar>
             <Box>
               <Typography sx={{ fontWeight: 600, fontSize: 16 }}>{doctorName}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 15 }}>Medicine Specialist</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 15 }}>{doctor?.specialization || 'Medicine Specialist'}</Typography>
             </Box>
           </Box>
 

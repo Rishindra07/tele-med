@@ -26,6 +26,15 @@ API.interceptors.response.use(
       return Promise.reject({ message: "Network error. Check internet." });
     }
 
+    if (error.response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
     return Promise.reject({
       status: error.response.status,
       message: error.response.data?.message || "Something went wrong",

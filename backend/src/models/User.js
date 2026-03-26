@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema(
       default: "EN",
       enum: ["EN", "HI", "PA", "TA", "TE", "BN", "MR", "GU", "KN"]
     },
+    profile_image: {
+      type: String,
+      default: null
+    },
     is_active: {
       type: Boolean,
       default: true

@@ -38,9 +38,14 @@ export default function PatientProfile() {
     phone: '',
     role: 'Patient',
     dob: '',
+    age: '',
     gender: '',
     bloodGroup: '',
-    address: ''
+    address: '',
+    profile_image: '',
+    emergencyContactName: '',
+    emergencyContactRelation: '',
+    emergencyContactPhone: ''
   });
 
   const [editForm, setEditForm] = useState({ ...profileData });
@@ -53,19 +58,23 @@ export default function PatientProfile() {
         if (res.success) {
           const { user, profile } = res;
           
-          // Update local storage so the shell reflects changes if any
           const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-          localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone }));
+          localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone, profile_image: user.profile_image }));
 
           const newData = {
             name: user.full_name || 'User',
             email: user.email || '',
             phone: user.phone || '',
             role: user.role || 'Patient',
+            profile_image: user.profile_image || '',
             dob: profile?.dob || '',
+            age: profile?.age || '',
             gender: profile?.gender || '',
             bloodGroup: profile?.bloodGroup || '',
-            address: profile?.address || ''
+            address: profile?.address || '',
+            emergencyContactName: profile?.emergency_contact?.name || '',
+            emergencyContactRelation: profile?.emergency_contact?.relation || '',
+            emergencyContactPhone: profile?.emergency_contact?.phone || ''
           };
           setProfileData(newData);
           setEditForm(newData);
@@ -102,8 +111,7 @@ export default function PatientProfile() {
         const { user, profile } = res;
         
         const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone }));
-        // dispatch custom event to notify shell
+        localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone, profile_image: user.profile_image }));
         window.dispatchEvent(new Event('storage'));
 
         const newData = {
@@ -111,10 +119,15 @@ export default function PatientProfile() {
           email: user.email || '',
           phone: user.phone || '',
           role: user.role || 'Patient',
+          profile_image: user.profile_image || '',
           dob: profile?.dob || '',
+          age: profile?.age || '',
           gender: profile?.gender || '',
           bloodGroup: profile?.bloodGroup || '',
-          address: profile?.address || ''
+          address: profile?.address || '',
+          emergencyContactName: profile?.emergency_contact?.name || '',
+          emergencyContactRelation: profile?.emergency_contact?.relation || '',
+          emergencyContactPhone: profile?.emergency_contact?.phone || ''
         };
         setProfileData(newData);
         setIsEditing(false);
@@ -124,6 +137,21 @@ export default function PatientProfile() {
       alert('Failed to update profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditForm(prev => ({ ...prev, profile_image: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -174,10 +202,11 @@ export default function PatientProfile() {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems={{ xs: 'center', md: 'center' }}>
               <Box sx={{ position: 'relative' }}>
                 <Avatar
+                  src={isEditing ? editForm.profile_image : profileData.profile_image}
                   sx={{
                     width: 120,
                     height: 120,
-                    bgcolor: colors.primarySoft,
+                    bgcolor: (isEditing ? editForm.profile_image : profileData.profile_image) ? 'transparent' : colors.primarySoft,
                     color: colors.primaryDark,
                     fontSize: 36,
                     fontWeight: 600
@@ -186,7 +215,8 @@ export default function PatientProfile() {
                   {initials(isEditing ? editForm.name : profileData.name)}
                 </Avatar>
                 {isEditing && (
-                  <Box sx={{ position: 'absolute', right: 0, bottom: 0, width: 32, height: 32, borderRadius: '50%', bgcolor: colors.primary, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff', cursor: 'pointer', '&:hover': { bgcolor: colors.primaryDark } }}>
+                  <Box component="label" sx={{ position: 'absolute', right: 0, bottom: 0, width: 32, height: 32, borderRadius: '50%', bgcolor: colors.primary, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff', cursor: 'pointer', '&:hover': { bgcolor: colors.primaryDark } }}>
+                    <input type="file" hidden accept="image/*" onChange={handlePhotoUpload} />
                     <CameraIcon sx={{ fontSize: 16 }} />
                   </Box>
                 )}
@@ -236,6 +266,7 @@ export default function PatientProfile() {
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
               {[
                 ['Date of birth', 'dob', 'e.g. 15 Aug 1990'],
+                ['Age', 'age', 'e.g. 34'],
                 ['Gender', 'gender', 'e.g. Male / Female'],
                 ['Blood group', 'bloodGroup', 'e.g. O+']
               ].map(([label, key, placeholder]) => (
@@ -309,6 +340,36 @@ export default function PatientProfile() {
                 </Stack>
               ))}
             </Stack>
+          </Box>
+
+          <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Emergency Contact</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+              {[
+                ['Contact Name', 'emergencyContactName', 'e.g. John Doe'],
+                ['Relation', 'emergencyContactRelation', 'e.g. Father'],
+                ['Phone Number', 'emergencyContactPhone', 'e.g. +91 9876543210']
+              ].map(([label, key, placeholder]) => (
+                <Box key={key}>
+                  <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
+                  {isEditing ? (
+                    <TextField 
+                      name={key}
+                      value={editForm[key]}
+                      onChange={handleChange}
+                      placeholder={placeholder}
+                      fullWidth
+                      size="small"
+                      sx={{ mt: 1 }}
+                    />
+                  ) : (
+                    <Typography sx={{ mt: 0.5, color: profileData[key] ? colors.text : colors.gray, fontSize: 15, fontWeight: profileData[key] ? 500 : 400 }}>
+                      {profileData[key] || 'Not set'}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Stack>
       </Box>

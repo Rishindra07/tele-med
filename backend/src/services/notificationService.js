@@ -48,23 +48,24 @@ const verifyEmailTransporter = async () => {
   }
 };
 
-const createNotification = async ({ userId, title, message, data = {} }) => {
+const createNotification = async ({ userId, title, message, type = "system", data = {} }) => {
   if (!userId) return null;
   return Notification.create({
     user: userId,
     title,
     message,
+    type,
     data
   });
 };
 
-// const sendSms = async ({ to, message }) => {
-//   if (!to || !message) return { ok: false, reason: "missing-params" };
-//
-//   // Placeholder for future SMS provider integration.
-//   console.log("[SMS]", { to, message });
-//   return { ok: true };
-// };
+const sendSms = async ({ to, message }) => {
+  if (!to || !message) return { ok: false, reason: "missing-params" };
+
+  // Placeholder for future SMS provider integration.
+  console.log("[SMS]", { to, message });
+  return { ok: true, channel: "placeholder" };
+};
 
 const sendEmail = async ({ to, subject, text, html }) => {
   if (!to || !subject || (!text && !html)) {
@@ -124,6 +125,7 @@ const sendPush = async ({ userId, title, message, data = {} }) => {
 module.exports = {
   createNotification,
   sendEmail,
+  sendSms,
   sendPush,
   verifyEmailTransporter
 };

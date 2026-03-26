@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Avatar, Box, Button, CssBaseline, Stack, Typography, Badge } from '@mui/material';
+import { Avatar, Box, Button, CssBaseline, Stack, Typography } from '@mui/material';
 import {
   GridViewRounded as DashboardIcon,
   StickyNote2Outlined as PrescriptionsIcon,
@@ -52,14 +52,22 @@ function PharmacyLayout({ children }) {
   const location = useLocation();
   const [language, setLanguage] = useState('EN');
 
-  // Hardcoded or fetched profile info
-  const pharmacyName = 'Arora Medical';
-  const pharmacyAddress = 'Garhshankar, Punjab';
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+  const pharmacyName = storedUser?.full_name || storedUser?.name || 'Pharmacy User';
+  const pharmacyAddress = storedUser?.email || 'Pharmacy account';
   const profileImage = '';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('refreshToken');
     navigate('/login');
   };
 

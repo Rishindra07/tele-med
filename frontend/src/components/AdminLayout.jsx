@@ -73,10 +73,19 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [language, setLanguage] = useState('EN');
+  const adminUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('refreshToken');
     navigate('/login');
   };
 
@@ -198,11 +207,16 @@ export default function AdminLayout({ children }) {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
             <Avatar sx={{ width: 36, height: 36, bgcolor: colors.blueSoft, color: colors.blue, fontWeight: 700, fontSize: 14 }}>
-              SA
+              {(adminUser?.full_name || adminUser?.name || 'Admin')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0]?.toUpperCase())
+                .join('') || 'AD'}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1.1 }}>Sagar Adani</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 11, mt: 0.2 }}>Super Admin</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1.1 }}>{adminUser?.full_name || adminUser?.name || 'Admin User'}</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 11, mt: 0.2 }}>{adminUser?.role || 'admin'}</Typography>
             </Box>
             <IconButton onClick={handleLogout} size="small" sx={{ color: colors.muted }}>
               <LogoutIcon sx={{ fontSize: 18 }} />

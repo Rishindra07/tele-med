@@ -3,8 +3,6 @@ const router = express.Router();
 const protect = require("../middleware/authMiddleware.js");
 const {
   registerUser,
-  sendOtp,
-  verifyOtp,
   loginUser,
   refreshAccessToken,
   logoutUser,
@@ -13,10 +11,12 @@ const {
   updatePatientProfile,
   updatePatientSettings
 } = require("../controllers/userControllers.js");
+// OTP verification endpoints are disabled for now.
+// const { sendOtp, verifyOtp } = require("../controllers/userControllers.js");
 
 router.post("/register", registerUser);
-router.post("/send-otp", sendOtp);
-router.post("/verify-otp", verifyOtp);
+// router.post("/send-otp", sendOtp);
+// router.post("/verify-otp", verifyOtp);
 router.post("/login", loginUser);
 router.post("/refresh-token", refreshAccessToken);
 router.post("/logout", logoutUser);

@@ -1,7 +1,7 @@
 const Consultation = require("../models/Consultation.js");
 const User = require("../models/User.js");
 const DoctorAvailability = require("../models/DoctorAvailability.js");
-const DoctorProfile = require("../models/DoctorProfile");
+const Doctor = require("../models/Doctor");
 const mongoose = require("mongoose");
 const {
   createNotification,
@@ -26,8 +26,8 @@ exports.getAllDoctors = async (req, res) => {
 
   try {
 
-    const doctors = await DoctorProfile.find({})
-      .populate("user", "name email phone");
+    const doctors = await Doctor.find({})
+      .populate("user", "full_name email phone");
 
     res.json({
       success: true,
@@ -48,10 +48,10 @@ exports.getDoctorsBySpecialization = async (req, res) => {
 
     const { specialization } = req.params;
 
-    const doctors = await DoctorProfile.find({
+    const doctors = await Doctor.find({
       specialization: new RegExp(specialization, "i")
     })
-    .populate("user", "name email phone");
+    .populate("user", "full_name email phone");
 
     res.json({
       success: true,
@@ -77,17 +77,34 @@ exports.getDoctorSlots = async (req, res) => {
       return res.status(400).json({ message: "doctorId and valid date are required" });
     }
 
-    const slots = await DoctorAvailability.findOne({
+    const availability = await DoctorAvailability.findOne({
       doctor: doctorId,
       date: normalizedDate
     });
 
+    if (!availability) {
+      return res.json({ success: true, slots: [] });
+    }
+
+    const consultations = await Consultation.find({
+      doctor: doctorId,
+      appointmentDate: normalizedDate,
+      status: { $ne: 'Cancelled' }
+    });
+
+    const bookedSlots = consultations.map(c => c.timeSlot);
+    const enrichedSlots = availability.slots.map(slot => ({
+      time: slot,
+      isBooked: bookedSlots.includes(slot)
+    }));
+
     res.json({
       success: true,
-      slots: slots?.slots || []
+      slots: enrichedSlots
     });
 
   } catch (error) {
+    console.error('[GET_SLOTS] error:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -165,13 +182,13 @@ exports.bookAppointment = async (req, res) => {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    const doctorProfile = await DoctorProfile.findOne({ user: doctorId });
-    if (!doctorProfile) {
+    const doctor = await Doctor.findOne({ user: doctorId });
+    if (!doctor) {
       return res.status(404).json({ message: "Doctor profile not found" });
     }
 
-    if (doctorProfile.specialization &&
-        doctorProfile.specialization.toLowerCase() !== specialization.toLowerCase()) {
+    if (doctor.specialization &&
+        doctor.specialization.toLowerCase() !== specialization.toLowerCase()) {
       return res.status(400).json({ message: "Specialization does not match doctor profile" });
     }
 
@@ -206,8 +223,8 @@ exports.bookAppointment = async (req, res) => {
     const patientUser = await User.findById(req.user._id);
 
     const appointmentDateText = normalizedDate.toISOString().split("T")[0];
-    const patientMessage = `Your appointment with Dr. ${doctorUser.name || "Doctor"} is scheduled on ${appointmentDateText} at ${slot}.`;
-    const doctorMessage = `New appointment scheduled on ${appointmentDateText} at ${slot} with ${patientUser?.name || "a patient"}.`;
+    const patientMessage = `Your appointment with Dr. ${doctorUser.full_name || "Doctor"} is scheduled on ${appointmentDateText} at ${slot}.`;
+    const doctorMessage = `New appointment scheduled on ${appointmentDateText} at ${slot} with ${patientUser?.full_name || "a patient"}.`;
 
     const notificationResults = await Promise.allSettled([
       createNotification({
@@ -262,6 +279,7 @@ exports.bookAppointment = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Booking error:", error);
     res.status(500).json({ message: "Booking failed" });
   }
 };
@@ -273,7 +291,7 @@ exports.getMyAppointments = async (req, res) => {
   try {
 
     const appointments = await Consultation.find({ patient: req.user._id })
-      .populate("doctor", "name email phone")
+      .populate("doctor", "full_name email phone")
       .sort({ appointmentDate: 1, timeSlot: 1 });
 
     res.json({
@@ -293,7 +311,7 @@ exports.getDoctorAppointments = async (req, res) => {
   try {
 
     const appointments = await Consultation.find({ doctor: req.user._id })
-      .populate("patient", "name email phone")
+      .populate("patient", "full_name email phone")
       .sort({ appointmentDate: 1, timeSlot: 1 });
 
     res.json({
@@ -339,5 +357,122 @@ exports.cancelAppointment = async (req, res) => {
 
   } catch (error) {
      res.status(500).json({ message: "Failed to cancel appointment" });
+  }
+};
+
+/* ---------------- UPDATE APPOINTMENT STATUS (DOCTOR) ---------------- */
+exports.updateAppointmentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['Completed', 'Scheduled', 'Cancelled', 'FollowUp'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: `Status must be one of: ${allowed.join(', ')}` });
+    }
+    const appointment = await Consultation.findOne({ _id: req.params.id, doctor: req.user._id });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    appointment.status = status;
+    await appointment.save();
+    await createNotification({
+      userId: appointment.patient,
+      title: 'Appointment Update',
+      message: `Your appointment on ${appointment.appointmentDate.toISOString().split('T')[0]} at ${appointment.timeSlot} has been marked as ${status}.`
+    });
+    return res.json({ success: true, appointment, message: 'Status updated' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to update appointment status' });
+  }
+};
+
+// Reschedule appointment for patient
+exports.rescheduleAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, slot } = req.body;
+    if (!date || !slot) {
+      return res.status(400).json({ message: 'New date and slot are required' });
+    }
+    const normalizedDate = normalizeDate(date);
+    if (!normalizedDate) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+    if (!timeSlotPattern.test(String(slot).trim())) {
+      return res.status(400).json({ message: 'Invalid time slot format' });
+    }
+    const appointment = await Consultation.findOne({ _id: id, patient: req.user._id });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    const conflict = await Consultation.findOne({
+      doctor: appointment.doctor,
+      appointmentDate: normalizedDate,
+      timeSlot: slot,
+      _id: { $ne: id },
+      status: { $ne: 'Cancelled' }
+    });
+    if (conflict) {
+      return res.status(409).json({ message: 'Selected slot is already booked' });
+    }
+    appointment.appointmentDate = normalizedDate;
+    appointment.timeSlot = slot;
+    await appointment.save();
+    await createNotification({
+      userId: req.user._id,
+      title: 'Appointment Rescheduled',
+      message: `Your appointment has been rescheduled to ${normalizedDate.toISOString().split('T')[0]} at ${slot}.`
+    });
+    await createNotification({
+      userId: appointment.doctor,
+      title: 'Appointment Rescheduled',
+      message: `Patient has rescheduled appointment to ${normalizedDate.toISOString().split('T')[0]} at ${slot}.`
+    });
+    return res.json({ success: true, appointment, message: 'Appointment rescheduled' });
+  } catch (error) {
+    console.error('[RESCHEDULE] error:', error);
+    return res.status(500).json({ message: 'Failed to reschedule appointment' });
+  }
+};
+// Reschedule appointment for doctor
+exports.doctorRescheduleAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newDate, newTime } = req.body;
+    if (!newDate || !newTime) {
+      return res.status(400).json({ message: 'New date and time are required' });
+    }
+    const normalizedDate = normalizeDate(newDate);
+    if (!normalizedDate) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+    const appointment = await Consultation.findOne({ _id: id, doctor: req.user._id });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    const conflict = await Consultation.findOne({
+      doctor: req.user._id,
+      appointmentDate: normalizedDate,
+      timeSlot: newTime,
+      _id: { $ne: id },
+      status: { $ne: 'Cancelled' }
+    });
+    if (conflict) {
+      return res.status(409).json({ message: 'You already have another appointment at this time' });
+    }
+    appointment.appointmentDate = normalizedDate;
+    appointment.timeSlot = newTime;
+    appointment.status = 'Scheduled'; // Ensure it's active
+    await appointment.save();
+
+    await createNotification({
+      userId: appointment.patient,
+      title: 'Appointment Rescheduled',
+      message: `Dr. ${req.user.full_name || 'Your doctor'} has rescheduled your appointment to ${newDate} at ${newTime}.`
+    });
+
+    return res.json({ success: true, appointment, message: 'Appointment rescheduled successfully' });
+  } catch (error) {
+    console.error('[DOCTOR_RESCHEDULE] error:', error);
+    return res.status(500).json({ message: 'Failed to reschedule appointment' });
   }
 };

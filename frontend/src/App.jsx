@@ -1,11 +1,10 @@
-import { useState } from 'react'
 import './App.css'
 import { BrowserRouter,Routes,Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage.jsx';
 import Register from './pages/auth/Register.jsx';
 import Login from './pages/auth/Login.jsx'
-import VerifyOtp from './pages/auth/VerifyOtp.jsx';
 import PendingApproval from './pages/auth/PendingApproval.jsx';
+// import VerifyOtp from './pages/auth/VerifyOtp.jsx';
 
 import PatientDashboard from "./pages/patient/PatientDashboard.jsx";
 import SymptomChecker from "./pages/patient/SymptomChecker.jsx";
@@ -19,6 +18,7 @@ import HealthRecords from "./pages/patient/HealthRecords.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments.jsx";
 import PrescriptionForm from "./pages/doctor/PrescriptionForm.jsx";
+import DoctorAvailability from "./pages/doctor/DoctorAvailability.jsx";
 import DoctorPatients from "./pages/doctor/DoctorPatients.jsx";
 import DoctorProfile from "./pages/doctor/DoctorProfile.jsx";
 import DoctorSettings from "./pages/doctor/DoctorSettings.jsx";
@@ -56,7 +56,7 @@ function App() {
       
       {/* Auth */}
       <Route path='/register' element={<Register/>}/>
-      <Route path='/verify' element={<VerifyOtp/>}/>
+      {/* <Route path='/verify' element={<VerifyOtp/>}/> */}
       <Route path='/login' element={<Login/>}/>
       <Route path='/pending-approval' element={
         <ProtectedRoute>
@@ -64,7 +64,7 @@ function App() {
         </ProtectedRoute>
       }/>
 
-      {/* Dashboards */}
+      {/* Patient Routes */}
       <Route path='/patient' element={
         <ProtectedRoute>
           <RoleRoute role="patient">
@@ -107,7 +107,6 @@ function App() {
             </RoleRoute>
         </ProtectedRoute>
       }/>
-      
       <Route path='/patient/consultation' element={
         <ProtectedRoute>
           <RoleRoute role="patient">
@@ -115,12 +114,9 @@ function App() {
           </RoleRoute>
         </ProtectedRoute>
       }/>
-      
-     
-
-      {/* Symptom Checker Page for Patient */}
       <Route path="/symptom-checker" element={<SymptomChecker />} />
 
+      {/* Doctor Routes */}
       <Route path="/doctor" element={
           <ProtectedRoute>
             <RoleRoute role="doctor">
@@ -135,14 +131,27 @@ function App() {
             </RoleRoute>
           </ProtectedRoute>
         }/>
-        <Route path="/doctor/prescription" element={
+        <Route path="/doctor/availability" element={
+          <ProtectedRoute>
+            <RoleRoute role="doctor">
+              <DoctorAvailability />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
+        <Route path="/doctor/prescribe" element={
           <ProtectedRoute>
             <RoleRoute role="doctor">
               <PrescriptionForm />
             </RoleRoute>
           </ProtectedRoute>
         }/>
-
+        <Route path="/doctor/consultation/:id" element={
+          <ProtectedRoute>
+            <RoleRoute role="doctor">
+              <ConsultationScreen />
+            </RoleRoute>
+          </ProtectedRoute>
+        }/>
         <Route path="/doctor/patients" element={
           <ProtectedRoute>
             <RoleRoute role="doctor">
@@ -150,7 +159,6 @@ function App() {
             </RoleRoute>
           </ProtectedRoute>
         }/>
-
         <Route path="/doctor/profile" element={
           <ProtectedRoute>
             <RoleRoute role="doctor">
@@ -158,7 +166,6 @@ function App() {
             </RoleRoute>
           </ProtectedRoute>
         }/>
-
         <Route path="/doctor/settings" element={
           <ProtectedRoute>
             <RoleRoute role="doctor">
@@ -167,6 +174,7 @@ function App() {
           </ProtectedRoute>
         }/>
 
+        {/* Pharmacy Routes */}
         <Route path="/pharmacy" element={
           <ProtectedRoute>
             <RoleRoute role="pharmacist">
@@ -223,6 +231,8 @@ function App() {
             </RoleRoute>
           </ProtectedRoute>
         }/>
+
+        {/* Admin Routes */}
         <Route path="/admin" element={
           <ProtectedRoute>
             <RoleRoute role="admin">

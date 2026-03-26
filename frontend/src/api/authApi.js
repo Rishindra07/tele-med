@@ -12,17 +12,19 @@ const persistAuth = (res) => {
 };
 
 export const registerUser = async (payload) => {
-  return await API.post("/auth/register", payload);
-};
-
-export const sendOtp = async (email) => {
-  return await API.post("/auth/send-otp", { email });
-};
-
-export const verifyOtp = async ({ email, otp }) => {
-  const res = await API.post("/auth/verify-otp", { email, otp });
+  const res = await API.post("/auth/register", payload);
   return persistAuth(res);
 };
+
+// OTP auth has been disabled for now.
+// export const sendOtp = async (email) => {
+//   return await API.post("/auth/send-otp", { email });
+// };
+//
+// export const verifyOtp = async ({ email, otp }) => {
+//   const res = await API.post("/auth/verify-otp", { email, otp });
+//   return persistAuth(res);
+// };
 
 export const loginUser = async ({ email, password }) => {
   const res = await API.post("/auth/login", { email, password });

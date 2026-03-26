@@ -1,9 +1,11 @@
-const MedicalRecord = require('../models/MedicalRecord');
+const MedicalRecord = require('../models/HealthRecord');
 
 exports.getMyRecords = async (req, res) => {
     try {
         const records = await MedicalRecord.find({ patient: req.user._id })
-            .populate('doctor', 'name email')
+            .populate('doctor', 'full_name email')
+            .populate('consultation')
+            .populate('prescription')
             .sort({ date: -1 });
 
         res.json({
@@ -54,5 +56,23 @@ exports.deleteRecord = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to delete medical record" });
+    }
+};
+
+exports.getPatientHistory = async (req, res) => {
+    try {
+        const { id: patientId } = req.params;
+        const records = await MedicalRecord.find({ patient: patientId })
+            .populate('doctor', 'full_name email')
+            .populate('consultation')
+            .populate('prescription')
+            .sort({ date: -1 });
+
+        res.json({
+            success: true,
+            records
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch patient history" });
     }
 };

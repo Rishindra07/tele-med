@@ -26,8 +26,16 @@ export const cancelAppointment = async (id) => {
   return await API.put(`/appointments/cancel/${id}`);
 };
 
+export const rescheduleAppointment = async (id, data) => {
+  return await API.put(`/appointments/${id}/reschedule`, data);
+};
+
 export const fetchDoctors = async () => {
   return await API.get('/appointments/doctors');
+};
+
+export const fetchDoctorSlots = async (doctorId, date) => {
+  return await API.get('/appointments/slots', { params: { doctorId, date } });
 };
 
 // Health Records
@@ -52,7 +60,25 @@ export const fetchSymptomLogs = async () => {
   return await API.get('/symptoms/logs');
 };
 
-// Pharmacies
 export const fetchPharmacies = async () => {
   return await API.get('/patient/pharmacies');
 };
+
+export const fetchPharmacyStock = async (id) => {
+  return await API.get(`/patient/pharmacies/${id}/stock`);
+};
+
+export const assignPrescriptionToPharmacy = async (data) => {
+  return await API.post('/patient/prescriptions/assign-pharmacy', data);
+};
+
+export const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return await API.post('/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+

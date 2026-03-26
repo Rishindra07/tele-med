@@ -38,6 +38,11 @@ export default function Login() {
         password: data.password
       });
 
+      // Save to localStorage
+      localStorage.setItem("token", res.accessToken);
+      localStorage.setItem("refreshToken", res.refreshToken);
+      localStorage.setItem("user", JSON.stringify(res.user));
+
       if (["doctor", "pharmacist"].includes(res.user.role) && !res.user.is_approved) {
         navigate("/pending-approval");
         return;
@@ -48,23 +53,24 @@ export default function Login() {
       if (res.user.role === "pharmacist") navigate("/pharmacy");
       if (res.user.role === "admin") navigate("/admin");
     } catch (err) {
-      if (err.status === 403 && /verify your email/i.test(err.message || "")) {
-        const pendingEmail = err.verification_email || data.email?.trim();
-        if (!pendingEmail) {
-          console.error("Email verification required", err);
-          return;
-        }
-        localStorage.setItem(
-          "pendingVerification",
-          JSON.stringify({
-            type: "email-otp",
-            email: pendingEmail
-          })
-        );
-        setError("email", { type: "server", message: err.message || "Please verify your email first" });
-        navigate("/verify");
-        return;
-      }
+      // OTP verification redirect removed.
+      // if (err.status === 403 && /verify your email/i.test(err.message || "")) {
+      //   const pendingEmail = err.verification_email || data.email?.trim();
+      //   if (!pendingEmail) {
+      //     console.error("Email verification required", err);
+      //     return;
+      //   }
+      //   localStorage.setItem(
+      //     "pendingVerification",
+      //     JSON.stringify({
+      //       type: "email-otp",
+      //       email: pendingEmail
+      //     })
+      //   );
+      //   setError("email", { type: "server", message: err.message || "Please verify your email first" });
+      //   navigate("/verify");
+      //   return;
+      // }
 
       const message = err.message || "Login failed";
       if (/email/i.test(message)) {
@@ -118,7 +124,7 @@ export default function Login() {
             />
 
             <Alert severity="info" sx={{ mt: 1 }}>
-              Register first, verify OTP, then complete your profile. Doctors and pharmacies will remain hidden until admin approval.
+              Register first, then complete your profile. Doctors and pharmacies will remain hidden until admin approval.
             </Alert>
 
             <TextField

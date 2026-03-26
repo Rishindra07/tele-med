@@ -15,6 +15,9 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ConsultationScreen() {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isDoctor = user.role === 'doctor';
+  
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [micEnabled, setMicEnabled] = useState(true);
   const [lowBandwidthMode, setLowBandwidthMode] = useState(false);
@@ -36,7 +39,9 @@ export default function ConsultationScreen() {
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#000' }}>
       {/* Top Bar */}
       <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'rgba(30,41,59,0.9)', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <Typography variant="h6" fontWeight="bold">Dr. Sharma - General Consultation</Typography>
+        <Typography variant="h6" fontWeight="bold">
+          {isDoctor ? `Consultation with Patient` : `Dr. Sharma - General Consultation`}
+        </Typography>
         <Stack direction="row" alignItems="center" spacing={2}>
           <FormControlLabel
             control={<Switch checked={lowBandwidthMode} onChange={handleToggleBandwidth} color="warning" />}
@@ -62,8 +67,10 @@ export default function ConsultationScreen() {
           }}>
             {!videoEnabled ? (
               <Stack alignItems="center" spacing={2}>
-                <Avatar sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}>DS</Avatar>
-                <Typography variant="h5" color="white">Dr. Sharma</Typography>
+                <Avatar sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}>
+                  {isDoctor ? 'P' : 'DS'}
+                </Avatar>
+                <Typography variant="h5" color="white">{isDoctor ? 'Patient' : 'Dr. Sharma'}</Typography>
                 <Typography variant="body1" color="gray">Audio Only Mode Active</Typography>
               </Stack>
             ) : (
@@ -126,7 +133,7 @@ export default function ConsultationScreen() {
               variant="contained" 
               color="error" 
               startIcon={<CallEndIcon />}
-              onClick={() => navigate('/patient')}
+              onClick={() => navigate(isDoctor ? '/doctor/appointments' : '/patient')}
               sx={{ borderRadius: 8, px: 4, fontWeight: 'bold' }}
             >
               End Call
