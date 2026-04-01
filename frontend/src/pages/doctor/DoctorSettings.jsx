@@ -16,6 +16,8 @@ import {
   WarningAmberRounded as WarningIcon
 } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
+import { fetchDoctorProfile, updateDoctorProfile } from '../../api/doctorApi';
+import { Alert, CircularProgress, Snackbar } from '@mui/material';
 
 const colors = {
   paper: '#fffdf8',
@@ -94,6 +96,9 @@ function Card({ children }) {
 
 export default function DoctorSettings() {
   const [activeTab, setActiveTab] = useState('account');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const [toggles, setToggles] = useState({
     appointmentAlerts: true,
     bookingRequests: true,
@@ -112,29 +117,77 @@ export default function DoctorSettings() {
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [timezone, setTimezone] = useState('Asia/Kolkata');
   const [profile, setProfile] = useState({
-    name: 'Dr. Farhan Ahmed',
-    email: 'farhan@example.com',
-    phone: '+91 98140 55872',
-    specialty: 'Cardiologist',
-    clinic: 'Seva TeleHealth Clinic',
-    bio: 'Rural cardiology specialist focused on tele-consultation and chronic care follow-ups.'
+    name: '',
+    email: '',
+    phone: '',
+    specialty: '',
+    clinic: '',
+    bio: ''
   });
 
-  const user = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || '{}');
-    } catch {
-      return {};
-    }
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchDoctorProfile();
+        const dr = res.doctor || {};
+        const usr = res.user || {};
+        setProfile({
+          name: usr.full_name || '',
+          email: usr.email || '',
+          phone: usr.phone || '',
+          specialization: dr.specialization || '',
+          hospitalName: dr.hospitalName || '',
+          bio: dr.bio || ''
+        });
+        setLanguage(usr.preferred_language === 'HI' ? 'Hindi' : 'English');
+      } catch (err) {
+        setSnackbar({ open: true, severity: 'error', message: 'Failed to load settings' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
-  const doctorName = user?.name || profile.name;
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        full_name: profile.name,
+        phone: profile.phone,
+        specialization: profile.specialization,
+        hospitalName: profile.hospitalName,
+        bio: profile.bio
+      };
+      await updateDoctorProfile(payload);
+      
+      // Update local storage so sidebar reflects the change
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { 
+        ...currentUser, 
+        full_name: profile.name, 
+        phone: profile.phone,
+        specialization: profile.specialization 
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      setSnackbar({ open: true, severity: 'success', message: 'Settings saved successfully' });
+    } catch (err) {
+      setSnackbar({ open: true, severity: 'error', message: err.message || 'Save failed' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const doctorName = profile.name || 'Doctor';
   const pageHeader = tabs[activeTab];
 
   const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const actionButton = (label, kind = 'outline') => (
+  const actionButton = (label, kind = 'outline', onClick, disabled) => (
     <Button
+      onClick={onClick}
+      disabled={disabled}
       sx={{
         px: 2.2,
         py: 0.8,
@@ -157,7 +210,7 @@ export default function DoctorSettings() {
           <Row
             name="Profile overview"
             desc="Update the details patients see before booking with you"
-            action={actionButton('Save profile', 'filled')}
+            action={actionButton(saving ? 'Saving...' : 'Save profile', 'filled', handleSave, saving)}
           />
           <Stack spacing={2.1} sx={{ mt: 2 }}>
             <TextField
@@ -168,14 +221,14 @@ export default function DoctorSettings() {
             />
             <TextField
               label="Specialty"
-              value={profile.specialty}
-              onChange={(event) => setProfile((prev) => ({ ...prev, specialty: event.target.value }))}
+              value={profile.specialization}
+              onChange={(event) => setProfile((prev) => ({ ...prev, specialization: event.target.value }))}
               fullWidth
             />
             <TextField
               label="Clinic / Hospital"
-              value={profile.clinic}
-              onChange={(event) => setProfile((prev) => ({ ...prev, clinic: event.target.value }))}
+              value={profile.hospitalName}
+              onChange={(event) => setProfile((prev) => ({ ...prev, hospitalName: event.target.value }))}
               fullWidth
             />
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -225,7 +278,7 @@ export default function DoctorSettings() {
           <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>Channels</Typography>
           <Row name="SMS alerts" desc="Quick reminders to your registered mobile number" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} />} />
           <Row name="Push notifications" desc="In-app alerts on your current device" action={<Switch checked={toggles.push} onChange={() => toggle('push')} />} />
-          <Row name="Email summaries" desc={`Daily schedule summary to ${user?.email || profile.email}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
+          <Row name="Email summaries" desc={`Daily schedule summary to ${profile.email}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
           <Row name="Do not disturb" desc="Silence non-urgent alerts outside clinic hours" action={<Stack direction="row" spacing={1}><Select size="small" value="10 PM"><MenuItem value="10 PM">10 PM</MenuItem></Select><Typography sx={{ alignSelf: 'center', color: colors.muted, fontSize: 12 }}>to</Typography><Select size="small" value="7 AM"><MenuItem value="7 AM">7 AM</MenuItem></Select></Stack>} />
         </Card>
       );
@@ -339,37 +392,52 @@ export default function DoctorSettings() {
               <NotificationIcon />
               <Box sx={{ position: 'absolute', top: 9, right: 9, width: 7, height: 7, borderRadius: '50%', bgcolor: colors.red }} />
             </Button>
-            <Button startIcon={<SaveIcon />} sx={{ px: 2.2, py: 1.05, borderRadius: 2.2, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}>
-              Save Changes
+            <Button 
+                onClick={handleSave} 
+                disabled={saving}
+                startIcon={<SaveIcon />} 
+                sx={{ px: 2.2, py: 1.05, borderRadius: 2.2, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </Stack>
         </Box>
 
-        <Box sx={{ p: { xs: 2, md: 4 } }}>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
-            {Object.entries(tabs).map(([key, [label]]) => (
-              <Button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                sx={{
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: 999,
-                  border: `1px solid ${activeTab === key ? colors.green : colors.line}`,
-                  bgcolor: activeTab === key ? colors.green : '#fff',
-                  color: activeTab === key ? '#fff' : '#6c665f',
-                  textTransform: 'none',
-                  fontSize: 14.5
-                }}
-              >
-                {label}
-              </Button>
-            ))}
-          </Stack>
+        {loading ? (
+          <Box sx={{ py: 12, display: 'grid', placeItems: 'center' }}>
+            <CircularProgress sx={{ color: colors.green }} />
+          </Box>
+        ) : (
+          <Box sx={{ p: { xs: 2, md: 4 } }}>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
+              {Object.entries(tabs).map(([key, [label]]) => (
+                <Button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  sx={{
+                    px: 2.5,
+                    py: 1,
+                    borderRadius: 999,
+                    border: `1px solid ${activeTab === key ? colors.green : colors.line}`,
+                    bgcolor: activeTab === key ? colors.green : '#fff',
+                    color: activeTab === key ? '#fff' : '#6c665f',
+                    textTransform: 'none',
+                    fontSize: 14.5
+                  }}
+                >
+                  {label}
+                </Button>
+              ))}
+            </Stack>
 
-          {renderPanel()}
-        </Box>
+            {renderPanel()}
+          </Box>
+        )}
       </Box>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>{snackbar.message}</Alert>
+      </Snackbar>
     </DoctorLayout>
   );
 }

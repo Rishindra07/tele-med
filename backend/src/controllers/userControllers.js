@@ -167,7 +167,7 @@ const logoutAllSessions = async (req, res) => {
   }
 };
 
-const getPatientProfile = async (req, res) => {
+const getPatientProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -179,17 +179,28 @@ const getPatientProfile = async (req, res) => {
       profile = await Patient.create({ user: req.user._id, settings: {} });
     }
 
+    const Consultation = require("../models/Consultation.js");
+    const Prescription = require("../models/Prescription.js");
+    const HealthRecord = require("../models/HealthRecord.js");
+
+    const counts = {
+      consultations: await Consultation.countDocuments({ patient: req.user._id }),
+      prescriptions: await Prescription.countDocuments({ patient: req.user._id }),
+      records: await HealthRecord.countDocuments({ patient: req.user._id })
+    };
+
     return res.json({
       success: true,
       user: sanitizeUser(user),
-      profile
+      profile,
+      counts
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-const updatePatientProfile = async (req, res) => {
+const updatePatientProfile = async (req, res, next) => {
   try {
     const {
       name,
@@ -212,8 +223,20 @@ const updatePatientProfile = async (req, res) => {
     }
 
     if (name) user.full_name = name;
-    if (phone) user.phone = phone;
-    if (email) user.email = email;
+    
+    if (phone) {
+      let formattedPhone = phone.trim().replace(/\s+/g, '');
+      if (!formattedPhone.startsWith('+')) {
+        if (formattedPhone.length === 10) {
+          formattedPhone = `+91${formattedPhone}`;
+        } else if (formattedPhone.length === 12 && formattedPhone.startsWith('91')) {
+          formattedPhone = `+${formattedPhone}`;
+        }
+      }
+      user.phone = formattedPhone;
+    }
+
+    if (email) user.email = email.toLowerCase().trim();
     if (profile_image !== undefined) user.profile_image = profile_image;
     
     await user.save();
@@ -224,7 +247,7 @@ const updatePatientProfile = async (req, res) => {
     }
     
     if (dob !== undefined) profile.dob = dob;
-    if (age !== undefined) profile.age = age;
+    if (age !== undefined) profile.age = age ? Number(age) : null;
     if (gender !== undefined) profile.gender = gender;
     if (bloodGroup !== undefined) profile.bloodGroup = bloodGroup;
     if (address !== undefined) profile.address = address;
@@ -239,13 +262,25 @@ const updatePatientProfile = async (req, res) => {
 
     await profile.save();
 
+    const Consultation = require("../models/Consultation.js");
+    const Prescription = require("../models/Prescription.js");
+    const HealthRecord = require("../models/HealthRecord.js");
+
+    const counts = {
+      consultations: await Consultation.countDocuments({ patient: req.user._id }),
+      prescriptions: await Prescription.countDocuments({ patient: req.user._id }),
+      records: await HealthRecord.countDocuments({ patient: req.user._id })
+    };
+
     return res.json({
       success: true,
       message: "Profile updated successfully",
       user: sanitizeUser(user),
-      profile
+      profile,
+      counts
     });
   } catch (error) {
+    console.error("Update profile error:", error);
     return res.status(500).json({ message: error.message });
   }
 };

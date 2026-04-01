@@ -15,7 +15,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Avatar
+  Avatar,
+  Divider
 } from '@mui/material';
 
 import {
@@ -30,7 +31,8 @@ import {
   HistoryRounded as HistoryIcon,
   VisibilityOutlined as ViewIcon,
   ReceiptLongRounded as PrescriptionIcon,
-  PlayCircleFilledRounded as OngoingIcon
+  PlayCircleFilledRounded as OngoingIcon,
+  AddRounded as AddIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
@@ -56,23 +58,34 @@ const colors = {
   gray: '#9aa0a6'
 };
 
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('') || 'DR';
+const getInitials = (name) => {
+  if (!name) return 'DR';
+  const clean = name.replace(/^(Dr\.|Dr)\s+/i, '').trim();
+  const parts = clean.split(' ').filter(Boolean);
+  if (parts.length === 0) return 'DR';
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
-const formatDateLabel = (value) => {
-  if (!value) return 'Date pending';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString('en-GB', {
+const formatDateRel = (value) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(d);
+  target.setHours(0,0,0,0);
+  
+  const diff = (target - today) / (24 * 60 * 60 * 1000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  
+  return d.toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
-    month: 'short',
-    year: 'numeric'
+    month: 'short'
   });
 };
 
@@ -90,7 +103,13 @@ function PatientAppointments() {
   const [newSlot, setNewSlot] = useState('');
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [tick, setTick] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 60000); // Tick every minute
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -174,18 +193,19 @@ function PatientAppointments() {
       const { status: callStatus, label: callLabel, isJoinNear } = getConsultationStatus(appointment);
       return {
         ...appointment,
+        raw: appointment,
         id: appointment._id || `appointment-${index}`,
         doctorId: appointment.doctor?._id || appointment.doctor,
         doctorName: appointment.doctor?.full_name || appointment.doctor?.name || 'Doctor',
         specialization: appointment.specialization || 'General Physician',
-        dateLabel: formatDateLabel(appointment.appointmentDate),
+        dateLabel: formatDateRel(appointment.appointmentDate),
         timeLabel: appointment.timeSlot || 'Time pending',
         callStatus,
         callLabel,
         isJoinNear
       };
     });
-  }, [appointments]);
+  }, [appointments, tick]);
 
   const specializationOptions = useMemo(() => {
     const items = Array.from(new Set(normalizedAppointments.map((item) => item.specialization).filter(Boolean)));
@@ -207,107 +227,181 @@ function PatientAppointments() {
   }, [activeFilter, normalizedAppointments, query, specializationFilter]);
 
   const grouped = {
-    ongoing: filteredAppointments.filter((item) => item.callStatus === 'ongoing'),
+    live: filteredAppointments.filter((item) => item.callStatus === 'ongoing'),
     upcoming: filteredAppointments.filter((item) => item.callStatus === 'upcoming'),
     completed: filteredAppointments.filter((item) => item.callStatus === 'completed'),
     cancelled: filteredAppointments.filter((item) => item.callStatus === 'cancelled'),
     missed: filteredAppointments.filter((item) => item.callStatus === 'missed')
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'ongoing': return colors.success;
+      case 'upcoming': return colors.primary;
+      case 'completed': return colors.gray;
+      case 'missed': return colors.danger;
+      case 'cancelled': return colors.danger;
+      default: return colors.primary;
+    }
+  };
+
+  const getStatusSoft = (status) => {
+    switch (status) {
+      case 'ongoing': return colors.successSoft;
+      case 'upcoming': return colors.primarySoft;
+      case 'completed': return colors.soft;
+      case 'missed': return colors.dangerSoft;
+      case 'cancelled': return colors.dangerSoft;
+      default: return colors.primarySoft;
+    }
+  };
+
   const renderAppointmentCard = (a) => {
-    const { callStatus: dashStatus, isJoinNear } = a;
+    const { callStatus: dashStatus, isJoinNear, callLabel } = a;
+    const sColor = getStatusColor(dashStatus);
+    const sSoft = getStatusSoft(dashStatus);
 
     return (
       <Box
         key={a.id}
         sx={{
-          p: 2.5,
-          borderRadius: 2,
+          p: { xs: 2.5, sm: 3 },
+          borderRadius: 3,
           border: `1px solid ${colors.line}`,
           bgcolor: '#fff',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            borderColor: sColor,
+            boxShadow: `0 8px 24px ${sColor}15`,
+            transform: 'translateY(-2px)'
+          }
         }}
       >
-        <Box sx={{ position: 'absolute', inset: '0 auto 0 0', width: 4, bgcolor: dashStatus === 'ongoing' ? colors.success : dashStatus === 'missed' ? colors.danger : colors.primary }} />
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="flex-start">
-          <Avatar sx={{ width: 52, height: 52, borderRadius: 1.5, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 600 }}>{getInitials(a.doctorName)}</Avatar>
+        <Box sx={{ 
+          position: 'absolute', 
+          inset: '0 auto 0 0', 
+          width: 6, 
+          bgcolor: sColor,
+          opacity: dashStatus === 'ongoing' ? 1 : 0.4
+        }} />
+        
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="flex-start">
+          <Avatar sx={{ 
+            width: 60, 
+            height: 60, 
+            borderRadius: 2, 
+            bgcolor: sSoft, 
+            color: sColor, 
+            fontSize: 20,
+            fontWeight: 700,
+            boxShadow: `inset 0 0 0 1px ${sColor}20`
+          }}>
+            {getInitials(a.doctorName)}
+          </Avatar>
 
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box>
-                <Typography sx={{ fontSize: 17, fontWeight: 600, color: colors.text }}>
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text, display: 'flex', alignItems: 'center', gap: 1 }}>
                   Dr. {a.doctorName}
+                  {dashStatus === 'ongoing' && (
+                    <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.success, animation: 'pulse 1.5s infinite' }} />
+                  )}
                 </Typography>
-                <Typography sx={{ color: colors.muted, fontSize: 14 }}>
+                <Typography sx={{ color: colors.muted, fontSize: 14.5, mt: 0.2 }}>
                   {a.specialization}
                 </Typography>
               </Box>
               <Chip
-                label={dashStatus.toUpperCase()}
+                label={dashStatus === 'completed' ? 'PAST' : dashStatus === 'missed' ? 'NO SHOW' : dashStatus.toUpperCase()}
                 sx={{
                   height: 24,
-                  bgcolor: dashStatus === 'ongoing' ? colors.successSoft : dashStatus === 'missed' ? colors.dangerSoft : colors.primarySoft,
-                  color: dashStatus === 'ongoing' ? colors.success : dashStatus === 'missed' ? colors.danger : colors.primaryDark,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  borderRadius: 1
+                  bgcolor: sSoft,
+                  color: sColor,
+                  fontSize: 10,
+                  fontWeight: 800,
+                  borderRadius: 1.5,
+                  letterSpacing: '0.5px'
                 }}
               />
             </Stack>
 
-            <Stack direction="row" spacing={3} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <CalendarIcon sx={{ fontSize: 16, color: colors.muted }} />
-                <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>{a.dateLabel}</Typography>
+            <Divider sx={{ my: 2.5, opacity: 0.5, borderStyle: 'dashed' }} />
+
+            <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CalendarIcon sx={{ fontSize: 18, color: sColor }} />
+                <Typography sx={{ color: colors.text, fontSize: 14.5, fontWeight: 600 }}>{a.dateLabel}</Typography>
               </Stack>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <TimeIcon sx={{ fontSize: 16, color: colors.muted }} />
-                <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>{a.timeLabel}</Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TimeIcon sx={{ fontSize: 18, color: sColor }} />
+                <Typography sx={{ color: colors.text, fontSize: 14.5, fontWeight: 600 }}>{a.timeLabel}</Typography>
               </Stack>
+              {(dashStatus === 'upcoming' || dashStatus === 'ongoing') && (
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 'auto' }}>
+                  <Typography sx={{ 
+                    color: sColor, 
+                    fontSize: 13, 
+                    fontWeight: 700, 
+                    bgcolor: sSoft, 
+                    px: 1.5, 
+                    py: 0.5, 
+                    borderRadius: 99
+                  }}>
+                    {callLabel}
+                  </Typography>
+                </Stack>
+              )}
             </Stack>
 
-            <Box sx={{ mt: 2.5, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1.5, justifyContent: 'flex-end' }}>
               {dashStatus === 'upcoming' && (
                 <>
                   {isJoinNear ? (
-                    <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.primary, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Join Consultation</Button>
+                    <Button onClick={() => navigate('/patient/consultation')} variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.primary, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}>Join Consultation</Button>
                   ) : (
-                    <Box sx={{ px: 2, py: 0.8, borderRadius: 1.5, bgcolor: colors.primarySoft, border: `1px solid ${colors.primary}30` }}>
-                       <Typography sx={{ color: colors.primaryDark, fontSize: 13, fontWeight: 700 }}>{a.callLabel}</Typography>
-                    </Box>
+                    <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>Reschedule</Button>
                   )}
-                  <Button size="small" onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Reschedule</Button>
-                  <Button size="small" onClick={() => handleCancel(a.id)} variant="text" sx={{ color: colors.danger, textTransform: 'none' }}>Cancel Appointment</Button>
+                  <Button onClick={() => handleCancel(a.id)} variant="text" sx={{ color: colors.danger, textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
                 </>
               )}
               {dashStatus === 'ongoing' && (
                 <>
-                  <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.success, borderRadius: 1.5, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.success } }}>Join Now</Button>
-                  <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Chat with Doctor</Button>
-                  <Button onClick={() => navigate('/patient/records?tab=upload')} size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Upload Reports</Button>
+                  <Button onClick={() => navigate('/patient/consultation')} variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.success, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: colors.success } }}>Join Now</Button>
+                  <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>Chat</Button>
                 </>
               )}
               {dashStatus === 'completed' && (
                 <>
-                  <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>View Prescription</Button>
-                  <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>View Records</Button>
-                  <Button onClick={() => setSnackbar({ open: true, severity: 'success', message: 'Review form will be available soon.' })} size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Give Feedback</Button>
+                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>Prescription</Button>
+                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>Records</Button>
+                  <Button variant="text" sx={{ color: colors.primary, textTransform: 'none', fontWeight: 600 }} onClick={() => navigate(`/patient?doctor=${a.doctorId}`)}>Book Again</Button>
                 </>
               )}
               {dashStatus === 'cancelled' && (
-                <Button onClick={() => navigate('/patient/appointments')} size="small" variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Rebook Appointment</Button>
+                <Button onClick={() => navigate(`/patient?doctor=${a.doctorId}`)} variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>Rebook Now</Button>
               )}
               {dashStatus === 'missed' && (
                 <>
-                  <Button onClick={() => handleRescheduleOpen(a)} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Reschedule</Button>
-                  <Button onClick={() => navigate('/patient/appointments')} size="small" variant="contained" sx={{ bgcolor: colors.primary, borderRadius: 1.5, px: 2, textTransform: 'none' }}>Book Again</Button>
+                  <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>Reschedule</Button>
+                  <Button onClick={() => navigate(`/patient?doctor=${a.doctorId}`)} variant="contained" sx={{ bgcolor: colors.primary, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>Book Again</Button>
                 </>
               )}
             </Box>
           </Box>
         </Stack>
+
+        <style>
+          {`
+            @keyframes pulse {
+              0% { transform: scale(0.95); opacity: 0.5; }
+              50% { transform: scale(1.1); opacity: 1; }
+              100% { transform: scale(0.95); opacity: 0.5; }
+            }
+          `}
+        </style>
       </Box>
     );
   };
@@ -317,81 +411,115 @@ function PatientAppointments() {
       <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              Appointments
-            </Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
-              Manage your upcoming schedule and past consultations.
-            </Typography>
-          </Box>
-          <Button onClick={() => navigate('/patient')} sx={{ px: 3, py: 1.25, borderRadius: 2, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontWeight: 600, fontSize: 15, boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: colors.primaryDark } }}>
-            + Book Appointment
-          </Button>
-        </Stack>
+              <Typography sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 800, color: colors.text, fontFamily: 'Georgia, serif' }}>
+                Appointments
+              </Typography>
+              <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
+                Manage your consultations. <Chip label={`${normalizedAppointments.length} total`} size="small" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: colors.soft }} />
+              </Typography>
+            </Box>
+            <Button 
+              onClick={() => navigate('/patient')} 
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ 
+                px: 3.5, py: 1.5, borderRadius: 2.5, bgcolor: colors.primary, color: '#fff', 
+                textTransform: 'none', fontWeight: 700, fontSize: 16, 
+                boxShadow: `0 8px 16px ${colors.primary}30`,
+                '&:hover': { bgcolor: colors.primaryDark, transform: 'scale(1.02)' },
+                transition: 'all 0.2s'
+              }}
+            >
+              Book New Appointment
+            </Button>
+          </Stack>
 
         <Box sx={{ bgcolor: colors.paper, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 4 }} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                {[['all', 'All'], ['upcoming', 'Upcoming'], ['ongoing', 'Ongoing'], ['completed', 'Completed'], ['missed', 'Missed'], ['cancelled', 'Cancelled']].map(([value, label]) => (
-                 <Chip
+                 <Box
                    key={value}
-                   label={label}
-                   clickable
                    onClick={() => setActiveFilter(value)}
                    sx={{
-                     px: 1, py: 2, borderRadius: 1.5,
-                     border: `1px solid ${activeFilter === value ? colors.primary : colors.line}`,
-                     bgcolor: activeFilter === value ? colors.primary : '#fff',
+                     px: 2.5, py: 0.8, borderRadius: 2, cursor: 'pointer',
+                     bgcolor: activeFilter === value ? colors.primary : 'transparent',
                      color: activeFilter === value ? '#fff' : colors.muted,
-                     fontSize: 14, fontWeight: 500
+                     border: `1px solid ${activeFilter === value ? colors.primary : colors.line}`,
+                     fontSize: 14, fontWeight: 600, transition: 'all 0.2s',
+                     '&:hover': { bgcolor: activeFilter === value ? colors.primaryDark : colors.soft }
                    }}
-                 />
+                 >
+                   {label}
+                 </Box>
                ))}
              </Stack>
 
-             <Stack direction="row" spacing={1.5}>
+             <Stack direction="row" spacing={2} alignItems="center">
                <TextField
-                 placeholder="Search doctor..."
+                 select
+                 value={specializationFilter}
+                 onChange={(e) => setSpecializationFilter(e.target.value)}
+                 size="small"
+                 sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+               >
+                 <MenuItem value="all">All Specialties</MenuItem>
+                 {specializationOptions.filter(o => o !== 'all').map(opt => (
+                   <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                 ))}
+               </TextField>
+               <TextField
+                 placeholder="Filter by doctor..."
                  value={query}
                  onChange={(e) => setQuery(e.target.value)}
                  size="small"
-                 sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
-                 InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: colors.muted }} /></InputAdornment> }}
+                 sx={{ minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                 InputProps={{ 
+                   startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" sx={{ color: colors.muted }} /></InputAdornment> 
+                 }}
                />
              </Stack>
           </Stack>
 
           {loading ? (
-            <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}><CircularProgress size={30} sx={{ color: colors.primary }} /></Box>
+            <Box sx={{ py: 12, display: 'grid', placeItems: 'center' }}>
+              <Stack alignItems="center" spacing={2}>
+                <CircularProgress size={32} thickness={5} sx={{ color: colors.primary }} />
+                <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 500 }}>Fetching your appointments...</Typography>
+              </Stack>
+            </Box>
           ) : filteredAppointments.length === 0 ? (
-            <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
-               <CalendarIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
-               <Typography sx={{ color: colors.text, fontSize: 16 }}>No appointments found</Typography>
+            <Box sx={{ py: 12, textAlign: 'center', bgcolor: colors.bg, borderRadius: 3, border: `2px dashed ${colors.line}` }}>
+               <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: colors.soft, display: 'grid', placeItems: 'center', mx: 'auto', mb: 3 }}>
+                <CalendarIcon sx={{ fontSize: 40, color: colors.gray }} />
+               </Box>
+               <Typography sx={{ color: colors.text, fontSize: 18, fontWeight: 700 }}>No consultations found</Typography>
+               <Typography sx={{ color: colors.muted, fontSize: 14.5, mt: 1, maxWidth: 300, mx: 'auto' }}>
+                 Try adjusting your filters or book a new appointment to see it here.
+               </Typography>
+               <Button onClick={() => navigate('/patient')} startIcon={<AddIcon />} sx={{ mt: 4, color: colors.primary, fontWeight: 700, textTransform: 'none' }}>Book Now</Button>
             </Box>
           ) : (
-            <Stack spacing={4}>
-              {(grouped.ongoing.length > 0 || grouped.upcoming.length > 0) && (
+            <Stack spacing={5}>
+              {(grouped.live.length > 0 || grouped.upcoming.length > 0) && (
                 <Box>
-                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Live & Upcoming</Typography>
-                  <Stack spacing={2}>{[...grouped.ongoing, ...grouped.upcoming].map(renderAppointmentCard)}</Stack>
+                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
+                    <Typography sx={{ color: colors.text, fontSize: 18, fontWeight: 800, fontFamily: 'Georgia, serif' }}>Upcoming Consultations</Typography>
+                    <Chip label={`${grouped.live.length + grouped.upcoming.length}`} size="small" sx={{ bgcolor: colors.primary, color: '#fff', fontWeight: 800 }} />
+                  </Stack>
+                  <Stack spacing={2.5}>{[...grouped.live, ...grouped.upcoming].map(renderAppointmentCard)}</Stack>
                 </Box>
               )}
               {grouped.completed.length > 0 && (
                 <Box>
-                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Completed</Typography>
-                  <Stack spacing={2}>{grouped.completed.map(renderAppointmentCard)}</Stack>
+                  <Typography sx={{ color: colors.text, fontSize: 18, fontWeight: 800, mb: 3, fontFamily: 'Georgia, serif' }}>History</Typography>
+                  <Stack spacing={2.5}>{grouped.completed.map(renderAppointmentCard)}</Stack>
                 </Box>
               )}
-              {grouped.missed.length > 0 && (
+              {(grouped.missed.length > 0 || grouped.cancelled.length > 0) && (
                 <Box>
-                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Missed</Typography>
-                  <Stack spacing={2}>{grouped.missed.map(renderAppointmentCard)}</Stack>
-                </Box>
-              )}
-              {grouped.cancelled.length > 0 && (
-                <Box>
-                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 600, mb: 2, borderBottom: `1px solid ${colors.line}`, pb: 1 }}>Cancelled</Typography>
-                  <Stack spacing={2}>{grouped.cancelled.map(renderAppointmentCard)}</Stack>
+                  <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', mb: 3 }}>Not Completed</Typography>
+                  <Stack spacing={2.5}>{[...grouped.missed, ...grouped.cancelled].map(renderAppointmentCard)}</Stack>
                 </Box>
               )}
             </Stack>

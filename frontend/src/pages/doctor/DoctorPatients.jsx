@@ -17,6 +17,7 @@ import {
   DescriptionOutlined as FileIcon,
 } from '@mui/icons-material';
 import { Dialog, DialogContent, DialogTitle, IconButton, Divider } from '@mui/material';
+import PatientHistoryDialog from '../../components/doctor/PatientHistoryDialog';
 
 const colors = {
   paper: '#fffdf8', line: '#d8d0c4', soft: '#e9e2d8',
@@ -47,7 +48,6 @@ export default function DoctorPatients() {
   const [error, setError] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [patientHistory, setPatientHistory] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const navigate = useNavigate();
 
@@ -67,17 +67,8 @@ export default function DoctorPatients() {
     load();
   }, []);
 
-  const handleFetchHistory = async (patientId) => {
-    setHistoryLoading(true);
+  const handleFetchHistory = (patientId) => {
     setHistoryOpen(true);
-    try {
-      const res = await fetchPatientHistory(patientId);
-      setPatientHistory(res.records || []);
-    } catch (err) {
-      setSnackbar({ open: true, severity: 'error', message: err.message || 'Failed to load history' });
-    } finally {
-      setHistoryLoading(false);
-    }
   };
 
   const filtered = useMemo(() =>
@@ -217,47 +208,11 @@ export default function DoctorPatients() {
         <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>{snackbar.message}</Alert>
       </Snackbar>
 
-      <Dialog open={historyOpen} onClose={() => setHistoryOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 4, bgcolor: colors.paper } }}>
-        <DialogTitle sx={{ borderBottom: `1px solid ${colors.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight="bold">Medical History - {selected?.full_name}</Typography>
-          <IconButton onClick={() => setHistoryOpen(false)}><CloseIcon /></IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          {historyLoading ? (
-            <Box sx={{ py: 6, textAlign: 'center' }}><CircularProgress /></Box>
-          ) : patientHistory.length === 0 ? (
-            <Box sx={{ py: 6, textAlign: 'center' }}>
-              <FileIcon sx={{ fontSize: 48, color: colors.muted, mb: 2 }} />
-              <Typography color="text.secondary">No medical records found for this patient.</Typography>
-            </Box>
-          ) : (
-            <Stack spacing={2}>
-              {patientHistory.map((rec) => (
-                <Box key={rec._id} sx={{ p: 2, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: '#fff' }}>
-                  <Stack direction="row" spacing={2} alignItems="flex-start">
-                    <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.muted }}><FileIcon /></Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography sx={{ fontWeight: 600 }}>{rec.title}</Typography>
-                        <Chip label={rec.type.replace('_', ' ')} size="small" sx={{ fontSize: 11, textTransform: 'uppercase' }} />
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {new Date(rec.date || rec.createdAt).toLocaleDateString()} • Dr. {rec.doctorInfo?.name || rec.doctor?.full_name || 'System Generated'}
-                      </Typography>
-                      {rec.diagnosis && <Typography variant="body2" sx={{ mt: 1 }}><strong>Diagnosis:</strong> {rec.diagnosis}</Typography>}
-                      {rec.prescriptionDetails?.length > 0 && (
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                          <strong>Meds:</strong> {rec.prescriptionDetails.map(m => m.name).join(', ')}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PatientHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        patient={selected}
+      />
     </DoctorLayout>
   );
 }

@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage.jsx';
 import Register from './pages/auth/Register.jsx';
 import Login from './pages/auth/Login.jsx'
 import PendingApproval from './pages/auth/PendingApproval.jsx';
+import PublicPrescription from './pages/PublicPrescription.jsx';
 // import VerifyOtp from './pages/auth/VerifyOtp.jsx';
 
 import PatientDashboard from "./pages/patient/PatientDashboard.jsx";
@@ -53,6 +54,7 @@ function App() {
     <Routes>
       {/* Public Pages */}
       <Route path='/' element={<LandingPage/>}/>
+      <Route path='/view-prescription/:id' element={<PublicPrescription />}/>
       
       {/* Auth */}
       <Route path='/register' element={<Register/>}/>

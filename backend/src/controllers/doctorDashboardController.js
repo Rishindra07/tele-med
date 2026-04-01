@@ -52,7 +52,7 @@ exports.getDoctorDashboard = async (req, res) => {
 
     const todayAppointments = appointments.filter((appointment) => {
       const appointmentDate = new Date(appointment.appointmentDate);
-      return appointmentDate >= today && appointment.status !== "Cancelled";
+      return appointmentDate.getTime() === today.getTime() && appointment.status !== "Cancelled";
     });
 
     const upcomingAppointments = appointments.filter((appointment) => {
@@ -133,7 +133,7 @@ exports.updateDoctorProfile = async (req, res) => {
     const {
       specialization, bio, hospitalName, consultationFee,
       qualification, experience, languages, consultation_modes,
-      is_available_for_booking, full_name, phone
+      is_available_for_booking, full_name, phone, medicalLicense
     } = req.body;
 
     // Update User fields
@@ -155,6 +155,7 @@ exports.updateDoctorProfile = async (req, res) => {
     if (Array.isArray(languages)) doctorUpdates.languages = languages;
     if (Array.isArray(consultation_modes)) doctorUpdates.consultation_modes = consultation_modes;
     if (is_available_for_booking !== undefined) doctorUpdates.is_available_for_booking = Boolean(is_available_for_booking);
+    if (medicalLicense) doctorUpdates.medicalLicense = String(medicalLicense).trim();
 
     const doctor = await Doctor.findOneAndUpdate(
       { user: req.user._id },

@@ -39,13 +39,38 @@ const pharmacyStockSchema = new mongoose.Schema(
       default: 10,
       min: 0
     },
+    category: {
+      type: String,
+      trim: true,
+      default: "General"
+    },
+    batchNumber: {
+      type: String,
+      trim: true,
+      default: null
+    },
+    mrp: {
+      type: Number,
+      default: 0
+    },
+    expiryDate: {
+      type: Date,
+      default: null
+    },
+    rackLocation: {
+      type: String,
+      trim: true,
+      default: null
+    },
     lastUpdatedAt: {
       type: Date,
       default: Date.now
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
 

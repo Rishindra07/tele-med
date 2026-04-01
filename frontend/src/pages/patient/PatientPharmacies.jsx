@@ -33,10 +33,38 @@ import {
   WarningRounded as WarningIcon,
   CancelRounded as ErrorIcon,
   DirectionsRunRounded as DistanceIcon,
-  AccessTimeRounded as TimeIcon
+  AccessTimeRounded as TimeIcon,
+  MapRounded as MapIcon,
+  ListRounded as ListIcon,
+  MyLocationRounded as LocationIcon,
+  PhoneRounded as CallIcon
 } from '@mui/icons-material';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for leaflet default icons in React
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom Pharmacy Icon for Map
+const createPharmacyIcon = (color) => L.divIcon({
+  html: `<div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; display: flex; alignItems: center; justifyContent: center; color: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="margin: auto;"><path d="M21 9h-4V5c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v4H3c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2zM9 5h6v4H9V5zm12 15H3v-9h4v2h2v-2h6v2h2v-2h4v9z"/></svg></div>`,
+  className: '',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+});
 import PatientShell from '../../components/patient/PatientShell';
-import { fetchPharmacies, fetchMyRecords, assignPrescriptionToPharmacy, fetchPharmacyStock } from '../../api/patientApi';
+import { fetchPharmacies, fetchMyRecords, assignPrescriptionToPharmacy, fetchPharmacyStock, fetchPatientProfile } from '../../api/patientApi';
 
 const colors = {
   bg: '#f8f9fa',
@@ -78,16 +106,45 @@ export default function PatientPharmacies() {
   const [pharmacyStock, setPharmacyStock] = useState([]);
   const [fetchingStock, setFetchingStock] = useState(false);
   const [viewingPharmacy, setViewingPharmacy] = useState(null);
+  
+  // New state for delivery
+  const [deliveryType, setDeliveryType] = useState('PICKUP');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [patientProfile, setPatientProfile] = useState(null);
+  
+  // New state for View Mode and Location
+  const [viewMode, setViewMode] = useState('list');
+  const [userLocation, setUserLocation] = useState([17.3850, 78.4867]); // Default: Hyderabad
+  const [mapCenter, setMapCenter] = useState([17.3850, 78.4867]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pharRes, recRes] = await Promise.all([
+      // Get user location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setUserLocation([lat, lng]);
+            setMapCenter([lat, lng]);
+          },
+          (err) => console.warn("Location access denied or failed", err),
+          { timeout: 5000 }
+        );
+      }
+
+      const [pharRes, recRes, profRes] = await Promise.all([
         fetchPharmacies(),
-        fetchMyRecords()
+        fetchMyRecords(),
+        fetchPatientProfile()
       ]);
       if (pharRes.success) setPharmacies(pharRes.pharmacies || []);
       if (recRes.success) setRecords(recRes.records || []);
+      if (profRes.success) {
+        setPatientProfile(profRes.patient);
+        setDeliveryAddress(profRes.patient.address || '');
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -107,11 +164,29 @@ export default function PatientPharmacies() {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    const [openH, openM] = p.openTime.split(':').map(Number);
-    const [closeH, closeM] = p.closeTime.split(':').map(Number);
-    
-    const openTime = openH * 60 + openM;
-    const closeTime = closeH * 60 + closeM;
+    const parseTime = (timeStr) => {
+      if (!timeStr) return 0;
+      const [hPart, mPart] = timeStr.split(':');
+      let hours = parseInt(hPart);
+      let minutes = 0;
+      let ampm = '';
+
+      if (mPart.includes(' ')) {
+        const parts = mPart.split(' ');
+        minutes = parseInt(parts[0]);
+        ampm = parts[1].toUpperCase();
+      } else {
+        minutes = parseInt(mPart);
+      }
+
+      if (ampm === 'PM' && hours < 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+      
+      return hours * 60 + (isNaN(minutes) ? 0 : minutes);
+    };
+
+    const openTime = parseTime(p.openTime);
+    const closeTime = parseTime(p.closeTime);
     
     return currentTime >= openTime && currentTime <= closeTime;
   };
@@ -146,6 +221,7 @@ export default function PatientPharmacies() {
     if (activePrescriptions.length > 0) {
       setSelectedRx(activePrescriptions[0]._id);
     }
+    setDeliveryType('PICKUP');
     setSendOpen(true);
   };
 
@@ -172,7 +248,9 @@ export default function PatientPharmacies() {
     try {
       const res = await assignPrescriptionToPharmacy({
         prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || selectedRx,
-        pharmacyId: selectedPharmacy._id
+        pharmacyId: selectedPharmacy._id,
+        deliveryType,
+        deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null
       });
       if (res.success) {
         setSnackbar({ open: true, message: 'Prescription sent to pharmacy!', severity: 'success' });
@@ -183,6 +261,12 @@ export default function PatientPharmacies() {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    setUserLocation([lat, lng]);
+    setSnackbar({ open: true, message: 'Search location updated!', severity: 'success' });
   };
 
   // Summary logic
@@ -202,6 +286,24 @@ export default function PatientPharmacies() {
           </Box>
 
           <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
+            <Stack direction="row" spacing={0.5} sx={{ bgcolor: colors.soft, p: 0.5, borderRadius: 2 }}>
+               <Button 
+                 onClick={() => setViewMode('list')}
+                 variant={viewMode === 'list' ? 'contained' : 'text'}
+                 startIcon={<ListIcon />}
+                 sx={{ borderRadius: 1.5, textTransform: 'none', px: 2, bgcolor: viewMode === 'list' ? '#fff' : 'transparent', color: viewMode === 'list' ? colors.primary : colors.muted, boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', '&:hover': { bgcolor: viewMode === 'list' ? '#fff' : colors.line } }}
+               >
+                 List
+               </Button>
+               <Button 
+                 onClick={() => setViewMode('map')}
+                 variant={viewMode === 'map' ? 'contained' : 'text'}
+                 startIcon={<MapIcon />}
+                 sx={{ borderRadius: 1.5, textTransform: 'none', px: 2, bgcolor: viewMode === 'map' ? '#fff' : 'transparent', color: viewMode === 'map' ? colors.primary : colors.muted, boxShadow: viewMode === 'map' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', '&:hover': { bgcolor: viewMode === 'map' ? '#fff' : colors.line } }}
+               >
+                 Map
+               </Button>
+            </Stack>
             <Button 
               variant="contained" 
               startIcon={<SendIcon />} 
@@ -288,47 +390,133 @@ export default function PatientPharmacies() {
 
             {loading ? (
                <Box sx={{ py: 8, display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
-            ) : filteredPharmacies.length > 0 ? (
-               <Stack spacing={2}>
-                  {filteredPharmacies.map(p => {
-                    const isOpen = isPharmacyOpen(p);
-                    return (
-                      <Box key={p._id} sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', '&:hover': { borderColor: colors.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' } }}>
-                         <Stack direction="row" spacing={2} alignItems="center">
-                            <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: colors.soft, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <PharmacyIcon />
-                            </Box>
-                            <Box>
-                               <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{p.pharmacyName || p.user?.full_name || 'Pharmacy'}</Typography>
-                               <Typography sx={{ fontSize: 13, color: colors.muted, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                 {p.address || 'Address not listed'}
-                               </Typography>
-                               <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
-                                 <Typography sx={{ fontSize: 12, color: isOpen ? colors.success : colors.danger, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                   <TimeIcon sx={{ fontSize: 14 }} /> {isOpen ? 'Open Now' : 'Closed'} {p.openTime ? `(${p.openTime} - ${p.closeTime})` : ''}
+            ) : viewMode === 'list' ? (
+               filteredPharmacies.length > 0 ? (
+                 <Stack spacing={2}>
+                    {filteredPharmacies.map(p => {
+                      const isOpen = isPharmacyOpen(p);
+                      return (
+                        <Box key={p._id} sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', '&:hover': { borderColor: colors.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' } }}>
+                           <Stack direction="row" spacing={2} alignItems="center">
+                              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: colors.soft, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <PharmacyIcon />
+                              </Box>
+                              <Box>
+                                 <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{p.pharmacyName || p.user?.full_name || 'Pharmacy'}</Typography>
+                                 <Typography sx={{ fontSize: 13, color: colors.muted, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                   {p.address || 'Address not listed'}
                                  </Typography>
-                                 <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                   <DistanceIcon sx={{ fontSize: 14 }} /> {p.distanceKm ? `${p.distanceKm} km` : 'Near you'}
-                                 </Typography>
-                               </Stack>
-                            </Box>
-                         </Stack>
-                          <Stack direction="row" spacing={1}>
-                            <Button variant="outlined" onClick={() => handleViewStock(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.primary, bgcolor: colors.primarySoft } }}>View Stock</Button>
-                            <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark } }}>Send Prescription</Button>
-                          </Stack>
-                       </Box>
-                    );
-                  })}
-               </Stack>
+                                 <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+                                   <Typography sx={{ fontSize: 12, color: isOpen ? colors.success : colors.danger, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                     <TimeIcon sx={{ fontSize: 14 }} /> {isOpen ? 'Open Now' : 'Closed'} {p.openTime ? `(${p.openTime} - ${p.closeTime})` : ''}
+                                   </Typography>
+                                    <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <DistanceIcon sx={{ fontSize: 14 }} /> {p.distanceKm ? `${p.distanceKm} km` : 'Near you'}
+                                    </Typography>
+                                    {p.deliveryAvailable && (
+                                      <Chip 
+                                        size="small" 
+                                        label="Delivery Available" 
+                                        icon={<SendIcon sx={{ fontSize: '12px !important' }} />}
+                                        sx={{ height: 20, fontSize: 10, bgcolor: colors.primarySoft, color: colors.primary, fontWeight: 600 }} 
+                                      />
+                                    )}
+                                  </Stack>
+                               </Box>
+                            </Stack>
+                            <Stack direction="row" spacing={1}>
+                               {p.phone && (
+                                 <Button 
+                                   variant="outlined" 
+                                   href={`tel:${p.phone}`} 
+                                   sx={{ minWidth: 40, p: 1, borderRadius: 1.5, borderColor: colors.line, color: colors.muted, '&:hover': { color: colors.primary, borderColor: colors.primary } }}
+                                 >
+                                   <CallIcon sx={{ fontSize: 18 }} />
+                                 </Button>
+                               )}
+                               <Button variant="outlined" onClick={() => handleViewStock(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.primary, bgcolor: colors.primarySoft } }}>View Stock</Button>
+                               <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark } }}>Send Prescription</Button>
+                            </Stack>
+                         </Box>
+                      );
+                    })}
+                 </Stack>
+               ) : (
+                 <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
+                    <PharmacyIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
+                    <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>No pharmacies found</Typography>
+                    <Typography sx={{ color: colors.muted, fontSize: 14, mt: 1 }}>
+                      {query || filter !== 'all' ? 'Try adjusting your search or filters.' : 'There are no active pharmacies in your area right now.'}
+                    </Typography>
+                 </Box>
+               )
             ) : (
-               <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
-                  <PharmacyIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
-                  <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>No pharmacies found</Typography>
-                  <Typography sx={{ color: colors.muted, fontSize: 14, mt: 1 }}>
-                    {query || filter !== 'all' ? 'Try adjusting your search or filters.' : 'There are no active pharmacies in your area right now.'}
-                  </Typography>
-               </Box>
+              <Box sx={{ height: 600, borderRadius: 2, overflow: 'hidden', border: `1px solid ${colors.line}`, position: 'relative' }}>
+                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' />
+                  
+                  <LocationPicker onLocationSelect={handleMapClick} />
+
+                  {/* User Location Marker */}
+                  <Marker position={userLocation} icon={L.divIcon({
+                    html: `<div style="background-color: #4285F4; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+                    className: '',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                  })}>
+                    <Popup>Your current location (Click map to move)</Popup>
+                  </Marker>
+
+                  {/* Pharmacy Markers */}
+                  {filteredPharmacies.map(p => (
+                    <Marker 
+                      key={p._id} 
+                      position={[p.location?.lat || 17.3850, p.location?.lng || 78.4867]} 
+                      icon={createPharmacyIcon(p.isJanAushadhi ? colors.warning : colors.primary)}
+                    >
+                      <Popup>
+                        <Box sx={{ p: 1, minWidth: 200 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>{p.pharmacyName}</Typography>
+                          {p.deliveryAvailable && (
+                            <Typography sx={{ fontSize: 11, color: colors.success, fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              🚚 Delivery Available
+                            </Typography>
+                          )}
+                          <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>{p.address}</Typography>
+                          <Stack direction="row" spacing={1}>
+                            {p.phone && (
+                              <Button 
+                                size="small" 
+                                variant="outlined" 
+                                href={`tel:${p.phone}`} 
+                                sx={{ minWidth: 32, p: 0.5, borderRadius: 1.5 }}
+                              >
+                                📞
+                              </Button>
+                            )}
+                            <Button size="small" variant="outlined" onClick={() => handleViewStock(p)} sx={{ fontSize: 11, py: 0.5 }}>Stock</Button>
+                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary }}>Send Rx</Button>
+                          </Stack>
+                        </Box>
+                      </Popup>
+                    </Marker>
+                  ))}
+                  
+                  <MapUpdater center={mapCenter} />
+                </MapContainer>
+                
+                {/* Floating Map Controls */}
+                <Box sx={{ position: 'absolute', bottom: 20, right: 20, zIndex: 1000 }}>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => setMapCenter(userLocation)}
+                    startIcon={<LocationIcon />}
+                    sx={{ bgcolor: '#fff', color: colors.text, '&:hover': { bgcolor: colors.soft } }}
+                  >
+                    Recenter
+                  </Button>
+                </Box>
+              </Box>
             )}
 
           </Box>
@@ -455,28 +643,80 @@ export default function PatientPharmacies() {
             Choose which prescription you want to send to <strong>{selectedPharmacy?.pharmacyName || selectedPharmacy?.user?.full_name || 'this pharmacy'}</strong>.
           </Typography>
           {activePrescriptions.length > 0 ? (
-            <FormControl fullWidth sx={{ mt: 1 }}>
-              <InputLabel>Select Prescription</InputLabel>
-              <Select
-                value={selectedRx}
-                label="Select Prescription"
-                onChange={(e) => setSelectedRx(e.target.value)}
-              >
-                {activePrescriptions.map((rx) => (
-                  <MenuItem key={rx._id} value={rx._id}>
-                    {rx.title} ({new Date(rx.date || rx.createdAt).toLocaleDateString()})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <>
+              <FormControl fullWidth sx={{ mt: 1, mb: 3 }}>
+                <InputLabel>Select Prescription</InputLabel>
+                <Select
+                  value={selectedRx}
+                  label="Select Prescription"
+                  onChange={(e) => setSelectedRx(e.target.value)}
+                >
+                  {activePrescriptions.map((rx) => (
+                    <MenuItem key={rx._id} value={rx._id}>
+                      {rx.title} ({new Date(rx.date || rx.createdAt).toLocaleDateString()})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>Fulfillment Method</Typography>
+              <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+                <Box 
+                  onClick={() => setDeliveryType('PICKUP')}
+                  sx={{ 
+                    flex: 1, p: 2, borderRadius: 2, border: `1px solid ${deliveryType === 'PICKUP' ? colors.primary : colors.line}`, 
+                    bgcolor: deliveryType === 'PICKUP' ? colors.primarySoft : '#fff', cursor: 'pointer', textAlign: 'center' 
+                  }}
+                >
+                  <Typography sx={{ fontSize: 24 }}>🏬</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Store Pickup</Typography>
+                </Box>
+                
+                {selectedPharmacy?.deliveryAvailable && (
+                  <Box 
+                    onClick={() => setDeliveryType('HOME')}
+                    sx={{ 
+                      flex: 1, p: 2, borderRadius: 2, border: `1px solid ${deliveryType === 'HOME' ? colors.primary : colors.line}`, 
+                      bgcolor: deliveryType === 'HOME' ? colors.primarySoft : '#fff', cursor: 'pointer', textAlign: 'center' 
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 24 }}>🚚</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Home Delivery</Typography>
+                  </Box>
+                )}
+              </Stack>
+
+              {deliveryType === 'HOME' ? (
+                <TextField
+                  fullWidth
+                  label="Delivery Address"
+                  multiline
+                  rows={3}
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder="Enter your full address for delivery"
+                  sx={{ mb: 2 }}
+                />
+              ) : (
+                <Box sx={{ p: 2, bgcolor: colors.soft, borderRadius: 2, mb: 2 }}>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>
+                    <strong>Pharmacy Address:</strong><br />
+                    {selectedPharmacy?.address || 'Address not listed'}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: colors.muted, mt: 1 }}>
+                    Please bring your digital prescription ID when you visit the store.
+                  </Typography>
+                </Box>
+              )}
+            </>
           ) : (
              <Alert severity="warning">You have no active prescriptions to send.</Alert>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
           <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0} sx={{ bgcolor: colors.primary, px: 3, borderRadius: 1.5 }}>
-            {sending ? 'Sending...' : 'Confirm & Send'}
+          <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim())} sx={{ bgcolor: colors.primary, px: 3, borderRadius: 1.5 }}>
+            {sending ? 'Sending...' : 'Confirm & Place Order'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -487,3 +727,22 @@ export default function PatientPharmacies() {
     </PatientShell>
   );
 }
+// Helper component to update map view
+function MapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+}
+
+// Helper component to handle map clicks
+function LocationPicker({ onLocationSelect }) {
+  const map = useMapEvents({
+    click: (e) => {
+      onLocationSelect(e);
+    }
+  });
+  return null;
+}
+

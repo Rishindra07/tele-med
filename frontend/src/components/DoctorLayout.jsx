@@ -46,8 +46,8 @@ function DoctorLayout({ children }) {
     } catch {
       return {};
     }
-  }, []);
-  const doctorName = doctor?.name || 'Dr. Marttin Deo';
+  });
+  const doctorName = doctor?.full_name || doctor?.name || 'Doctor';
   const profileImage = doctor?.profileImage || doctor?.avatar || doctor?.image || '';
   const [language, setLanguage] = useState('EN');
 

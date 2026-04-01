@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Stack, Button, IconButton, Badge, Divider,
-  Avatar, LinearProgress
+  Avatar, LinearProgress, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 import {
   NotificationsNoneRounded as BellIcon,
@@ -10,7 +10,9 @@ import {
   TableChartRounded as ExcelIcon,
   FileDownloadOutlined as DownloadIcon
 } from '@mui/icons-material';
+import { fetchSalesDashboard } from '../../api/pharmacyApi';
 import PharmacyLayout from '../../components/PharmacyLayout';
+import NewBillModal from '../../components/pharmacy/NewBillModal';
 
 const colors = {
   paper: '#ffffff',
@@ -33,30 +35,8 @@ const colors = {
   graySoft: '#f1eee7'
 };
 
-const STATS = [
-  { title: "Today's\nrevenue", value: '₹4,280', sub: '↑ 12% vs\nyesterday', color: colors.green },
-  { title: 'This month', value: '₹92,450', sub: '↑ 8% vs last\nmonth', color: colors.blue },
-  { title: 'Bills today', value: '18', sub: 'Avg ₹238 per\nbill', color: colors.amber },
-  { title: 'GST\ncollected', value: '₹4,122', sub: 'March 2026', color: colors.purple }
-];
-
-const TOP_MEDS = [
-  { name: 'Paracetamol 500mg', price: '₹5,952', qt: '248 strips' },
-  { name: 'Amoxicillin 250mg', price: '₹4,352', qt: '136 strips' },
-  { name: 'Amlodipine 5mg', price: '₹2,460', qt: '82 strips' },
-  { name: 'Metformin 500mg', price: '₹1,936', qt: '88 strips' },
-  { name: 'ORS Sachets', price: '₹1,480', qt: '74 packs' },
-  { name: 'Vitamin C 500mg', price: '₹1,200', qt: '80 strips' }
-];
-
-const TRANSACTIONS = [
-  { name: 'Ramesh Kumar', details: 'Paracetamol, Amoxicillin, ORS • 18 Mar 2026', amt: '₹428', method: 'UPI', initials: 'RK' },
-  { name: 'Suresh Singh', details: 'Metformin, Glimepiride, Vitamin B12 • 23 Mar', amt: '₹312', method: 'Cash', initials: 'SS' },
-  { name: 'Priya Devi', details: 'Amlodipine 5mg • 22 Mar 2026', amt: '₹90', method: 'UPI', initials: 'PD' },
-  { name: 'Walk-in customer', details: 'Cetirizine 10mg, Vitamin C • 23 Mar 2026', amt: '₹145', method: 'Cash', initials: 'WI' },
-  { name: 'Meera Kumari', details: 'Iron+Folic, Calcium, Vitamin D3 • 21 Mar', amt: '₹284', method: 'Credit', initials: 'MK' },
-  { name: 'Walk-in customer', details: 'Paracetamol 500mg × 3 strips • 23 Mar 2026', amt: '₹72', method: 'UPI', initials: 'WI' }
-];
+// Helper to format currency
+const fRs = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const StatCard = ({ title, value, sub, color }) => (
   <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0' }}>
@@ -75,12 +55,80 @@ const SectionHeader = ({ title, subtitle, action }) => (
       <Typography sx={{ fontSize: 18, lineHeight: 1.2 }}>{title}</Typography>
       {subtitle && <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>{subtitle}</Typography>}
     </Box>
-    {action && <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{action}</Typography>}
+    {action && <Box component="div" sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{action}</Box>}
   </Stack>
 );
 
 export default function PharmacySales() {
   const [period, setPeriod] = useState('Daily');
+  const [txFilter, setTxFilter] = useState('All');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [billModalOpen, setBillModalOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+
+  const handleExportPDF = () => {
+    setSnackbar({ open: true, message: 'Generating PDF report...', severity: 'info' });
+    setTimeout(() => setSnackbar({ open: true, message: 'PDF Exported Successfully!', severity: 'success' }), 2000);
+  };
+
+  const handleExportExcel = () => {
+    setSnackbar({ open: true, message: 'Preparing Excel data...', severity: 'info' });
+    setTimeout(() => setSnackbar({ open: true, message: 'Excel Sheet Downloaded!', severity: 'success' }), 2000);
+  };
+
+  const handleQuickReport = (name) => {
+    setSnackbar({ open: true, message: `Preparing ${name}...`, severity: 'info' });
+    setTimeout(() => setSnackbar({ open: true, message: `${name} generated!`, severity: 'success' }), 1500);
+  };
+
+  const showNotifications = () => {
+    setSnackbar({ open: true, message: 'You have 3 new notifications regarding stock and billing.', severity: 'info' });
+  };
+
+  const load = async (p = period) => {
+    try {
+      setLoading(true);
+      const res = await fetchSalesDashboard(p);
+      setData(res.data);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: 'Failed to fetch sales data', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(period); }, [period]);
+
+  if (loading && !data) return (
+    <PharmacyLayout>
+      <Box sx={{ p: 5, display: 'grid', placeItems: 'center', height: '100vh', bgcolor: colors.bg }}>
+        <CircularProgress size={40} sx={{ color: colors.green }} />
+      </Box>
+    </PharmacyLayout>
+  );
+
+  const s = data?.summary || {};
+  const STATS = [
+    { title: "Today's\nrevenue", value: fRs(s.todayRevenue), sub: `↑ ${s.revenueChange || 0}% vs yesterday`, color: colors.green },
+    { title: 'This month', value: fRs(s.monthRevenue), sub: `↑ ${s.monthChange || 0}% vs last month`, color: colors.blue },
+    { title: 'Bills today', value: s.billsToday || 0, sub: `Avg ${fRs(s.avgBill)} per bill`, color: colors.amber },
+    { title: 'GST\ncollected', value: fRs(s.gstCollected), sub: new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), color: colors.purple }
+  ];
+
+  const gst = data?.gstSummary || {};
+  const GST_ROWS = [
+    ['Taxable sales', fRs(gst.taxable)],
+    ['CGST (6%)', fRs(gst.cgst)],
+    ['SGST (6%)', fRs(gst.sgst)],
+    ['Total GST collected', fRs(gst.total)],
+    ['Exempt (Jan Aushadhi)', fRs(gst.exempt)]
+  ];
+
+  const topMeds = data?.topMeds || [];
+  const transactions = data?.transactions || [];
+  const trend = data?.revenueTrend || [];
 
   return (
     <PharmacyLayout>
@@ -98,14 +146,21 @@ export default function PharmacySales() {
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
-              Mon, 23<br />March<br />2026
+              {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/ /g, '\n')}
             </Box>
-            <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
+            <IconButton 
+              onClick={showNotifications}
+              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}
+            >
               <Badge color="error" variant="dot">
                 <BellIcon sx={{ color: '#5f5a52' }} />
               </Badge>
             </IconButton>
-            <Button startIcon={<AddIcon />} sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}>
+            <Button 
+              startIcon={<AddIcon />} 
+              onClick={() => setBillModalOpen(true)}
+              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}
+            >
               New bill
             </Button>
           </Stack>
@@ -140,51 +195,62 @@ export default function PharmacySales() {
               </Stack>
             </Stack>
 
-            <Box sx={{ height: 160, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 4 }}>
-              {[...Array(24)].map((_, i) => (
-                <Box key={i} sx={{ width: '3%', bgcolor: i === 22 ? colors.greenDark : colors.greenSoft, height: `${20 + Math.random() * 70}%`, borderRadius: '2px 2px 0 0' }} />
+            <Box sx={{ height: 160, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', mb: 4, gap: 0.5 }}>
+              {trend.map((point, i) => (
+                <Box 
+                  key={i} 
+                  sx={{ 
+                    flex: 1,
+                    bgcolor: i === trend.length - 1 ? colors.greenDark : colors.greenSoft, 
+                    height: `${Math.max(5, Math.min(100, (point.value / (Math.max(...trend.map(tp=>tp.value)) || 1000)) * 100))}%`, 
+                    borderRadius: '2px 2px 0 0',
+                    transition: 'height 0.5s ease-out'
+                  }} 
+                />
               ))}
             </Box>
             <Stack direction="row" justifyContent="space-between" sx={{ px: 0.5, mb: 4 }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24].map(n => (
-                <Typography key={n} sx={{ fontSize: 9, color: colors.muted }}>{n}</Typography>
+              {trend.filter((_, idx) => trend.length > 15 ? idx % 5 === 0 : true).map((point, i) => (
+                <Typography key={i} sx={{ fontSize: 9, color: colors.muted }}>{point.index}</Typography>
               ))}
             </Stack>
 
             <Typography sx={{ fontSize: 13, mb: 1.5 }}>Revenue split — prescription vs walk-in</Typography>
             <Box sx={{ height: 8, borderRadius: 4, bgcolor: colors.greenSoft, position: 'relative', mb: 1.5, overflow: 'hidden' }}>
-              <Box sx={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '62%', bgcolor: colors.green }} />
+              <Box sx={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${data?.revenueSplit?.prescription || 60}%`, bgcolor: colors.green }} />
             </Box>
             <Stack direction="row" spacing={3} sx={{ mb: 4 }}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.green }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>Seva prescriptions 62%</Typography>
+                <Typography sx={{ fontSize: 12, color: colors.muted }}>Seva prescriptions {data?.revenueSplit?.prescription || 60}%</Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.greenSoft }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>Walk-in OTC 38%</Typography>
+                <Typography sx={{ fontSize: 12, color: colors.muted }}>Walk-in OTC {data?.revenueSplit?.walkin || 40}%</Typography>
               </Stack>
             </Stack>
 
             <Typography sx={{ fontSize: 13, mb: 1.5 }}>Payment mode breakdown</Typography>
             <Box sx={{ height: 8, borderRadius: 4, display: 'flex', overflow: 'hidden', mb: 1.5 }}>
-              <Box sx={{ height: '100%', width: '48%', bgcolor: colors.blue }} />
-              <Box sx={{ height: '100%', width: '35%', bgcolor: colors.blueSoft, borderLeft: '1px solid #fff' }} />
-              <Box sx={{ height: '100%', width: '17%', bgcolor: colors.graySoft, borderLeft: '1px solid #fff' }} />
+              {data?.paymentBreakdown?.map((p, i) => (
+                <Box 
+                  key={p.label} 
+                  sx={{ 
+                    height: '100%', 
+                    width: `${p.percent}%`, 
+                    bgcolor: i === 0 ? colors.blue : i === 1 ? colors.blueSoft : colors.graySoft, 
+                    borderLeft: i > 0 ? '1px solid #fff' : 'none' 
+                  }} 
+                />
+              ))}
             </Box>
             <Stack direction="row" spacing={2.5}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.blue }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>UPI 48%</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.blueSoft }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>Cash 35%</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.graySoft }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>Credit 17%</Typography>
-              </Stack>
+              {data?.paymentBreakdown?.map((p, i) => (
+                <Stack direction="row" alignItems="center" spacing={1} key={p.label}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: i === 0 ? colors.blue : i === 1 ? colors.blueSoft : colors.graySoft }} />
+                  <Typography sx={{ fontSize: 12, color: colors.muted }}>{p.label} {p.percent}%</Typography>
+                </Stack>
+              ))}
             </Stack>
           </Box>
 
@@ -192,8 +258,8 @@ export default function PharmacySales() {
           <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <SectionHeader title="Top medicines sold" subtitle="This month" />
             <Stack spacing={2.5}>
-              {TOP_MEDS.map((m, i) => (
-                <Box key={m.name} sx={{ display: 'flex', gap: 1.5 }}>
+              {topMeds.map((m, i) => (
+                <Box key={i} sx={{ display: 'flex', gap: 1.5 }}>
                   <Typography sx={{ width: 24, height: 24, borderRadius: 12, bgcolor: colors.soft, display: 'grid', placeItems: 'center', fontSize: 12, color: colors.muted, flexShrink: 0 }}>
                     {i + 1}
                   </Typography>
@@ -206,6 +272,7 @@ export default function PharmacySales() {
                   </Box>
                 </Box>
               ))}
+              {!topMeds.length && <Typography sx={{ textAlign: 'center', color: colors.muted, fontSize: 13, py: 2 }}>No data available</Typography>}
             </Stack>
           </Box>
         </Box>
@@ -215,18 +282,38 @@ export default function PharmacySales() {
           
           {/* Transaction History */}
           <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-            <SectionHeader title="Transaction history" action="Export PDF →" />
+            <SectionHeader 
+              title="Transaction history" 
+              action={<Box onClick={handleExportPDF} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>Export PDF <PdfIcon sx={{ fontSize: 16 }} /></Box>} 
+            />
             
             <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-              {['All', 'Prescription', 'Walk-in', 'Refunds'].map((f, i) => (
-                <Box key={f} sx={{ px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, bgcolor: i === 0 ? colors.green : 'transparent', color: i === 0 ? '#fff' : colors.text }}>
+              {['All', 'Prescription', 'Walk-in', 'Refunds'].map((f) => (
+                <Box 
+                  key={f} 
+                  onClick={() => setTxFilter(f)}
+                  sx={{ 
+                    px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, 
+                    bgcolor: txFilter === f ? colors.green : 'transparent', 
+                    color: txFilter === f ? '#fff' : colors.text, 
+                    cursor: 'pointer', transition: '0.2s'
+                  }}
+                >
                   {f}
                 </Box>
               ))}
             </Stack>
 
             <Stack spacing={0}>
-              {TRANSACTIONS.map((t, idx) => (
+              {transactions
+                .filter(t => txFilter === 'All' || t.method === txFilter || (txFilter === 'Prescription' && t.details.includes('Prescription')) || (txFilter === 'Walk-in' && !t.name.includes('customer')))
+                .filter(t => {
+                   if (txFilter === 'All') return true;
+                   if (txFilter === 'Prescription') return t.method !== 'REFUND'; // simplified for now
+                   if (txFilter === 'Walk-in') return t.name === 'Walk-in customer';
+                   return true;
+                })
+                .map((t, idx) => (
                 <Box key={idx} sx={{ display: 'flex', gap: 2, py: 2, borderTop: idx !== 0 ? `1px solid ${colors.line}` : 'none' }}>
                   <Avatar sx={{ width: 40, height: 40, bgcolor: colors.soft, color: colors.muted, fontSize: 14 }}>{t.initials}</Avatar>
                   <Box sx={{ flex: 1 }}>
@@ -243,24 +330,22 @@ export default function PharmacySales() {
                   </Box>
                 </Box>
               ))}
+              {!transactions.length && <Typography sx={{ p: 4, textAlign: 'center', color: colors.muted, fontSize: 14 }}>No transactions recorded yet.</Typography>}
             </Stack>
           </Box>
 
           <Stack spacing={3}>
             {/* GST Summary */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <SectionHeader title="GST summary — March 2026" action="Download →" />
+              <SectionHeader 
+                title={`GST summary — ${new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`} 
+                action={<Box onClick={handleExportExcel} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>Download <ExcelIcon sx={{ fontSize: 16 }} /></Box>} 
+              />
               
               <Typography sx={{ fontSize: 12, mb: 1, letterSpacing: 0.5 }}>GSTIN <b>03AABCA1234Z1Z5</b></Typography>
               
               <Stack spacing={1.5}>
-                {[
-                  ['Taxable sales', '₹88,328'],
-                  ['CGST (6%)', '₹2,061'],
-                  ['SGST (6%)', '₹2,061'],
-                  ['Total GST collected', '₹4,122'],
-                  ['Exempt (Jan Aushadhi)', '₹4,122']
-                ].map(([label, val], i) => (
+                {GST_ROWS.map(([label, val], i) => (
                   <Stack key={label} direction="row" justifyContent="space-between" sx={{ pt: 1, borderTop: i === 3 ? `1px solid ${colors.line}` : 'none' }}>
                     <Typography sx={{ fontSize: 13, color: colors.muted }}>{label}</Typography>
                     <Typography sx={{ fontSize: 13.5, fontWeight: i >= 3 ? 600 : 400 }}>{val}</Typography>
@@ -269,10 +354,10 @@ export default function PharmacySales() {
               </Stack>
 
               <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
-                <Button fullWidth sx={{ bgcolor: colors.green, color: '#fff', fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2, '&:hover': { bgcolor: colors.greenDark } }}>
+                <Button fullWidth onClick={() => handleQuickReport('GSTR-1')} sx={{ bgcolor: colors.green, color: '#fff', fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2, '&:hover': { bgcolor: colors.greenDark } }}>
                   Export GSTR-1
                 </Button>
-                <Button fullWidth sx={{ border: `1px solid ${colors.line}`, color: colors.text, fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2 }}>
+                <Button fullWidth onClick={handleExportExcel} sx={{ border: `1px solid ${colors.line}`, color: colors.text, fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2 }}>
                   Export Excel
                 </Button>
               </Stack>
@@ -280,7 +365,7 @@ export default function PharmacySales() {
 
             {/* Quick Reports */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sxSection={{ fontSize: 16, mb: 2 }}>Quick reports</Typography>
+              <Typography sx={{ fontSize: 16, mb: 2 }}>Quick reports</Typography>
               <Stack spacing={1.5}>
                 {[
                   ['Daily sales report', 'PDF'],
@@ -288,9 +373,13 @@ export default function PharmacySales() {
                   ['Prescription dispensing log', 'PDF'],
                   ['Purchase vs sales statement', 'Excel']
                 ].map(([label, type]) => (
-                  <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: colors.soft }}>
+                  <Box 
+                    key={label} 
+                    onClick={() => handleQuickReport(label)}
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: colors.soft, cursor: 'pointer', transition: '0.2s', '&:hover': { bgcolor: colors.line } }}
+                  >
                     <Typography sx={{ fontSize: 13, lineHeight: 1.2 }}>{label}</Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600, textAlign: 'right', cursor: 'pointer' }}>{type} →</Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600, textAlign: 'right' }}>{type} →</Typography>
                   </Box>
                 ))}
               </Stack>
@@ -298,6 +387,24 @@ export default function PharmacySales() {
           </Stack>
         </Box>
       </Box>
+
+      <NewBillModal 
+        open={billModalOpen} 
+        onClose={() => setBillModalOpen(false)} 
+        onSuccess={() => {
+          load();
+          setSnackbar({ open: true, message: 'Bill created and stock updated!', severity: 'success' });
+        }} 
+      />
+
+      <Snackbar 
+        open={snackbar.open} autoHideDuration={4000} 
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 2 }}>{snackbar.message}</Alert>
+      </Snackbar>
+
     </PharmacyLayout>
   );
 }

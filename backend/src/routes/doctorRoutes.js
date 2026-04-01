@@ -4,7 +4,9 @@ const protect = require("../middleware/authMiddleware.js");
 const { allowRoles } = require("../middleware/roleMiddleware.js");
 const {
   generatePrescription,
-  verifyPrescription
+  verifyPrescription,
+  getPrescriptionByConsultation,
+  getAllPrescriptions
 } = require("../controllers/prescriptionController.js");
 const {
   getDoctorDashboard,
@@ -35,6 +37,19 @@ router.post(
   protect,
   allowRoles("doctor"),
   generatePrescription
+);
+router.get(
+  "/prescriptions/consultation/:consultationId",
+  protect,
+  allowRoles("doctor"),
+  getPrescriptionByConsultation
+);
+
+router.get(
+  "/prescriptions/all",
+  protect,
+  allowRoles("doctor"),
+  getAllPrescriptions
 );
 router.patch(
   "/consultations/:consultationId/follow-up",

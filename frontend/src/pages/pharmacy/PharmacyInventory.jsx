@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Button, IconButton, Badge, Divider,
-  TextField, MenuItem, Select, FormControl, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+  TextField, MenuItem, Select, FormControl, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Snackbar, Alert, CircularProgress
 } from '@mui/material';
 import {
   NotificationsNoneRounded as BellIcon,
   SearchRounded as SearchIcon,
-  AddRounded as AddIcon
+  AddRounded as AddIcon,
+  DeleteOutlineRounded as DeleteIcon,
+  QrCodeScannerRounded as ScanIcon
 } from '@mui/icons-material';
+import { fetchInventory, addInventoryItem, deleteInventoryItem } from '../../api/pharmacyApi';
 import PharmacyLayout from '../../components/PharmacyLayout';
+import { useNavigate } from 'react-router-dom';
 
 const colors = {
   paper: '#ffffff',
@@ -19,6 +23,7 @@ const colors = {
   muted: '#6f6a62',
   green: '#26a37c',
   greenSoft: '#dff3eb',
+  greenDark: '#1e8363',
   amber: '#d18a1f',
   amberSoft: '#fbefdc',
   red: '#d9635b',
@@ -28,49 +33,26 @@ const colors = {
   graySoft: '#f1eee7'
 };
 
-const STATS = [
-  { title: 'Total SKUs', value: '142', sub: '12 added this\nmonth', color: colors.green, textColor: colors.green },
-  { title: 'In stock', value: '128', sub: '90%\navailability', color: colors.green, textColor: colors.green },
-  { title: 'Low stock', value: '6', sub: 'Below reorder\npoint', color: colors.amber, textColor: colors.amber },
-  { title: 'Out of\nstock', value: '8', sub: 'Action needed', color: colors.red, textColor: colors.red }
-];
+const formatDate = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? '—'
+    : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
-const FILTERS = [
-  { label: 'All', count: 142, active: true },
-  { label: 'In stock', count: 128 },
-  { label: 'Low stock', count: 6 },
-  { label: 'Out of stock', count: 8, color: colors.red },
-  { label: 'Expiring soon', count: 3, color: colors.red },
-  { label: 'Jan Aushadhi' }
-];
-
-const STOCK = [
-  { name: 'Paracetamol 500mg', type: 'Paracetamol • Tablet', cat: 'OTC', catBg: colors.graySoft, catColor: colors.text, stock: '38 strips', status: 'low', mrp: '₹12', expiry: 'Jun 2028' },
-  { name: 'Amoxicillin 250mg', type: 'Amoxicillin • Capsule', cat: 'Antibiotic', catBg: colors.blueSoft, catColor: colors.blue, stock: '14 strips', status: 'low', mrp: '₹85', expiry: 'Apr 2026' },
-  { name: 'Amlodipine 5mg', type: 'Amlodipine • Tablet', cat: 'Antihypert.', catBg: colors.blueSoft, catColor: colors.blue, stock: '120 strips', status: 'ok', mrp: '₹45', expiry: 'Nov 2027' },
-  { name: 'Telmisartan 40mg', type: 'Telmisartan • Tablet', cat: 'Antihypert.', catBg: colors.blueSoft, catColor: colors.blue, stock: '0 strips', status: 'out', mrp: '₹45', expiry: '—' },
-  { name: 'ORS Sachets', type: 'Oral Rehydration • Sachet', cat: 'Jan Aushadhi', catBg: colors.greenSoft, catColor: colors.greenDark, stock: '8 packs', status: 'out', mrp: '₹18', expiry: 'Jan 2026' },
-  { name: 'Metformin 500mg', type: 'Metformin • Tablet', cat: 'Antidiabetic', catBg: colors.blueSoft, catColor: colors.blue, stock: '88 strips', status: 'ok', mrp: '₹28', expiry: 'Aug 2027' },
-  { name: 'Vitamin C 500mg', type: 'Ascorbic Acid • Tablet', cat: 'Vitamin', catBg: colors.graySoft, catColor: colors.text, stock: '200 strips', status: 'ok', mrp: '₹15', expiry: 'Dec 2026' },
-  { name: 'Glimepiride 1mg', type: 'Glimepiride • Tablet', cat: 'Antidiabetic', catBg: colors.blueSoft, catColor: colors.blue, stock: '22 strips', status: 'low', mrp: '₹35', expiry: 'Sep 2027' }
-];
-
-const CATEGORIES = [
-  { count: 48, label: 'Antibiotics' },
-  { count: 31, label: 'Antihypert.' },
-  { count: 24, label: 'Antidiabetic' },
-  { count: 19, label: 'Vitamins' },
-  { count: 12, label: 'Jan\nAushadhi' },
-  { count: 8, label: 'OTC /\nGeneral' }
-];
-
-const REORDERS = [
-  { title: 'Telmisartan 40mg —\nout of stock', sub: '0 units • 2 active\nprescriptions waiting', dot: colors.red },
-  { title: 'ORS Sachets —\ncritically low', sub: '8 packs • reorder point:\n20', dot: colors.red },
-  { title: 'Paracetamol 500mg\n— low stock', sub: '38 strips • reorder point:\n50', dot: colors.amber },
-  { title: 'Amoxicillin 250mg —\nlow + near expiry', sub: '14 strips • expires Apr\n2026', dot: colors.amber },
-  { title: 'Glimepiride 1mg —\nlow stock', sub: '22 strips • reorder point:\n30', dot: colors.amber }
-];
+// Helper to get category styles
+const getCategoryStyle = (cat) => {
+  const categories = {
+    'Antibiotic': { bg: colors.blueSoft, col: colors.blue },
+    'Antihypert.': { bg: colors.blueSoft, col: colors.blue },
+    'Antidiabetic': { bg: colors.blueSoft, col: colors.blue },
+    'Vitamin': { bg: colors.graySoft, col: colors.text },
+    'Jan Aushadhi': { bg: colors.greenSoft, col: colors.green },
+    'OTC': { bg: colors.graySoft, col: colors.text }
+  };
+  return categories[cat] || { bg: colors.graySoft, col: colors.text };
+};
 
 const StatCard = ({ title, value, sub, color, textColor }) => (
   <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', minWidth: 140 }}>
@@ -120,12 +102,111 @@ const PillFilter = ({ label, count, active, color }) => (
 );
 
 export default function PharmacyInventory() {
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('All');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [form, setForm] = useState({ 
+    medicineName: '', genericName: '', batchNumber: '', quantity: '', 
+    mrp: '', expiryDate: '', category: 'OTC', rackLocation: '',
+    strength: '', formValue: '', lowStockThreshold: '10' 
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchInventory(searchTerm);
+      setItems(res.items || []);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: 'Failed to load inventory', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [searchTerm]);
+
+  const handleSave = async () => {
+    if (!form.medicineName || !form.quantity) {
+      setSnackbar({ open: true, message: 'Please fill name and quantity', severity: 'warning' });
+      return;
+    }
+    try {
+      setIsSaving(true);
+      await addInventoryItem({ ...form, form: form.formValue });
+      setSnackbar({ open: true, message: 'Medicine added to inventory!', severity: 'success' });
+      setForm({ 
+        medicineName: '', genericName: '', batchNumber: '', quantity: '', 
+        mrp: '', expiryDate: '', category: 'OTC', rackLocation: '',
+        strength: '', formValue: '', lowStockThreshold: '10' 
+      });
+      load();
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || 'Error saving medicine', severity: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this item?')) return;
+    try {
+      await deleteInventoryItem(id);
+      setSnackbar({ open: true, message: 'Item deleted', severity: 'success' });
+      load();
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to delete', severity: 'error' });
+    }
+  };
+
+  // Dynamic values
+  const totalSkus = items.length;
+  const inStock = items.filter(i => i.quantity > 0).length;
+  const lowStock = items.filter(i => i.quantity > 0 && i.quantity <= i.lowStockThreshold).length;
+  const outOfStock = items.filter(i => i.quantity <= 0).length;
+
+  const filteredItems = items.filter(i => {
+    if (filter === 'All') return true;
+    if (filter === 'In stock') return i.quantity > 0;
+    if (filter === 'Low stock') return i.quantity > 0 && i.quantity <= i.lowStockThreshold;
+    if (filter === 'Out of stock') return i.quantity <= 0;
+    if (filter === 'Jan Aushadhi') return i.category === 'Jan Aushadhi';
+    return true;
+  });
+
+  const categoriesCount = items.reduce((acc, i) => {
+    const cat = i.category || 'Other';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+
+  const displayedCategories = Object.entries(categoriesCount).map(([label, count]) => ({ label, count }));
+
+  const STATS = [
+    { title: 'Total SKUs', value: totalSkus, sub: 'All registered items', color: colors.green, textColor: colors.green },
+    { title: 'In stock', value: inStock, sub: `${Math.round(totalSkus > 0 ? inStock/totalSkus*100 : 0)}%\navailability`, color: colors.green, textColor: colors.green },
+    { title: 'Low stock', value: lowStock, sub: 'Below reorder\npoint', color: colors.amber, textColor: colors.amber },
+    { title: 'Out of stock', value: outOfStock, sub: 'Action needed', color: colors.red, textColor: colors.red }
+  ];
+
+  const FILTERS = [
+    { label: 'All', count: totalSkus, active: filter === 'All' },
+    { label: 'In stock', count: inStock, active: filter === 'In stock' },
+    { label: 'Low stock', count: lowStock, active: filter === 'Low stock' },
+    { label: 'Out of stock', count: outOfStock, active: filter === 'Out of stock', color: colors.red },
+    { label: 'Jan Aushadhi', active: filter === 'Jan Aushadhi' }
+  ];
+
   return (
     <PharmacyLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
         
         {/* Header */}
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'flex-start' }} spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
               Inventory
@@ -136,16 +217,13 @@ export default function PharmacyInventory() {
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
-              Mon, 23<br />March<br />2026
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
               <Badge color="error" variant="dot">
                 <BellIcon sx={{ color: '#5f5a52' }} />
               </Badge>
             </IconButton>
-            <Button sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}>
-              + Add<br/>medicine
-            </Button>
           </Stack>
         </Stack>
 
@@ -157,24 +235,26 @@ export default function PharmacyInventory() {
         {/* Filters */}
         <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4 }}>
           <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-            <Box sx={{ 
-              display: 'flex', alignItems: 'center', border: `1px solid ${colors.line}`, borderRadius: 2.5, px: 1.5, py: 0.5, bgcolor: colors.paper, width: 42 
-            }}>
-              <SearchIcon sx={{ color: colors.muted, fontSize: 20 }} />
-            </Box>
+            <TextField 
+              placeholder="Search medicines..." 
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ flexGrow: 1, '& .MuiOutlinedInput-root': { borderRadius: 2.5, bgcolor: colors.paper, '& fieldset': { borderColor: colors.line } } }}
+              InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: colors.muted, fontSize: 20 }} /></InputAdornment> }}
+            />
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <Select value="all" sx={{ borderRadius: 2.5, bgcolor: colors.paper, fontSize: 14, '& fieldset': { borderColor: colors.line } }}>
                 <MenuItem value="all">All categories</MenuItem>
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <Select value="name" sx={{ borderRadius: 2.5, bgcolor: colors.paper, fontSize: 14, '& fieldset': { borderColor: colors.line } }}>
-                <MenuItem value="name">Sort: Name A–Z</MenuItem>
-              </Select>
-            </FormControl>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-            {FILTERS.map(f => <PillFilter key={f.label} {...f} />)}
+            {FILTERS.map(f => (
+              <Box key={f.label} onClick={() => setFilter(f.label)}>
+                <PillFilter {...f} />
+              </Box>
+            ))}
           </Stack>
         </Box>
 
@@ -200,33 +280,50 @@ export default function PharmacyInventory() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {STOCK.map((row, idx) => {
+                  {filteredItems.map((item) => {
+                    const status = item.quantity <= 0 ? 'out' : item.quantity <= item.lowStockThreshold ? 'low' : 'ok';
                     let statusColor = colors.green;
-                    if (row.status === 'low') statusColor = colors.amber;
-                    if (row.status === 'out') statusColor = colors.red;
+                    if (status === 'low') statusColor = colors.amber;
+                    if (status === 'out') statusColor = colors.red;
+                    
+                    const catStyle = getCategoryStyle(item.category);
                     
                     return (
-                      <TableRow key={idx} sx={{ '& td': { borderBottom: `1px solid ${colors.line}`, py: 2 } }}>
+                      <TableRow key={item._id} sx={{ '& td': { borderBottom: `1px solid ${colors.line}`, py: 2 } }}>
                         <TableCell>
-                          <Typography sx={{ fontSize: 14 }}>{row.name}</Typography>
-                          <Typography sx={{ fontSize: 12, color: colors.muted }}>{row.type}</Typography>
+                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{item.medicineName}</Typography>
+                          <Typography sx={{ fontSize: 12, color: colors.muted }}>{item.genericName || 'No generic name'}</Typography>
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'inline-flex', px: 1.2, py: 0.4, borderRadius: 99, bgcolor: row.catBg, color: row.catColor, fontSize: 11 }}>
-                            {row.cat}
+                          <Box sx={{ display: 'inline-flex', px: 1.2, py: 0.4, borderRadius: 99, bgcolor: catStyle.bg, color: catStyle.col, fontSize: 11 }}>
+                            {item.category || 'General'}
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, color: statusColor }}>{row.stock}</Typography>
+                          <Typography sx={{ fontSize: 13, color: statusColor, fontWeight: 600 }}>{item.quantity} units</Typography>
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ width: 24, height: 4, borderRadius: 2, bgcolor: statusColor }} />
+                          <Box sx={{ width: 32, height: 6, borderRadius: 3, bgcolor: colors.line, position: 'relative' }}>
+                            <Box sx={{ 
+                              position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 3, bgcolor: statusColor,
+                              width: `${Math.min(100, (item.quantity / (item.lowStockThreshold * 3)) * 100)}%`
+                            }} />
+                          </Box>
                         </TableCell>
-                        <TableCell sx={{ fontSize: 13 }}>{row.mrp}</TableCell>
-                        <TableCell sx={{ fontSize: 13 }}>{row.expiry}</TableCell>
+                        <TableCell sx={{ fontSize: 13, fontWeight: 500 }}>₹{item.mrp || 0}</TableCell>
+                        <TableCell sx={{ fontSize: 13, color: item.expiryDate && new Date(item.expiryDate) < new Date() ? colors.red : colors.text }}>
+                          {item.expiryDate ? formatDate(item.expiryDate) : '—'}
+                          <IconButton size="small" onClick={() => handleDelete(item._id)} sx={{ ml: 1, color: colors.red }}>
+                            <DeleteIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
+                  {!loading && !filteredItems.length && (
+                    <TableRow><TableCell colSpan={6} sx={{ py: 6, textAlign: 'center', color: colors.muted }}>No items found match your criteria.</TableCell></TableRow>
+                  )}
+                  {loading && <TableRow><TableCell colSpan={6} sx={{ py: 6, textAlign: 'center' }}><CircularProgress size={24} /></TableCell></TableRow>}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -239,27 +336,90 @@ export default function PharmacyInventory() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 15, mb: 2 }}>Quick add medicine</Typography>
               <Stack spacing={1.5}>
-                <TextField placeholder="Medicine name" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} />
-                <TextField placeholder="Generic name" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} />
+                <TextField 
+                  placeholder="Medicine name" size="small" fullWidth
+                  value={form.medicineName} onChange={e => setForm({...form, medicineName: e.target.value})}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
+                />
+                <TextField 
+                  placeholder="Generic name" size="small" fullWidth
+                  value={form.genericName} onChange={e => setForm({...form, genericName: e.target.value})}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
+                />
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                  <TextField placeholder="Batch n" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
-                  <TextField placeholder="Qty" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                  <TextField 
+                    placeholder="Strength (e.g. 500mg)" size="small"
+                    value={form.strength} onChange={e => setForm({...form, strength: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
+                  <TextField 
+                    placeholder="Form (e.g. Tablet)" size="small"
+                    value={form.formValue} onChange={e => setForm({...form, formValue: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                  <TextField placeholder="MRP (₹)" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
-                  <TextField placeholder="Expiry Date" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                  <TextField 
+                    placeholder="Batch n" size="small"
+                    value={form.batchNumber} onChange={e => setForm({...form, batchNumber: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
+                  <TextField 
+                    placeholder="Qty" size="small" type="number"
+                    value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
                 </Box>
-                <FormControl size="small">
-                  <Select value="cat" sx={{ borderRadius: 2, color: colors.muted, '& fieldset': { borderColor: colors.line } }}>
-                    <MenuItem value="cat">Select category</MenuItem>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                  <TextField 
+                    placeholder="MRP (₹)" size="small" type="number"
+                    value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
+                  <TextField 
+                    placeholder="Alert threshold" size="small" type="number"
+                    value={form.lowStockThreshold} onChange={e => setForm({...form, lowStockThreshold: e.target.value})}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                  />
+                </Box>
+                <TextField 
+                  placeholder="Expiry Date" size="small" type="date"
+                  value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
+                />
+                <FormControl size="small" fullWidth>
+                  <Select 
+                    value={form.category} 
+                    onChange={e => setForm({...form, category: e.target.value})}
+                    sx={{ borderRadius: 2, '& fieldset': { borderColor: colors.line } }}
+                  >
+                    <MenuItem value="OTC">OTC / General</MenuItem>
+                    <MenuItem value="Antibiotic">Antibiotic</MenuItem>
+                    <MenuItem value="Antihypert.">Antihypert.</MenuItem>
+                    <MenuItem value="Antidiabetic">Antidiabetic</MenuItem>
+                    <MenuItem value="Vitamin">Vitamin</MenuItem>
+                    <MenuItem value="Jan Aushadhi">Jan Aushadhi</MenuItem>
                   </Select>
                 </FormControl>
-                <TextField placeholder="Rack / shelf location" size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} />
+                <TextField 
+                  placeholder="Rack / shelf location" size="small" fullWidth
+                  value={form.rackLocation} onChange={e => setForm({...form, rackLocation: e.target.value})}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
+                />
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mt: 1 }}>
-                  <Button sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}>
-                    Save<br/>medicine
+                  <Button 
+                    disabled={isSaving}
+                    onClick={handleSave}
+                    sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}
+                  >
+                    {isSaving ? 'Saving...' : 'Save\nmedicine'}
                   </Button>
-                  <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1 }}>
+                  <Button 
+                    startIcon={<ScanIcon />}
+                    sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1 }}
+                  >
                     Scan<br/>barcode
                   </Button>
                 </Box>
@@ -270,12 +430,13 @@ export default function PharmacyInventory() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 15, mb: 2 }}>Stock by category</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                {CATEGORIES.map(c => (
+                {displayedCategories.map(c => (
                   <Box key={c.label} sx={{ p: 1.5, borderRadius: 2, bgcolor: colors.soft }}>
                     <Typography sx={{ fontSize: 18, fontFamily: 'Georgia, serif' }}>{c.count}</Typography>
                     <Typography sx={{ fontSize: 11, color: colors.muted, whiteSpace: 'pre-line', lineHeight: 1.2, mt: 0.5 }}>{c.label}</Typography>
                   </Box>
                 ))}
+                {!displayedCategories.length && <Typography sx={{ color: colors.muted, fontSize: 12 }}>No categories recorded</Typography>}
               </Box>
             </Box>
 
@@ -283,20 +444,35 @@ export default function PharmacyInventory() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 15, mb: 2 }}>Reorder alerts</Typography>
               <Stack spacing={2.5}>
-                {REORDERS.map((r, i) => (
+                {items.filter(i => i.quantity <= i.lowStockThreshold).map((item, i) => (
                   <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: r.dot, mt: 0.8, flexShrink: 0 }} />
+                    <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: item.quantity <= 0 ? colors.red : colors.amber, mt: 0.8, flexShrink: 0 }} />
                     <Box>
-                      <Typography sx={{ fontSize: 13.5, lineHeight: 1.25, mb: 0.3, whiteSpace: 'pre-line' }}>{r.title}</Typography>
-                      <Typography sx={{ fontSize: 12.5, color: colors.muted, lineHeight: 1.2, whiteSpace: 'pre-line' }}>{r.sub}</Typography>
+                      <Typography sx={{ fontSize: 13.5, lineHeight: 1.25, mb: 0.3, whiteSpace: 'pre-line' }}>
+                        {item.medicineName} — {item.quantity <= 0 ? 'out of stock' : 'low stock'}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12.5, color: colors.muted, lineHeight: 1.2, whiteSpace: 'pre-line' }}>
+                        {item.quantity} units • reorder point: {item.lowStockThreshold}
+                      </Typography>
                     </Box>
                   </Box>
                 ))}
+                {!items.some(i => i.quantity <= i.lowStockThreshold) && (
+                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>All stock levels are optimal.</Typography>
+                )}
               </Stack>
               <Button fullWidth sx={{ mt: 3, bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}>
                 Create reorder list
               </Button>
             </Box>
+
+            <Snackbar 
+              open={snackbar.open} autoHideDuration={4000} 
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert severity={snackbar.severity} sx={{ borderRadius: 2 }}>{snackbar.message}</Alert>
+            </Snackbar>
 
           </Stack>
 

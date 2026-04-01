@@ -47,7 +47,9 @@ export default function DoctorProfile() {
           hospitalName: dr.hospitalName || '',
           qualification: dr.qualification || '',
           consultationFee: dr.consultationFee || 0,
-          experience: dr.experience || 0
+          experience: dr.experience || 0,
+          languages: dr.languages?.join(', ') || '',
+          medicalLicense: dr.medicalLicense || ''
         });
         setAvailable(dr.is_available_for_booking !== false);
       } catch (err) {
@@ -62,7 +64,23 @@ export default function DoctorProfile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await updateDoctorProfile({ ...form, is_available_for_booking: available });
+      const payload = {
+        ...form,
+        is_available_for_booking: available,
+        languages: (form.languages || '').split(',').map(s => s.trim()).filter(Boolean)
+      };
+      const res = await updateDoctorProfile(payload);
+      
+      // Update local storage so sidebar reflects the change
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { 
+        ...currentUser, 
+        full_name: form.full_name, 
+        phone: form.phone,
+        specialization: form.specialization 
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
       setProfile(prev => ({ ...prev, doctor: res.doctor }));
       setEditing(false);
       setSnackbar({ open: true, severity: 'success', message: 'Profile saved successfully!' });
@@ -76,6 +94,8 @@ export default function DoctorProfile() {
   const doctor = profile?.doctor || {};
   const user = profile?.user || {};
   const name = form.full_name || user.full_name || 'Doctor';
+  const displayLanguages = (form.languages || '').split(',').map(s => s.trim()).filter(Boolean);
+  const finalLanguages = displayLanguages.length > 0 ? displayLanguages : (doctor.languages || []);
 
   if (loading) return (
     <DoctorLayout>
@@ -124,10 +144,12 @@ export default function DoctorProfile() {
                 {initials(name)}
               </Avatar>
               <Typography sx={{ fontSize: 22, fontFamily: 'Georgia, serif' }}>{name}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 14.5, mb: 2 }}>{doctor.specialization || 'Specialist'}</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 14.5, mb: 2 }}>{form.specialization || doctor.specialization || 'Specialist'}</Typography>
 
               <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>Available</Typography>
+                <Typography sx={{ color: available ? colors.green : colors.muted, fontSize: 14.5, fontWeight: available ? 600 : 400 }}>
+                  {available ? 'Available' : 'Busy / Offline'}
+                </Typography>
                 <Switch
                   checked={available}
                   onChange={(e) => setAvailable(e.target.checked)}
@@ -140,7 +162,7 @@ export default function DoctorProfile() {
               <Stack spacing={1.5} sx={{ textAlign: 'left' }}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><PhoneIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{user.phone || 'Not provided'}</Typography>
+                  <Typography sx={{ fontSize: 14.5 }}>{form.phone || user.phone || 'Not provided'}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><EmailIcon sx={{ fontSize: 14 }} /></Box>
@@ -148,7 +170,7 @@ export default function DoctorProfile() {
                 </Stack>
                 <Stack direction="row" spacing={1.5} alignItems="flex-start">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green, flexShrink: 0 }}><LocationIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{doctor.hospitalName || 'Not provided'}</Typography>
+                  <Typography sx={{ fontSize: 14.5 }}>{form.hospitalName || doctor.hospitalName || 'Not provided'}</Typography>
                 </Stack>
               </Stack>
             </Box>
@@ -156,25 +178,25 @@ export default function DoctorProfile() {
             <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 18, mb: 2 }}>About Doctor</Typography>
               <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.7 }}>
-                {doctor.bio || 'No bio added yet.'}
+                {form.bio || doctor.bio || 'No bio added yet.'}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 2 }}>
                 <Box>
                   <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Specialty</Typography>
-                  <Chip label={doctor.specialization || 'N/A'} sx={{ bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12.5, mt: 0.6 }} />
+                  <Chip label={form.specialization || doctor.specialization || 'N/A'} sx={{ bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12.5, mt: 0.6 }} />
                 </Box>
                 <Box>
                   <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Experience</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{doctor.experience ? `${doctor.experience} years` : 'Not specified'}</Typography>
+                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{(form.experience || doctor.experience) ? `${form.experience || doctor.experience} years` : 'Not specified'}</Typography>
                 </Box>
                 <Box>
                   <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Languages</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{doctor.languages?.join(', ') || 'Not specified'}</Typography>
+                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{finalLanguages.join(', ') || 'Not specified'}</Typography>
                 </Box>
-                {doctor.consultationFee > 0 && (
+                {(form.consultationFee > 0 || doctor.consultationFee > 0) && (
                   <Box>
                     <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Consultation Fee</Typography>
-                    <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>₹{doctor.consultationFee}</Typography>
+                    <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>₹{form.consultationFee || doctor.consultationFee}</Typography>
                   </Box>
                 )}
               </Stack>
@@ -195,11 +217,15 @@ export default function DoctorProfile() {
                     <TextField fullWidth label="Specialization" value={form.specialization} onChange={e => setForm(p => ({ ...p, specialization: e.target.value }))} />
                     <TextField fullWidth label="Qualification" value={form.qualification} onChange={e => setForm(p => ({ ...p, qualification: e.target.value }))} />
                   </Stack>
-                  <TextField fullWidth label="Hospital / Clinic Name" value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} />
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                    <TextField fullWidth label="Hospital / Clinic Name" value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} />
+                    <TextField fullWidth label="Medical License" value={form.medicalLicense} onChange={e => setForm(p => ({ ...p, medicalLicense: e.target.value }))} />
+                  </Stack>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                     <TextField fullWidth label="Consultation Fee (₹)" type="number" value={form.consultationFee} onChange={e => setForm(p => ({ ...p, consultationFee: e.target.value }))} />
                     <TextField fullWidth label="Experience (years)" type="number" value={form.experience} onChange={e => setForm(p => ({ ...p, experience: e.target.value }))} />
                   </Stack>
+                  <TextField fullWidth label="Languages (comma separated)" value={form.languages} onChange={e => setForm(p => ({ ...p, languages: e.target.value }))} />
                   <TextField fullWidth multiline minRows={4} label="Professional Bio" value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} />
                 </Stack>
               </Box>

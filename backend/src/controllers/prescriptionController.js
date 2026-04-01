@@ -4,6 +4,8 @@ const Consultation = require("../models/Consultation.js");
 const Doctor = require("../models/Doctor.js");
 const HealthRecord = require("../models/HealthRecord.js");
 const Prescription = require("../models/Prescription.js");
+const PrescriptionOrder = require("../models/PrescriptionOrder.js");
+const Pharmacy = require("../models/Pharmacy.js");
 const User = require("../models/User.js");
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
@@ -67,12 +69,13 @@ exports.generatePrescription = async (req, res) => {
       diagnosis,
       medications,
       additionalInstructions,
+      notes,
       labTests,
       validUntil
     } = req.body;
 
     const normalizedDiagnosis = cleanString(diagnosis);
-    const normalizedNotes = cleanString(additionalInstructions);
+    const normalizedNotes = cleanString(notes || additionalInstructions);
     const normalizedMedications = normalizeMedications(medications);
     const normalizedLabTests = cleanStringArray(labTests);
     const normalizedValidUntil = validUntil ? new Date(validUntil) : null;
@@ -108,9 +111,7 @@ exports.generatePrescription = async (req, res) => {
         doctor: req.user._id
       });
 
-      if (!consultation) {
-        return res.status(404).json({ message: "Consultation not found for this doctor" });
-      }
+      if (!consultation) { console.warn(`[PRESCRIPTION] Consultation ${consultationId} not found for doctor ${req.user._id}`); return res.status(404).json({ message: "Consultation not found for this doctor" }); } console.log(`[PRESCRIPTION] Consultation found: ${consultationId}`);
     }
 
     const resolvedPatientId = consultation?.patient?._id || consultation?.patient || patientId;
@@ -145,6 +146,7 @@ exports.generatePrescription = async (req, res) => {
       medications: normalizedMedications,
       labTests: normalizedLabTests,
       notes: normalizedNotes,
+      followUpDate: req.body.followUpDate ? new Date(req.body.followUpDate) : null,
       issuedAt,
       validUntil: normalizedValidUntil,
       digitalSignature: {
@@ -241,31 +243,136 @@ exports.verifyPrescription = async (req, res) => {
 
 exports.assignToPharmacy = async (req, res) => {
   try {
-    const { prescriptionId, pharmacyId } = req.body;
+    const { prescriptionId, pharmacyId, deliveryType, deliveryAddress } = req.body;
     
     // Find prescription
-    const prescription = await Prescription.findById(prescriptionId);
+    const prescription = await Prescription.findById(prescriptionId).populate("patient");
     if (!prescription) {
       return res.status(404).json({ message: "Prescription not found" });
     }
 
     // Security: Only the patient who owns the prescription can assign it
-    if (prescription.patient.toString() !== req.user._id.toString()) {
+    if (prescription.patient._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Unauthorized: You do not own this prescription" });
     }
 
-    // Update assignment
+    // Validate Pharmacy
+    const pharmacy = await Pharmacy.findById(pharmacyId);
+    if (!pharmacy) {
+      return res.status(404).json({ message: "Pharmacy not found" });
+    }
+
+    // If HOME delivery is selected, check if pharmacy supports it
+    if (deliveryType === "HOME" && !pharmacy.deliveryAvailable) {
+      return res.status(400).json({ message: "This pharmacy does not offer home delivery" });
+    }
+
+    // Update prescription
     prescription.assignedPharmacy = pharmacyId;
     prescription.fulfillmentStatus = "Pending";
-    
     await prescription.save();
+
+    // Create a new PrescriptionOrder
+    const order = await PrescriptionOrder.create({
+      patient: req.user._id,
+      pharmacy: pharmacyId,
+      prescription: prescriptionId,
+      deliveryType: deliveryType || "PICKUP",
+      deliveryAddress: deliveryType === "HOME" ? deliveryAddress : null,
+      status: "Pending"
+    });
 
     res.json({
       success: true,
-      message: "Prescription successfully sent to pharmacy"
+      message: "Order placed successfully",
+      orderId: order._id
     });
   } catch (error) {
     console.error("[PRESCRIPTION] assign failed", error);
-    res.status(500).json({ message: "Failed to send prescription to pharmacy" });
+    res.status(500).json({ message: "Failed to place order with pharmacy" });
+  }
+};
+
+exports.getPrescriptionByConsultation = async (req, res) => {
+  try {
+    const { consultationId } = req.params;
+    console.log(`[PRESCRIPTION] Searching: ${consultationId} by Dr: ${req.user._id}`);
+
+    if (!mongoose.Types.ObjectId.isValid(consultationId)) {
+        return res.status(400).json({ message: "Invalid consultation ID" });
+    }
+
+    const oid = new mongoose.Types.ObjectId(consultationId);
+
+    // 1. Direct search
+    let prescription = await Prescription.findOne({ consultation: oid })
+      .populate("patient", "full_name email phone")
+      .populate("doctor", "full_name email phone")
+      .populate("consultation");
+
+    // 2. Fallback to HealthRecord
+    if (!prescription) {
+      console.warn(`[PRESCRIPTION] No direct link. Trying HealthRecord...`);
+      const HealthRecord = require("../models/HealthRecord.js");
+      const record = await HealthRecord.findOne({ consultation: oid, type: "prescription" })
+          .populate("patient", "full_name email phone")
+          .populate("doctor", "full_name email phone")
+          .populate("consultation");
+          
+      if (record) {
+          return res.json({
+            success: true,
+            prescription: {
+                diagnosis: record.diagnosis,
+                medications: record.prescriptionDetails,
+                notes: record.description,
+                issuedAt: record.date,
+                patient: record.patient,
+                doctor: record.doctor,
+                digitalSignature: { signerName: record.doctorInfo?.name || "Doctor", doctorLicense: record.doctorInfo?.medicalLicense }
+            }
+          });
+      }
+    }
+
+    // 3. Fuzzy search: Find by patient and doctor if we have the consultation
+    if (!prescription) {
+        const consultation = await Consultation.findById(oid);
+        if (consultation) {
+            console.warn(`[PRESCRIPTION] Trying fuzzy search by patient: ${consultation.patient}`);
+            prescription = await Prescription.findOne({ 
+                patient: consultation.patient, 
+                doctor: req.user._id 
+            })
+            .sort({ issuedAt: -1 }) // Get the latest one
+            .populate("patient doctor consultation");
+        }
+    }
+
+    if (!prescription) {
+      return res.status(404).json({
+        success: false,
+        message: "Prescription not found for this consultation"
+      });
+    }
+
+    return res.json({
+      success: true,
+      prescription
+    });
+  } catch (error) {
+    console.error("[PRESCRIPTION] fetch by consultation failed", error);
+    return res.status(500).json({ message: "Failed to fetch prescription" });
+  }
+};
+
+exports.getAllPrescriptions = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find({ doctor: req.user._id })
+      .populate("patient", "full_name email phone")
+      .sort({ issuedAt: -1 });
+    return res.json({ success: true, prescriptions });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch prescriptions" });
   }
 };

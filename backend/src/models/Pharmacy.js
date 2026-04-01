@@ -9,46 +9,36 @@ const pharmacySchema = new mongoose.Schema(
       unique: true,
       index: true
     },
-    pharmacyName: {
-      type: String,
-      trim: true,
-      required: true
+    pharmacyName: { type: String, trim: true, required: true },
+    ownerName: { type: String, trim: true },
+    licenseNumber: { type: String, trim: true, required: true, unique: true },
+    licenceValidTill: { type: Date },
+    gstin: { type: String, trim: true },
+    isGstinVerified: { type: Boolean, default: false },
+    janAushadhiId: { type: String, trim: true },
+    janAushadhiValidTill: { type: Date },
+    address: { type: String },
+    city: { type: String },
+    district: { type: String },
+    pincode: { type: String },
+    aadhaarNumber: { type: String },
+    isAadhaarVerified: { type: Boolean, default: false },
+    location: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+    openTime: { type: String, trim: true, default: "08:00 AM" },
+    closeTime: { type: String, trim: true, default: "09:00 PM" },
+    operatingHoursDesc: { type: String, default: "Mon–Sat 8:00 AM — 9:00 PM\nSunday 9:00 AM — 2:00 PM" },
+    phone: { type: String, trim: true },
+    email: { type: String, trim: true },
+    distanceKm: { type: Number, min: 0, default: 0.8 },
+    isJanAushadhi: { type: Boolean, default: false, index: true },
+    expirySettings: {
+      alertDays: { type: Number, default: 30 },
+      smsAlert: { type: Boolean, default: true },
+      autoReturn: { type: Boolean, default: false }
     },
-    licenseNumber: {
-      type: String,
-      trim: true,
-      required: true,
-      unique: true
-    },
-    location: {
-      type: mongoose.Schema.Types.Mixed,
-      default: () => ({})
-    },
-    openTime: {
-      type: String,
-      trim: true,
-      default: null
-    },
-    closeTime: {
-      type: String,
-      trim: true,
-      default: null
-    },
-    phone: {
-      type: String,
-      trim: true,
-      default: null
-    },
-    distanceKm: {
-      type: Number,
-      min: 0,
-      default: null
-    },
-    isJanAushadhi: {
-      type: Boolean,
-      default: false,
-      index: true
-    }
+    pharmacyId: { type: String, unique: true },
+    visibleToPatients: { type: Boolean, default: true },
+    deliveryAvailable: { type: Boolean, default: false }
   },
   { timestamps: true, collection: "pharmacyprofiles" }
 );

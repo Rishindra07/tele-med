@@ -32,20 +32,34 @@ export default function PatientProfile() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   
+  const getInitialUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch { return {}; }
+  };
+
+  const initialUser = getInitialUser();
+  
   const [profileData, setProfileData] = useState({
-    name: 'User',
-    email: '',
-    phone: '',
-    role: 'Patient',
+    name: initialUser.full_name || initialUser.name || 'User',
+    email: initialUser.email || '',
+    phone: initialUser.phone || '',
+    role: initialUser.role ? (initialUser.role.charAt(0).toUpperCase() + initialUser.role.slice(1)) : 'Patient',
     dob: '',
     age: '',
     gender: '',
     bloodGroup: '',
     address: '',
-    profile_image: '',
+    profile_image: initialUser.profile_image || '',
     emergencyContactName: '',
     emergencyContactRelation: '',
     emergencyContactPhone: ''
+  });
+
+  const [counts, setCounts] = useState({
+    consultations: 0,
+    prescriptions: 0,
+    records: 0
   });
 
   const [editForm, setEditForm] = useState({ ...profileData });
@@ -54,18 +68,30 @@ export default function PatientProfile() {
     const loadProfile = async () => {
       try {
         setLoading(true);
+        console.log('Fetching patient profile...');
         const res = await fetchPatientProfile();
-        if (res.success) {
-          const { user, profile } = res;
+        console.log('Profile response:', res);
+
+        if (res && res.success) {
+          const { user, profile, counts: resCounts } = res;
           
           const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-          localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone, profile_image: user.profile_image }));
+          const updatedUser = { 
+            ...cachedUser, 
+            full_name: user.full_name, 
+            name: user.full_name, // Sync both for compatibility
+            email: user.email, 
+            phone: user.phone, 
+            profile_image: user.profile_image,
+            role: user.role
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
 
           const newData = {
             name: user.full_name || 'User',
             email: user.email || '',
             phone: user.phone || '',
-            role: user.role || 'Patient',
+            role: user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Patient',
             profile_image: user.profile_image || '',
             dob: profile?.dob || '',
             age: profile?.age || '',
@@ -76,11 +102,15 @@ export default function PatientProfile() {
             emergencyContactRelation: profile?.emergency_contact?.relation || '',
             emergencyContactPhone: profile?.emergency_contact?.phone || ''
           };
+          
           setProfileData(newData);
           setEditForm(newData);
+          if (resCounts) setCounts(resCounts);
+        } else {
+          console.error('Failed to load profile: Success was false', res);
         }
       } catch (err) {
-        console.error('Failed to load profile', err);
+        console.error('Failed to load profile exception:', err);
       } finally {
         setLoading(false);
       }
@@ -107,18 +137,28 @@ export default function PatientProfile() {
     try {
       setSaving(true);
       const res = await updatePatientProfile(editForm);
-      if (res.success) {
-        const { user, profile } = res;
+      console.log('Update profile RAW response:', res);
+      
+      if (res && res.success) {
+        const { user, profile, counts: resCounts } = res;
         
         const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        localStorage.setItem('user', JSON.stringify({ ...cachedUser, name: user.full_name, email: user.email, phone: user.phone, profile_image: user.profile_image }));
-        window.dispatchEvent(new Event('storage'));
+        const updatedUser = { 
+          ...cachedUser, 
+          full_name: user.full_name,
+          name: user.full_name,
+          email: user.email, 
+          phone: user.phone, 
+          profile_image: user.profile_image,
+          role: user.role
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
 
         const newData = {
           name: user.full_name || 'User',
           email: user.email || '',
           phone: user.phone || '',
-          role: user.role || 'Patient',
+          role: user.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Patient',
           profile_image: user.profile_image || '',
           dob: profile?.dob || '',
           age: profile?.age || '',
@@ -130,11 +170,21 @@ export default function PatientProfile() {
           emergencyContactPhone: profile?.emergency_contact?.phone || ''
         };
         setProfileData(newData);
+        if (resCounts) {
+          console.log('Setting counts:', resCounts);
+          setCounts(resCounts);
+        }
         setIsEditing(false);
+      } else {
+        console.error('Update failed: res.success is false', res);
+        alert(res?.message || 'Failed to update profile');
       }
     } catch (err) {
-      console.error('Failed to update profile', err);
-      alert('Failed to update profile');
+      console.error('Failed to update profile EXCEPTION:', err);
+      // More detailed alert to catch "next is not a function" source
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to update profile';
+      const detail = err.response?.data ? JSON.stringify(err.response.data) : (err.stack || '');
+      alert(`${errorMsg}\n\nDetails: ${detail.substring(0, 200)}`);
     } finally {
       setSaving(false);
     }
@@ -245,9 +295,9 @@ export default function PatientProfile() {
 
             <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" justifyContent={{ xs: 'center', lg: 'flex-end' }} sx={{ width: { xs: '100%', lg: 'auto' } }}>
               {[
-                ['0', 'Consultations'],
-                ['0', 'Prescriptions'],
-                ['0', 'Records']
+                [counts.consultations, 'Consultations'],
+                [counts.prescriptions, 'Prescriptions'],
+                [counts.records, 'Records']
               ].map(([value, label]) => (
                 <Box key={label} sx={{ width: 100, p: 2, borderRadius: 1.5, bgcolor: colors.soft, textAlign: 'center' }}>
                   <Typography sx={{ fontSize: 24, fontWeight: 600, color: colors.text }}>{value}</Typography>
@@ -265,23 +315,41 @@ export default function PatientProfile() {
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
               {[
-                ['Date of birth', 'dob', 'e.g. 15 Aug 1990'],
-                ['Age', 'age', 'e.g. 34'],
-                ['Gender', 'gender', 'e.g. Male / Female'],
-                ['Blood group', 'bloodGroup', 'e.g. O+']
-              ].map(([label, key, placeholder]) => (
+                { label: 'Date of birth', key: 'dob', placeholder: 'e.g. 15 Aug 1990' },
+                { label: 'Age', key: 'age', placeholder: 'e.g. 34' },
+                { label: 'Gender', key: 'gender', placeholder: 'Select Gender', options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
+                { label: 'Blood group', key: 'bloodGroup', placeholder: 'Select Blood Group', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
+              ].map(({ label, key, placeholder, options }) => (
                 <Box key={key}>
                   <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
                   {isEditing ? (
-                    <TextField 
-                      name={key}
-                      value={editForm[key]}
-                      onChange={handleChange}
-                      placeholder={placeholder}
-                      fullWidth
-                      size="small"
-                      sx={{ mt: 1 }}
-                    />
+                    options ? (
+                      <TextField 
+                        select
+                        name={key}
+                        value={editForm[key]}
+                        onChange={handleChange}
+                        fullWidth
+                        size="small"
+                        sx={{ mt: 1 }}
+                        SelectProps={{
+                          native: true,
+                        }}
+                      >
+                        <option value="" disabled>{placeholder}</option>
+                        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      </TextField>
+                    ) : (
+                      <TextField 
+                        name={key}
+                        value={editForm[key]}
+                        onChange={handleChange}
+                        placeholder={placeholder}
+                        fullWidth
+                        size="small"
+                        sx={{ mt: 1 }}
+                      />
+                    )
                   ) : (
                     <Typography sx={{ mt: 0.5, color: profileData[key] ? colors.text : colors.gray, fontSize: 15, fontWeight: profileData[key] ? 500 : 400 }}>
                       {profileData[key] || 'Not set'}
@@ -296,7 +364,7 @@ export default function PatientProfile() {
             <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Contact Information</Typography>
             <Stack spacing={0}>
               {[
-                ['Mobile number', 'phone', 'e.g. +91 9876543210'],
+                ['Mobile number', 'phone', 'e.g. 9014062013'],
                 ['Email address', 'email', 'e.g. user@example.com'],
                 ['Address', 'address', 'e.g. 123 Health Ave, Mumbai']
               ].map(([label, key, placeholder]) => (
@@ -346,10 +414,10 @@ export default function PatientProfile() {
             <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Emergency Contact</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
               {[
-                ['Contact Name', 'emergencyContactName', 'e.g. John Doe'],
-                ['Relation', 'emergencyContactRelation', 'e.g. Father'],
-                ['Phone Number', 'emergencyContactPhone', 'e.g. +91 9876543210']
-              ].map(([label, key, placeholder]) => (
+                { label: 'Contact Name', key: 'emergencyContactName', placeholder: 'e.g. John Doe' },
+                { label: 'Relation', key: 'emergencyContactRelation', placeholder: 'e.g. Father' },
+                { label: 'Phone Number', key: 'emergencyContactPhone', placeholder: 'e.g. 9876543210' }
+              ].map(({ label, key, placeholder }) => (
                 <Box key={key}>
                   <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
                   {isEditing ? (

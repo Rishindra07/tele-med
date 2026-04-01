@@ -191,7 +191,7 @@ patientSchema.virtual("health_tags").get(function getHealthTags() {
   };
 });
 
-patientSchema.pre("save", function updateDerivedVitals(next) {
+patientSchema.pre("save", async function updateDerivedVitals() {
   const heightCm = this.vitals?.height_cm;
   const weightKg = this.vitals?.weight_kg;
 
@@ -203,8 +203,6 @@ patientSchema.pre("save", function updateDerivedVitals(next) {
   if (this.isModified("vitals")) {
     this.vitals.updated_at = new Date();
   }
-
-  next();
 });
 
 module.exports = mongoose.model("Patient", patientSchema);

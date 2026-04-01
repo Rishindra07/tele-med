@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Stack, Button, IconButton, Badge, Divider,
   TextField, MenuItem, Select, FormControl, InputAdornment, Avatar,
@@ -11,7 +11,9 @@ import {
   ScheduleRounded as ClockIcon,
   ErrorOutlineRounded as ErrorIcon,
 } from '@mui/icons-material';
+import { fetchExpiryAlerts, updatePharmacyProfile } from '../../api/pharmacyApi';
 import PharmacyLayout from '../../components/PharmacyLayout';
+import { CircularProgress, Snackbar, Alert } from '@mui/material';
 
 const colors = {
   paper: '#ffffff',
@@ -31,82 +33,8 @@ const colors = {
   graySoft: '#f1eee7'
 };
 
-const STATS = [
-  { title: 'Expiring < 7\ndays', value: '1', sub: 'Cough syrup\nbatch B221', color: colors.red },
-  { title: 'Expiring < 30\ndays', value: '3', sub: 'Action needed\nsoon', color: colors.amber },
-  { title: 'Expiring < 90\ndays', value: '7', sub: 'Monitor\nclosely', color: colors.blue },
-  { title: 'Est. loss at\nrisk', value: '₹3,840', sub: 'If no action\ntaken', color: colors.red }
-];
-
-const FILTERS = [
-  { label: 'All', count: 11, active: true },
-  { label: 'Critical' },
-  { label: 'Warning' },
-  { label: 'Watch' },
-  { label: 'Returned' },
-  { label: 'Disposed' }
-];
-
-const EXPIRY_LIST = [
-  {
-    name: 'Cough Syrup 100ml — Batch B221',
-    details: 'Expires 2 Apr 2026 • 10 days remaining • 12 bottles • Supplier: Medico Pharma',
-    tags: [
-      { label: 'Critical — 10 days', color: colors.red, bg: colors.redSoft },
-      { label: 'Est. loss ₹1,440', color: colors.red, bg: colors.redSoft },
-      { label: 'Return eligible', color: colors.blue, bg: colors.blueSoft }
-    ],
-    buttons: ['Initiate return', 'Mark dispose', 'View stock'],
-    borderColor: colors.red,
-    icon: <ErrorIcon sx={{ color: colors.red }} />
-  },
-  {
-    name: 'Amoxicillin 250mg — Batch B2024-088',
-    details: 'Expires 15 Apr 2026 • 23 days remaining • 14 strips • Supplier: Apollo Wholesale',
-    tags: [
-      { label: 'Critical — 23 days', color: colors.red, bg: colors.redSoft },
-      { label: 'Low stock too', color: colors.amber, bg: colors.amberSoft },
-      { label: 'Est. loss ₹448', color: colors.red, bg: colors.redSoft }
-    ],
-    buttons: ['Initiate return', 'Mark dispose', 'View stock'],
-    borderColor: colors.red,
-    icon: <ErrorIcon sx={{ color: colors.redSoft, bgcolor: colors.redSoft, opacity: 0.5 }} />
-  },
-  {
-    name: 'Vitamin C 500mg — Batch B2025-031',
-    details: 'Expires 31 May 2026 • 69 days remaining • 200 strips • Supplier: Jan Aushadhi Depot',
-    tags: [
-      { label: 'Warning — 69 days', color: colors.amber, bg: colors.amberSoft },
-      { label: 'High demand item', color: colors.green, bg: colors.greenSoft },
-      { label: 'Est. loss ₹600', color: colors.amber, bg: colors.amberSoft }
-    ],
-    buttons: ['Push sales', 'Mark dispose', 'View stock'],
-    borderColor: colors.amber,
-    icon: <WarningIcon sx={{ color: colors.amber }} />
-  },
-  {
-    name: 'ORS Sachets 21g — Batch B2025-044',
-    details: 'Expires 30 Jun 2026 • 99 days remaining • 8 packs • Supplier: Jan Aushadhi Depot',
-    tags: [
-      { label: 'Warning — 99 days', color: colors.amber, bg: colors.amberSoft },
-      { label: 'Out of stock risk', color: colors.red, bg: colors.redSoft }
-    ],
-    buttons: ['Reorder stock', 'View stock'],
-    borderColor: colors.amber,
-    icon: <WarningIcon sx={{ color: colors.amberSoft, opacity: 0.5 }} />
-  },
-  {
-    name: 'Paracetamol 500mg — Batch B2024-112',
-    details: 'Expires Dec 2026 • 9 months remaining • 38 strips • Supplier: Medico Pharma',
-    tags: [
-      { label: 'Watch — 9 months', color: colors.blue, bg: colors.blueSoft },
-      { label: 'Low stock alert', color: colors.amber, bg: colors.amberSoft }
-    ],
-    buttons: ['View stock', 'Reorder'],
-    borderColor: colors.blue,
-    icon: <ClockIcon sx={{ color: colors.blue }} />
-  }
-];
+// Helper for currency
+const fRs = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const LOSSES = [
   { name: 'Cough Syrup (12 bottles)', val: '₹1,440' },
@@ -140,7 +68,66 @@ const PillFilter = ({ label, count, active }) => (
 );
 
 export default function PharmacyExpiry() {
-  const [threshold, setThreshold] = useState(30);
+  const [alerts, setAlerts] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [settings, setSettings] = useState({ alertDays: 30, smsAlert: true, autoReturn: false });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('All');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchExpiryAlerts();
+      setAlerts(res.data.alerts || []);
+      setSummary(res.data.summary);
+      if (res.data.settings) setSettings(res.data.settings);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: 'Failed to fetch expiry data', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleUpdateSettings = async (newSettings) => {
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    try {
+      await updatePharmacyProfile({ expirySettings: updated });
+      setSnackbar({ open: true, message: 'Settings saved!', severity: 'success' });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to save settings', severity: 'error' });
+    }
+  };
+
+  const handleAction = (btn, item) => {
+    setSnackbar({ open: true, message: `Action [${btn}] initiated for ${item.medicineName}`, severity: 'info' });
+  };
+
+  if (loading && !alerts.length) return (
+    <PharmacyLayout>
+      <Box sx={{ p: 5, display: 'grid', placeItems: 'center', height: '100vh', bgcolor: colors.bg }}>
+        <CircularProgress size={40} sx={{ color: colors.green }} />
+      </Box>
+    </PharmacyLayout>
+  );
+
+  const filtered = alerts.filter(a => {
+    const matchesSearch = a.medicineName.toLowerCase().includes(search.toLowerCase()) || (a.batchNumber || '').toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = filter === 'All' || a.status === filter;
+    return matchesSearch && matchesFilter;
+  });
+
+  const STATS = [
+    { title: 'Expiring < 7\ndays', value: alerts.filter(a => a.daysRemaining < 7).length, sub: 'Immediate action', color: colors.red },
+    { title: 'Expiring < 30\ndays', value: summary?.critical || 0, sub: 'Action needed\nsoon', color: colors.amber },
+    { title: 'Expiring < 90\ndays', value: summary?.warning || 0, sub: 'Monitor\nclosely', color: colors.blue },
+    { title: 'Est. loss at\nrisk', value: fRs(summary?.totalLoss), sub: 'Next 6 months', color: colors.red }
+  ];
 
   return (
     <PharmacyLayout>
@@ -160,12 +147,18 @@ export default function PharmacyExpiry() {
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
               Mon, 23<br />March<br />2026
             </Box>
-            <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
-              <Badge color="error" variant="dot">
+            <IconButton 
+              onClick={() => setSnackbar({ open: true, message: `You have ${summary?.critical || 0} critical expiries.`, severity: 'warning' })}
+              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}
+            >
+              <Badge color={summary?.critical > 0 ? "error" : "default"} variant="dot">
                 <BellIcon sx={{ color: '#5f5a52' }} />
               </Badge>
             </IconButton>
-            <Button sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}>
+            <Button 
+              onClick={() => setSnackbar({ open: true, message: 'Return list generated for April 2026', severity: 'success' })}
+              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}
+            >
               Create<br/>return list
             </Button>
           </Stack>
@@ -181,22 +174,19 @@ export default function PharmacyExpiry() {
           <TextField
             fullWidth
             placeholder="Search medicine name or batch number..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>
+            }}
           />
-          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-            <FormControl fullWidth size="small">
-              <Select value="all" sx={{ borderRadius: 2, bgcolor: colors.paper }}>
-                <MenuItem value="all">All categories</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth size="small">
-              <Select value="all" sx={{ borderRadius: 2, bgcolor: colors.paper }}>
-                <MenuItem value="all">All windows</MenuItem>
-              </Select>
-            </FormControl>
-          </Stack>
           <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-            {FILTERS.map(f => <PillFilter key={f.label} {...f} />)}
+            {['All', 'Critical', 'Warning', 'Watch'].map(f => (
+              <Box key={f} onClick={() => setFilter(f)}>
+                <PillFilter label={f} count={alerts.filter(a => f === 'All' || a.status === f).length} active={filter === f} />
+              </Box>
+            ))}
           </Stack>
         </Box>
 
@@ -211,35 +201,40 @@ export default function PharmacyExpiry() {
             </Stack>
             
             <Stack spacing={2.5}>
-              {EXPIRY_LIST.map((item, idx) => (
+              {filtered.map((item, idx) => (
                 <Box key={idx} sx={{ 
-                  display: 'grid', gridTemplateColumns: idx < 4 ? '70px 1fr 160px' : '70px 1fr 160px', 
+                  display: 'grid', gridTemplateColumns: '70px 1fr 160px', 
                   bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, 
-                  borderLeft: `3px solid ${item.borderColor}`, overflow: 'hidden'
+                  borderLeft: `3px solid ${item.status === 'Critical' ? colors.red : item.status === 'Warning' ? colors.amber : colors.blue}`, overflow: 'hidden'
                 }}>
-                  <Box sx={{ display: 'grid', placeItems: 'center', bgcolor: item.borderColor === colors.red ? colors.redSoft : item.borderColor === colors.amber ? colors.amberSoft : colors.blueSoft, opacity: 0.8 }}>
-                    {item.icon}
+                  <Box sx={{ display: 'grid', placeItems: 'center', bgcolor: item.status === 'Critical' ? colors.redSoft : item.status === 'Warning' ? colors.amberSoft : colors.blueSoft, opacity: 0.8 }}>
+                    {item.status === 'Critical' ? <ErrorIcon sx={{ color: colors.red }} /> : item.status === 'Warning' ? <WarningIcon sx={{ color: colors.amber }} /> : <ClockIcon sx={{ color: colors.blue }} />}
                   </Box>
                   <Box sx={{ p: 3 }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 500, mb: 1 }}>{item.name}</Typography>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.4, mb: 2 }}>{item.details}</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 500, mb: 1 }}>{item.medicineName} — Batch {item.batchNumber}</Typography>
+                    <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.4, mb: 2 }}>
+                      Expires {new Date(item.expiryDate).toLocaleDateString()} • {item.daysRemaining} days remaining • {item.quantity} units • Supplier: {item.category}
+                    </Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {item.tags.map(t => (
-                        <Box key={t.label} sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: t.bg, color: t.color, fontSize: 11, fontWeight: 500 }}>
-                          {t.label}
-                        </Box>
-                      ))}
+                      <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: item.status === 'Critical' ? colors.redSoft : colors.amberSoft, color: item.status === 'Critical' ? colors.red : colors.amber, fontSize: 11, fontWeight: 500 }}>
+                        {item.status} — {item.daysRemaining} days
+                      </Box>
+                      <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.text, fontSize: 11, fontWeight: 500 }}>
+                        Est. loss {fRs(item.atRiskRevenue)}
+                      </Box>
+                      {item.daysRemaining < 30 && <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 11, fontWeight: 500 }}>Return eligible</Box>}
                     </Stack>
                   </Box>
                   <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1, justifyContent: 'center', borderLeft: `1px solid ${colors.line}` }}>
-                    {item.buttons.map(btn => (
-                      <Button key={btn} fullWidth sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, fontSize: 12.5, textTransform: 'none', py: 0.6 }}>
+                    {['Initiate return', 'Mark dispose', 'View stock'].map(btn => (
+                      <Button key={btn} onClick={() => handleAction(btn, item)} fullWidth sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, fontSize: 12.5, textTransform: 'none', py: 0.6 }}>
                         {btn}
                       </Button>
                     ))}
                   </Box>
                 </Box>
               ))}
+              {!filtered.length && <Typography sx={{ p: 5, textAlign: 'center', color: colors.muted }}>No medicines found matching your criteria.</Typography>}
             </Stack>
           </Box>
 
@@ -254,8 +249,8 @@ export default function PharmacyExpiry() {
                 {[...Array(30)].map((_, i) => (
                   <Typography key={i} sx={{ 
                     fontSize: 12, py: 0.5, 
-                    color: (i+1 === 2 || i+1 === 15) ? colors.red : (i+1 === 23) ? colors.amber : colors.text,
-                    fontWeight: (i+1 === 2 || i+1 === 15 || i+1 === 23) ? 600 : 400
+                    color: filtered.some(a => new Date(a.expiryDate).getDate() === i+1 && new Date(a.expiryDate).getMonth() === 3) ? colors.red : colors.text,
+                    fontWeight: filtered.some(a => new Date(a.expiryDate).getDate() === i+1 && new Date(a.expiryDate).getMonth() === 3) ? 600 : 400
                   }}>
                     {i+1}
                   </Typography>
@@ -298,19 +293,10 @@ export default function PharmacyExpiry() {
                 <Box>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
-                      <Typography sx={{ fontSize: 13 }}>Alert at 30 days</Typography>
-                      <Typography sx={{ fontSize: 11, color: colors.muted }}>Default warning threshold</Typography>
-                    </Box>
-                    <Switch defaultChecked size="small" />
-                  </Stack>
-                </Box>
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Box>
-                      <Typography sx={{ fontSize: 13 }}>SMS alert to owner</Typography>
+                      <Typography sx={{ fontSize: 13 }}>Sms alert to owner</Typography>
                       <Typography sx={{ fontSize: 11, color: colors.muted }}>+91 98140 56872</Typography>
                     </Box>
-                    <Switch defaultChecked size="small" />
+                    <Switch checked={settings.smsAlert} onChange={(e) => handleUpdateSettings({ smsAlert: e.target.checked })} size="small" />
                   </Stack>
                 </Box>
                 <Box>
@@ -319,20 +305,20 @@ export default function PharmacyExpiry() {
                       <Typography sx={{ fontSize: 13 }}>Auto-create return list</Typography>
                       <Typography sx={{ fontSize: 11, color: colors.muted }}>When expiry &lt; 7 days</Typography>
                     </Box>
-                    <Switch size="small" />
+                    <Switch checked={settings.autoReturn} onChange={(e) => handleUpdateSettings({ autoReturn: e.target.checked })} size="small" />
                   </Stack>
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: 12, color: colors.muted, mb: 1 }}>Custom alert threshold (days)</Typography>
                   <Slider 
-                    value={threshold} 
-                    onChange={(_, v) => setThreshold(v)} 
+                    value={settings.alertDays} 
+                    onChange={(_, v) => handleUpdateSettings({ alertDays: v })} 
                     max={90} min={7} 
                     sx={{ color: colors.blue }} 
                   />
                   <Stack direction="row" justifyContent="space-between">
                     <Typography sx={{ fontSize: 10, color: colors.muted }}>7 days</Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600 }}>{threshold} days</Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600 }}>{settings.alertDays} days</Typography>
                     <Typography sx={{ fontSize: 10, color: colors.muted }}>90 days</Typography>
                   </Stack>
                 </Box>
@@ -342,6 +328,14 @@ export default function PharmacyExpiry() {
           </Stack>
         </Box>
       </Box>
+
+      <Snackbar 
+        open={snackbar.open} autoHideDuration={4000} 
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 2 }}>{snackbar.message}</Alert>
+      </Snackbar>
     </PharmacyLayout>
   );
 }

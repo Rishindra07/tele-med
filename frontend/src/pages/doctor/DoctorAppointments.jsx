@@ -22,6 +22,8 @@ import DoctorLayout from '../../components/DoctorLayout';
 import { getDoctorAppointments, getDoctorSlots } from '../../api/appointmentApi';
 import { updateAppointmentStatus, rescheduleAppointment } from '../../api/doctorApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
+import PatientHistoryDialog from '../../components/doctor/PatientHistoryDialog';
+import PrescriptionViewDialog from '../../components/doctor/PrescriptionViewDialog';
 
 const colors = {
   paper: '#fffdf8', line: '#d8d0c4', soft: '#e7dfd3', muted: '#8a857d',
@@ -48,6 +50,8 @@ export default function DoctorAppointments() {
   const [updatingId, setUpdatingId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const [rescheduleData, setRescheduleData] = useState({ open: false, appointment: null, date: '', slots: [], selectedSlot: '', loadingSlots: false });
+  const [historyDialog, setHistoryDialog] = useState({ open: false, patient: null });
+  const [prescriptionDialog, setPrescriptionDialog] = useState({ open: false, consultationId: null });
 
   const load = async () => {
     try {
@@ -194,8 +198,8 @@ export default function DoctorAppointments() {
           )}
           {dashStatus === 'completed' && (
             <>
-              <Button size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Prescription</Button>
-              <Button size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Records</Button>
+              <Button onClick={() => setPrescriptionDialog({ open: true, consultationId: a._id })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Prescription</Button>
+              <Button onClick={() => setHistoryDialog({ open: true, patient: a.patient })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Records</Button>
               <Button size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Feedback</Button>
             </>
           )}
@@ -315,6 +319,18 @@ export default function DoctorAppointments() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PatientHistoryDialog
+        open={historyDialog.open}
+        onClose={() => setHistoryDialog(p => ({ ...p, open: false }))}
+        patient={historyDialog.patient}
+      />
+
+      <PrescriptionViewDialog
+        open={prescriptionDialog.open}
+        onClose={() => setPrescriptionDialog(p => ({ ...p, open: false }))}
+        consultationId={prescriptionDialog.consultationId}
+      />
     </DoctorLayout>
   );
 }

@@ -33,6 +33,8 @@ import DoctorLayout from '../../components/DoctorLayout';
 import { fetchDoctorDashboard, updateAppointmentStatus, rescheduleAppointment } from '../../api/doctorApi';
 import { getDoctorSlots } from '../../api/appointmentApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
+import PatientHistoryDialog from '../../components/doctor/PatientHistoryDialog';
+import PrescriptionViewDialog from '../../components/doctor/PrescriptionViewDialog';
 
 const colors = {
   paper: '#fffdf8',
@@ -62,6 +64,23 @@ export default function DoctorDashboard() {
   const [cancellingId, setCancellingId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const [rescheduleData, setRescheduleData] = useState({ open: false, appointment: null, date: '', slots: [], selectedSlot: '', loadingSlots: false });
+  const [historyDialog, setHistoryDialog] = useState({ open: false, patient: null });
+  const [prescriptionDialog, setPrescriptionDialog] = useState({ open: false, consultationId: null });
+
+  const getGreetingName = (fullName) => {
+    if (!fullName) return 'Doctor';
+    const name = fullName.trim();
+    return name.toLowerCase().startsWith('dr.') ? name : `Dr. ${name}`;
+  };
+
+  const dashboardName = data?.profile?.user?.full_name 
+    ? getGreetingName(data.profile.user.full_name) 
+    : (() => {
+        try {
+          const u = JSON.parse(localStorage.getItem('user') || '{}');
+          return getGreetingName(u.full_name || u.name || 'Doctor');
+        } catch { return 'Dr. Doctor'; }
+      })();
 
   const load = async () => {
     try {
@@ -74,8 +93,6 @@ export default function DoctorDashboard() {
       setLoading(false);
     }
   };
-
-  useEffect(() => { load(); }, []);
 
   useEffect(() => { load(); }, []);
 
@@ -119,7 +136,7 @@ export default function DoctorDashboard() {
       setCancellingId(id);
       await updateAppointmentStatus(id, 'Cancelled');
       setSnackbar({ open: true, severity: 'success', message: 'Appointment cancelled successfully.' });
-      load(); // Refresh dashboard
+      load();
     } catch (err) {
       setSnackbar({ open: true, severity: 'error', message: err.message || 'Failed to cancel appointment.' });
     } finally {
@@ -130,10 +147,10 @@ export default function DoctorDashboard() {
   const summaryCards = useMemo(() => {
     const summary = data?.summary || {};
     return [
-      ['Total Patients', summary.totalPatients || 0, 'Unique patients seen', colors.green],
-      ['Today Appointments', summary.todayAppointments || 0, 'Today’s schedule', colors.blue],
-      ['Upcoming', summary.upcomingAppointments || 0, 'Scheduled ahead', colors.amber],
-      ['Prescriptions', summary.prescriptionsIssued || 0, 'Issued to date', colors.red]
+      ['Total Patients', summary.totalPatients || 0, 'Unique patients seen', colors.green, '/doctor/patients'],
+      ['Today Appointments', summary.todayAppointments || 0, 'Today’s schedule', colors.blue, '/doctor/appointments'],
+      ['Upcoming', summary.upcomingAppointments || 0, 'Scheduled ahead', colors.amber, '/doctor/appointments'],
+      ['Prescriptions', summary.prescriptionsIssued || 0, 'Issued to date', colors.red, '/doctor/appointments']
     ];
   }, [data]);
 
@@ -143,7 +160,7 @@ export default function DoctorDashboard() {
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-              Doctor Dashboard
+              Hello, {dashboardName}
             </Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 520 }}>
               Live overview of your appointments, patients, prescriptions, and notifications.
@@ -168,8 +185,20 @@ export default function DoctorDashboard() {
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
-              {summaryCards.map(([title, value, subtext, dot]) => (
-                <Box key={title} sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+              {summaryCards.map(([title, value, subtext, dot, path]) => (
+                <Box 
+                  key={title} 
+                  onClick={() => navigate(path)}
+                  sx={{ 
+                    p: 2.5, 
+                    borderRadius: 3.5, 
+                    border: `1px solid ${colors.line}`, 
+                    bgcolor: colors.paper,
+                    cursor: 'pointer',
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: dot }
+                  }}
+                >
                   <Stack direction="row" spacing={0.8} alignItems="center">
                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dot }} />
                     <Typography sx={{ fontSize: 16, color: colors.muted }}>{title}</Typography>
@@ -181,7 +210,6 @@ export default function DoctorDashboard() {
             </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '1.2fr 0.9fr 0.9fr' }, gap: 3 }}>
-              {/* Upcoming Appointments */}
               <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                   <CalendarIcon />
@@ -191,7 +219,6 @@ export default function DoctorDashboard() {
                   {(data?.upcomingAppointments || []).length ? (
                     data.upcomingAppointments.map((appointment) => {
                        const { status: dashStatus, isJoinNear } = getConsultationStatus(appointment);
-
                        return (
                         <Box key={appointment._id} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -217,7 +244,6 @@ export default function DoctorDashboard() {
                               }} 
                             />
                           </Stack>
-
                           <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             {dashStatus === 'upcoming' && (
                               <>
@@ -227,9 +253,9 @@ export default function DoctorDashboard() {
                                   <Box sx={{ px: 1.5, py: 0.8, borderRadius: 1.5, bgcolor: colors.blue + '10', border: `1px solid ${colors.blue}30` }}>
                                     <Typography sx={{ color: colors.blue, fontSize: 11, fontWeight: 600 }}>{getConsultationStatus(appointment).label}</Typography>
                                   </Box>
-                                  )}
-                                  <Button onClick={() => handleOpenReschedule(appointment)} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Reschedule</Button>
-                                  <Button onClick={() => handleCancel(appointment._id)} disabled={cancellingId === appointment._id} size="small" variant="text" sx={{ color: colors.red, fontSize: 11, textTransform: 'none' }}>{cancellingId === appointment._id ? 'Cancelling...' : 'Cancel'}</Button>
+                                )}
+                                <Button onClick={() => handleOpenReschedule(appointment)} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Reschedule</Button>
+                                <Button onClick={() => handleCancel(appointment._id)} disabled={cancellingId === appointment._id} size="small" variant="text" sx={{ color: colors.red, fontSize: 11, textTransform: 'none' }}>{cancellingId === appointment._id ? 'Cancelling...' : 'Cancel'}</Button>
                               </>
                             )}
                             {dashStatus === 'ongoing' && (
@@ -241,7 +267,8 @@ export default function DoctorDashboard() {
                             )}
                             {dashStatus === 'completed' && (
                               <>
-                                <Button onClick={() => navigate('/doctor/patients')} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>View Records</Button>
+                                <Button onClick={() => setPrescriptionDialog({ open: true, consultationId: appointment._id })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>View Prescription</Button>
+                                <Button onClick={() => setHistoryDialog({ open: true, patient: appointment.patient })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>View Records</Button>
                                 <Button size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Feedback</Button>
                               </>
                             )}
@@ -264,7 +291,6 @@ export default function DoctorDashboard() {
                 </Stack>
               </Box>
 
-              {/* Recent Patients */}
               <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                   <PeopleIcon />
@@ -274,15 +300,9 @@ export default function DoctorDashboard() {
                   {(data?.recentPatients || []).length ? (
                     data.recentPatients.map((patient) => (
                       <Box key={patient._id} sx={{ p: 1.6, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
-                        <Typography sx={{ fontSize: 15.5, fontWeight: 600 }}>
-                          {patient.full_name}
-                        </Typography>
-                        <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>
-                          {patient.specialization || 'Consultation'}
-                        </Typography>
-                        <Typography sx={{ color: colors.muted, fontSize: 13.5, mt: 0.5 }}>
-                          Last visit: {formatDate(patient.lastAppointmentDate)}
-                        </Typography>
+                        <Typography sx={{ fontSize: 15.5, fontWeight: 600 }}>{patient.full_name}</Typography>
+                        <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{patient.specialization || 'Consultation'}</Typography>
+                        <Typography sx={{ color: colors.muted, fontSize: 13.5, mt: 0.5 }}>Last visit: {formatDate(patient.lastAppointmentDate)}</Typography>
                       </Box>
                     ))
                   ) : (
@@ -291,7 +311,6 @@ export default function DoctorDashboard() {
                 </Stack>
               </Box>
 
-              {/* Notifications & Profile */}
               <Stack spacing={3}>
                 <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
@@ -310,43 +329,30 @@ export default function DoctorDashboard() {
                     )}
                   </Stack>
                 </Box>
-
                 <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                     <PrescriptionIcon />
                     <Typography sx={{ fontSize: 18 }}>Profile Snapshot</Typography>
                   </Stack>
-                  <Typography sx={{ fontSize: 15, color: colors.text }}>
-                    {data?.profile?.user?.full_name || 'Doctor'}
-                  </Typography>
-                  <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>
-                    {data?.profile?.doctor?.specialization || 'Specialization not added'}
-                  </Typography>
-                  <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>
-                    {data?.profile?.doctor?.hospitalName || 'Hospital not added'}
-                  </Typography>
-                  <Button sx={{ mt: 2, px: 2.2, py: 1, borderRadius: 2.4, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 14.5 }}>
-                    View Profile
-                  </Button>
+                  <Typography sx={{ fontSize: 15, color: colors.text }}>{data?.profile?.user?.full_name || 'Doctor'}</Typography>
+                  <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>{data?.profile?.doctor?.specialization || 'Specialization not added'}</Typography>
+                  <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>{data?.profile?.doctor?.hospitalName || 'Hospital not added'}</Typography>
+                  <Button onClick={() => navigate('/doctor/profile')} sx={{ mt: 2, px: 2.2, py: 1, borderRadius: 2.4, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 14.5, '&:hover': { bgcolor: '#f7f3ea' } }}>View Profile</Button>
                 </Box>
               </Stack>
             </Box>
           </>
         )}
       </Box>
-
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>{snackbar.message}</Alert>
       </Snackbar>
-
       <Dialog open={rescheduleData.open} onClose={() => setRescheduleData(p => ({ ...p, open: false }))} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 450 } }}>
         <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>Reschedule Consultation</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: colors.muted, mb: 3 }}>Move this session to another time based on your set availability.</Typography>
-          
           <Stack spacing={3}>
             <TextField label="Choose New Date" type="date" value={rescheduleData.date} onChange={(e) => handleDateChange(e.target.value)} InputLabelProps={{ shrink: true }} inputProps={{ min: new Date().toISOString().split('T')[0] }} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
-
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Select New Time</Typography>
               {rescheduleData.loadingSlots ? (
@@ -367,11 +373,11 @@ export default function DoctorDashboard() {
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
           <Button onClick={() => setRescheduleData(p => ({ ...p, open: false }))} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
-          <Button onClick={handleRescheduleSubmit} disabled={!rescheduleData.selectedSlot || rescheduleData.loadingSlots} variant="contained" sx={{ bgcolor: colors.green, borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: colors.green } }}>
-             {rescheduleData.loadingSlots ? 'Rescheduling...' : 'Confirm Reschedule'}
-          </Button>
+          <Button onClick={handleRescheduleSubmit} disabled={!rescheduleData.selectedSlot || rescheduleData.loadingSlots} variant="contained" sx={{ bgcolor: colors.green, borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: colors.green } }}>{rescheduleData.loadingSlots ? 'Rescheduling...' : 'Confirm Reschedule'}</Button>
         </DialogActions>
       </Dialog>
+      <PatientHistoryDialog open={historyDialog.open} onClose={() => setHistoryDialog(p => ({ ...p, open: false }))} patient={historyDialog.patient} />
+      <PrescriptionViewDialog open={prescriptionDialog.open} onClose={() => setPrescriptionDialog(p => ({ ...p, open: false }))} consultationId={prescriptionDialog.consultationId} />
     </DoctorLayout>
   );
 }

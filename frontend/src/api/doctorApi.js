@@ -10,5 +10,7 @@ export const generatePrescription = (data) =>
   API.post("/doctor/prescriptions/generate", data);
 export const fetchPatientHistory = (id) =>
   API.get(`/doctor/patients/${id}/history`);
+export const fetchPrescriptionByConsultation = (id) =>
+  API.get(`/doctor/prescriptions/consultation/${id}`);
 export const rescheduleAppointment = (id, newDate, newTime) =>
   API.patch(`/doctor/appointments/${id}/reschedule`, { newDate, newTime });

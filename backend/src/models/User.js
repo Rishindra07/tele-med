@@ -102,7 +102,7 @@ userSchema.pre("save", async function hashPassword() {
   this.password_hash = await bcrypt.hash(this.password_hash, 12);
 });
 
-userSchema.pre("validate", function applyApprovalDefaults() {
+userSchema.pre("validate", async function applyApprovalDefaults() {
   if (["patient", "admin"].includes(this.role) && this.is_approved === false) {
     this.is_approved = true;
   }

@@ -61,7 +61,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
       return {};
     }
   }, []);
-  const patientName = user?.name || 'Ramesh Kumar';
+  const patientName = user?.full_name || user?.name || 'Patient';
   const profileImage = user?.profileImage || user?.avatar || user?.image || '';
   const [language, setLanguage] = useState('EN');
   const settingsOpenDefault = activeSetting === 'settings';

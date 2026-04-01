@@ -148,6 +148,10 @@ const prescriptionSchema = new mongoose.Schema(
       trim: true,
       default: null
     },
+    followUpDate: {
+      type: Date,
+      default: null
+    },
     issuedAt: {
       type: Date,
       default: Date.now,
