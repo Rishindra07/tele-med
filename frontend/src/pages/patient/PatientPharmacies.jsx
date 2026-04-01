@@ -5,6 +5,7 @@ import {
   Chip,
   CircularProgress,
   InputAdornment,
+  IconButton,
   MenuItem,
   Stack,
   TextField,
@@ -242,10 +243,31 @@ export default function PatientPharmacies() {
     }
   };
 
-  const handleSendToPharmacy = async () => {
-    if (!selectedRx || !selectedPharmacy) return;
-    setSending(true);
+  const reverseGeocode = async (lat, lng) => {
     try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+      const data = await response.json();
+      if (data && data.address) {
+        const addr = data.address;
+        const village = addr.village || addr.town || addr.suburb || addr.neighbourhood || '';
+        const mandal = addr.county || addr.subdistrict || '';
+        const dist = addr.state_district || addr.county || '';
+        const state = addr.state || '';
+        const pincode = addr.postcode || '';
+        const fullParts = [village, mandal, dist, state, pincode].filter(Boolean);
+        return fullParts.join(', ');
+      }
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (err) {
+      console.error('Reverse geocode failed:', err);
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  };
+
+  const handleSendToPharmacy = async () => {
+    if (!selectedRx) return;
+    try {
+      setSending(true);
       const res = await assignPrescriptionToPharmacy({
         prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || selectedRx,
         pharmacyId: selectedPharmacy._id,
@@ -253,11 +275,14 @@ export default function PatientPharmacies() {
         deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null
       });
       if (res.success) {
-        setSnackbar({ open: true, message: 'Prescription sent to pharmacy!', severity: 'success' });
+        setSnackbar({ open: true, message: 'Prescription sent successfully!', severity: 'success' });
         setSendOpen(false);
+      } else {
+        setSnackbar({ open: true, message: res.message || 'Error occurred', severity: 'error' });
       }
     } catch (err) {
-      setSnackbar({ open: true, message: err.response?.data?.message || 'Failed to send prescription', severity: 'error' });
+      console.error(err);
+      setSnackbar({ open: true, message: 'Error occurred', severity: 'error' });
     } finally {
       setSending(false);
     }
@@ -695,6 +720,27 @@ export default function PatientPharmacies() {
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   placeholder="Enter your full address for delivery"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          size="small"
+                          title="Use current location"
+                          onClick={() => {
+                            if (navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition(async (pos) => {
+                                const { latitude, longitude } = pos.coords;
+                                const addrText = await reverseGeocode(latitude, longitude);
+                                setDeliveryAddress(addrText);
+                              });
+                            }
+                          }}
+                        >
+                          <LocationIcon sx={{ color: colors.primary }} />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
                   sx={{ mb: 2 }}
                 />
               ) : (
