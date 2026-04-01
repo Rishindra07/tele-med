@@ -435,7 +435,7 @@ export default function PatientPharmacies() {
                                  </Button>
                                )}
                                <Button variant="outlined" onClick={() => handleViewStock(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.primary, bgcolor: colors.primarySoft } }}>View Stock</Button>
-                               <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark } }}>Send Prescription</Button>
+                               <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, color: '#fff', '&:hover': { bgcolor: colors.primaryDark } }}>Send Prescription</Button>
                             </Stack>
                          </Box>
                       );
@@ -495,7 +495,7 @@ export default function PatientPharmacies() {
                               </Button>
                             )}
                             <Button size="small" variant="outlined" onClick={() => handleViewStock(p)} sx={{ fontSize: 11, py: 0.5 }}>Stock</Button>
-                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary }}>Send Rx</Button>
+                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary, color: '#fff' }}>Send Rx</Button>
                           </Stack>
                         </Box>
                       </Popup>
@@ -631,7 +631,7 @@ export default function PatientPharmacies() {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setStockOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Close</Button>
-          <Button variant="contained" onClick={() => { setStockOpen(false); handleOpenSend(viewingPharmacy); }} sx={{ textTransform: 'none', fontWeight: 600, bgcolor: colors.primary }}>Send Prescription</Button>
+          <Button variant="contained" onClick={() => { setStockOpen(false); handleOpenSend(viewingPharmacy); }} sx={{ textTransform: 'none', fontWeight: 600, bgcolor: colors.primary, color: '#fff' }}>Send Prescription</Button>
         </DialogActions>
       </Dialog>
 
@@ -715,7 +715,7 @@ export default function PatientPharmacies() {
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
           <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim())} sx={{ bgcolor: colors.primary, px: 3, borderRadius: 1.5 }}>
+          <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim())} sx={{ bgcolor: colors.primary, color: '#fff', px: 3, borderRadius: 1.5 }}>
             {sending ? 'Sending...' : 'Confirm & Place Order'}
           </Button>
         </DialogActions>
