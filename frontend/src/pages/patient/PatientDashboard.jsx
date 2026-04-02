@@ -372,7 +372,7 @@ function PatientDashboard() {
             <Box sx={{ p: 4, borderRadius: 2, bgcolor: c.text, color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', height: '100%' }}>
               <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.05)' }} />
               <Typography sx={{ fontSize: 20, fontWeight: 600, mb: 1.5, fontFamily: 'Inter, sans-serif' }}>AI Symptom Checker</Typography>
-              <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', mb: 3, lineHeight: 1.5 }}>
+              <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', mb: 1.5, lineHeight: 1.5 }}>
                 Not sure which specialist to see? Describe your symptoms and get instant guidance.
               </Typography>
               <Button onClick={() => navigate('/symptom-checker')} sx={{ width: '100%', py: 1.25, borderRadius: 1.5, bgcolor: '#ffffff', color: c.text, textTransform: 'none', fontSize: 15, fontWeight: 600, '&:hover': { bgcolor: '#f0f0f0' } }}>

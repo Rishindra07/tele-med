@@ -237,17 +237,16 @@ export default function SymptomChecker() {
         <Stack direction={{ xs: 'column', xl: 'row' }} spacing={3} alignItems="flex-start">
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} alignItems="flex-start">
-              <Box
-                sx={{
-                  flex: 1,
-                  width: '100%',
-                  p: 3,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                }}
-              >
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                  }}
+                >
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                   <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Describe your symptoms</Typography>
                   <Button onClick={clearAll} sx={{ color: colors.primary, textTransform: 'none', fontSize: 14 }}>
@@ -263,7 +262,7 @@ export default function SymptomChecker() {
                   onChange={(event) => setInput(event.target.value)}
                   placeholder="Type your symptoms here... e.g. 'I have a headache and fever since yesterday'"
                   sx={{
-                    mt: 2,
+                    mt: 1,
                     width: '100%',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1.5,
@@ -330,6 +329,177 @@ export default function SymptomChecker() {
                   ))}
                 </Stack>
               </Box>
+
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ width: '100%' }}>
+                <Box
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper, // Changed back to paper to be a distinct card
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                  }}
+                >
+                  <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
+                    How long have you had these symptoms?
+                  </Typography>
+                  <Stack spacing={1.5} sx={{ mt: 2 }}>
+                    {durationOptions.map((item) => (
+                      <Button
+                        key={item}
+                        onClick={() => setDuration(item)}
+                        sx={{
+                          justifyContent: 'flex-start',
+                          px: 2,
+                          py: 1,
+                          borderRadius: 1.5,
+                          border: `1px solid ${duration === item ? colors.primary : colors.line}`,
+                          bgcolor: duration === item ? colors.primarySoft : '#fff',
+                          color: duration === item ? colors.primaryDark : colors.text,
+                          textTransform: 'none',
+                          fontSize: 14,
+                          fontWeight: duration === item ? 600 : 400
+                        }}
+                      >
+                        {item}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Box>
+
+                <Box
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                  }}
+                >
+                  <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
+                    How severe are your symptoms?
+                  </Typography>
+                  <Stack direction="row" spacing={1} sx={{ mt: 3, mb: 2 }}>
+                    {[0, 1, 2].map((index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          flex: 1,
+                          height: 8,
+                          borderRadius: 1,
+                          bgcolor: severityBars[severity][index] ? colors.warning : colors.soft
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    {severityOptions.map((item) => (
+                      <Button 
+                        key={item}
+                        onClick={()=>setSeverity(item)}
+                        autoCapitalize="none"
+                        sx={{ p: 0, minWidth: 'auto', textTransform: 'none', color: severity === item ? colors.warning : colors.muted, fontSize: 13, fontWeight: severity === item ? 600 : 400 }}
+                      >
+                        {item}
+                      </Button>
+                    ))}
+                  </Stack>
+                  <Typography sx={{ mt: 2, color: colors.warning, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>
+                    {severity} selected
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || (!selected.length && !input.trim())}
+                startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SearchIcon />}
+                sx={{
+                  mt: 1,
+                  width: { xs: '100%', md: 'fit-content' },
+                  alignSelf: 'center',
+                  px: 6,
+                  py: 1.25,
+                  borderRadius: 1.5,
+                  bgcolor: colors.primary,
+                  color: '#fff',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  boxShadow: '0 4px 12px rgba(26,115,232,0.2)',
+                  '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 6px 16px rgba(26,115,232,0.3)' },
+                  '&:disabled': { bgcolor: colors.line, color: colors.muted }
+                }}
+              >
+                {loading ? 'Analysing...' : 'Analyse Symptoms with AI'}
+              </Button>
+
+              {result && (
+                <Box
+                  sx={{
+                    p: 4,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.primaryDark}`,
+                    bgcolor: colors.primarySoft,
+                    boxShadow: '0 4px 12px rgba(26,115,232,0.1)'
+                  }}
+                >
+                  <Typography sx={{ fontSize: 20, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>AI Analysis Result</Typography>
+                  <Typography sx={{ color: colors.primaryDark, fontSize: 14, mb: 3 }}>
+                    Source: {result.aiUsed || result.source}
+                  </Typography>
+                  
+                  <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 1.5, mb: 3, border: `1px solid ${colors.line}` }}>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
+                      Possible Conditions:
+                    </Typography>
+                    <Typography sx={{ fontSize: 15, color: colors.muted, mb: 2 }}>
+                      {result.prediction.conditions.join(', ')}
+                    </Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
+                      Severity Level:
+                    </Typography>
+                    <Chip 
+                      label={result.prediction.severity.toUpperCase()} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: result.prediction.severity === 'high' ? colors.dangerSoft : result.prediction.severity === 'medium' ? colors.warningSoft : colors.successSoft,
+                        color: result.prediction.severity === 'high' ? colors.danger : result.prediction.severity === 'medium' ? colors.warning : colors.success,
+                        fontWeight: 600,
+                        borderRadius: 1
+                      }} 
+                    />
+                  </Box>
+
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>Advice:</Typography>
+                  <Typography sx={{ color: colors.text, fontSize: 15, lineHeight: 1.6, mb: 3 }}>
+                    {result.prediction.advice}
+                  </Typography>
+
+                  {(result.immediateConsult || result.prediction.severity === 'medium' || result.prediction.severity === 'high') && (
+                    <Button
+                      onClick={() => navigate('/patient')}
+                      sx={{
+                        px: 4,
+                        py: 1.25,
+                        borderRadius: 1.5,
+                        bgcolor: colors.primary,
+                        color: '#fff',
+                        textTransform: 'none',
+                        fontSize: 15,
+                        fontWeight: 600,
+                        boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
+                        '&:hover': { bgcolor: colors.primaryDark }
+                      }}
+                    >
+                      Book Consultation Now
+                    </Button>
+                  )}
+                </Box>
+              )}
+            </Box>
 
               <Stack spacing={3} sx={{ width: { xs: '100%', lg: 330 }, flexShrink: 0 }}>
                 <Box
@@ -403,175 +573,9 @@ export default function SymptomChecker() {
               </Stack>
             </Stack>
 
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
-              <Box
-                sx={{
-                  width: { xs: '100%', md: 240 },
-                  p: 3,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                }}
-              >
-                <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
-                  How long have you had these symptoms?
-                </Typography>
-                <Stack spacing={1.5} sx={{ mt: 2 }}>
-                  {durationOptions.map((item) => (
-                    <Button
-                      key={item}
-                      onClick={() => setDuration(item)}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        px: 2,
-                        py: 1,
-                        borderRadius: 1.5,
-                        border: `1px solid ${duration === item ? colors.primary : colors.line}`,
-                        bgcolor: duration === item ? colors.primarySoft : '#fff',
-                        color: duration === item ? colors.primaryDark : colors.text,
-                        textTransform: 'none',
-                        fontSize: 14,
-                        fontWeight: duration === item ? 600 : 400
-                      }}
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </Stack>
-              </Box>
 
-              <Box
-                sx={{
-                  width: { xs: '100%', md: 260 },
-                  p: 3,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.line}`,
-                  bgcolor: colors.paper,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
-                }}
-              >
-                <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
-                  How severe are your symptoms?
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ mt: 3, mb: 2 }}>
-                  {[0, 1, 2].map((index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        flex: 1,
-                        height: 8,
-                        borderRadius: 1,
-                        bgcolor: severityBars[severity][index] ? colors.warning : colors.soft
-                      }}
-                    />
-                  ))}
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  {severityOptions.map((item) => (
-                    <Button 
-                      key={item}
-                      onClick={()=>setSeverity(item)}
-                      autoCapitalize="none"
-                      sx={{ p: 0, minWidth: 'auto', textTransform: 'none', color: severity === item ? colors.warning : colors.muted, fontSize: 13, fontWeight: severity === item ? 600 : 400 }}
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </Stack>
-                <Typography sx={{ mt: 2, color: colors.warning, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>
-                  {severity} selected
-                </Typography>
-              </Box>
-            </Stack>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={loading || (!selected.length && !input.trim())}
-              startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SearchIcon />}
-              sx={{
-                mt: 4,
-                width: { xs: '100%', md: 'auto' },
-                px: 4,
-                py: 1.5,
-                borderRadius: 1.5,
-                bgcolor: colors.primary,
-                color: '#fff',
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: 16,
-                boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
-                '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' },
-                '&:disabled': { bgcolor: colors.line, color: colors.muted }
-              }}
-            >
-              {loading ? 'Analysing...' : 'Analyse Symptoms with AI'}
-            </Button>
 
-            {result && (
-              <Box
-                sx={{
-                  mt: 4,
-                  p: 4,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.primaryDark}`,
-                  bgcolor: colors.primarySoft,
-                  boxShadow: '0 4px 12px rgba(26,115,232,0.1)'
-                }}
-              >
-                <Typography sx={{ fontSize: 20, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>AI Analysis Result</Typography>
-                <Typography sx={{ color: colors.primaryDark, fontSize: 14, mb: 3 }}>
-                  Source: {result.aiUsed || result.source}
-                </Typography>
-                
-                <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 1.5, mb: 3, border: `1px solid ${colors.line}` }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
-                    Possible Conditions:
-                  </Typography>
-                  <Typography sx={{ fontSize: 15, color: colors.muted, mb: 2 }}>
-                    {result.prediction.conditions.join(', ')}
-                  </Typography>
-                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
-                    Severity Level:
-                  </Typography>
-                  <Chip 
-                    label={result.prediction.severity.toUpperCase()} 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: result.prediction.severity === 'high' ? colors.dangerSoft : result.prediction.severity === 'medium' ? colors.warningSoft : colors.successSoft,
-                      color: result.prediction.severity === 'high' ? colors.danger : result.prediction.severity === 'medium' ? colors.warning : colors.success,
-                      fontWeight: 600,
-                      borderRadius: 1
-                    }} 
-                  />
-                </Box>
-
-                <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>Advice:</Typography>
-                <Typography sx={{ color: colors.text, fontSize: 15, lineHeight: 1.6, mb: 3 }}>
-                  {result.prediction.advice}
-                </Typography>
-
-                {(result.immediateConsult || result.prediction.severity === 'medium' || result.prediction.severity === 'high') && (
-                  <Button
-                    onClick={() => navigate('/patient')}
-                    sx={{
-                      px: 4,
-                      py: 1.25,
-                      borderRadius: 1.5,
-                      bgcolor: colors.primary,
-                      color: '#fff',
-                      textTransform: 'none',
-                      fontSize: 15,
-                      fontWeight: 600,
-                      boxShadow: '0 2px 4px rgba(26,115,232,0.2)',
-                      '&:hover': { bgcolor: colors.primaryDark }
-                    }}
-                  >
-                    Book Consultation Now
-                  </Button>
-                )}
-              </Box>
-            )}
           </Box>
         </Stack>
 
