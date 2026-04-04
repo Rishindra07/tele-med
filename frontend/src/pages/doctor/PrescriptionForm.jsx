@@ -3,7 +3,8 @@ import {
   Box, Typography, Paper, Grid, TextField, Button, Autocomplete, Chip, 
   Divider, IconButton, Snackbar, Alert, Card, CardContent, 
   ToggleButtonGroup, ToggleButton, Stack, Tooltip, Switch, FormControlLabel,
-  Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem
+  Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem,
+  Avatar
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -20,10 +21,12 @@ import {
   Sms as SmsIcon,
   VolumeUp as VolumeIcon,
   History as HistoryIcon,
-  ChevronLeft as BackIcon
+  ChevronLeft as BackIcon,
+  Dashboard as DashboardIcon
 } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 import { generatePrescription } from '../../api/doctorApi';
 
 const MEDICINE_OPTIONS = [
@@ -38,76 +41,105 @@ const LAB_TEST_OPTIONS = [
   'Urine Routine & Microscopy', 'Chest X-Ray', 'ECG', 'Ultrasound Abdomen'
 ];
 
+const colors = {
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  blue: '#4a90e2',
+  blueSoft: '#e7f0fe',
+  red: '#d9635b',
+  redSoft: '#fdeaea',
+  bg: '#f5f1e8',
+  white: '#ffffff',
+  shadow: '0 4px 20px rgba(0,0,0,0.05)'
+};
+
+const premiumTextFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    bgcolor: '#fff',
+    borderRadius: 3,
+    transition: '0.2s',
+    '& fieldset': { borderColor: colors.line },
+    '&:hover fieldset': { borderColor: colors.muted },
+    '&.Mui-focused fieldset': { borderColor: colors.green },
+    '&.Mui-focused': { boxShadow: '0 0 0 4px rgba(38, 163, 124, 0.08)' }
+  },
+  '& .MuiInputLabel-root': { color: colors.muted, fontSize: 13.5 },
+  '& .MuiInputLabel-root.Mui-focused': { color: colors.green },
+  '& .MuiOutlinedInput-input::placeholder': { color: colors.muted, opacity: 0.6 },
+  '& .MuiSelect-icon': { color: colors.muted },
+  '& .MuiAutocomplete-popupIndicator': { color: colors.muted },
+  '& .MuiAutocomplete-clearIndicator': { color: colors.muted },
+};
+
 const TRANSLATIONS = {
   en: {
     writePrescription: "Write Prescription",
-    patientInfo: "Patient Information",
     diagnosis: "Diagnosis / Symptoms",
-    allergies: "Known Allergies",
-    medicines: "Prescribed Medicines",
-    addMedicine: "Add Medicine",
-    medicineName: "Medicine Name",
-    dosage: "Dosage (e.g. 500mg)",
-    form: "Form",
-    frequency: "Frequency",
-    timing: "Timing",
-    timingMorning: "Morning",
-    timingAfternoon: "Afternoon",
-    timingNight: "Night",
-    beforeFood: "Before Food",
-    afterFood: "After Food",
-    duration: "Duration (Days)",
-    notes: "Notes / Advice",
-    labTests: "Lab Test Recommendations",
-    followUp: "Follow-Up Date",
-    preview: "Preview",
-    saveDraft: "Save Draft",
+    medications: "Medications",
+    labTests: "Lab Tests",
+    followUp: "Follow Up",
+    notes: "Notes",
     submit: "Send to Patient",
-    none: "None",
-    quickOptions: "Quick Options",
-    whatsapp: "Send via WhatsApp",
-    sms: "Send via SMS",
-    voice: "Voice Advice",
-    after7days: "After 7 Days",
-    after2weeks: "After 14 Days",
-    history: "History",
-    templates: "Templates",
-    interactionWarning: "Drug Interaction Warning",
+    preview: "Preview",
+    allergies: "Allergies",
+    addMedicine: "+ Add Medicine",
+    voice: "Voice Typing"
   },
   hi: {
     writePrescription: "नुस्खा लिखें",
-    patientInfo: "मरीज की जानकारी",
-    diagnosis: "निदान / लक्षण",
-    allergies: "एलर्जी",
-    medicines: "दवाएं",
-    addMedicine: "दवा जोड़ें",
-    medicineName: "दवा का नाम",
-    dosage: "खुराक (जैसे 500mg)",
-    form: "रूप",
-    frequency: "आवृत्ति",
-    timing: "समय",
-    timingMorning: "सुबह",
-    timingAfternoon: "दोपहर",
-    timingNight: "रात",
-    beforeFood: "खाने से पहले",
-    afterFood: "खाने के बाद",
-    duration: "अवधि (दिन)",
-    notes: "डॉक्टर की सलाह",
+    diagnosis: "रोग का निदान",
+    medications: "दवाएं",
     labTests: "लैब टेस्ट",
     followUp: "अगली मुलाकात",
+    notes: "टिप्पणियाँ",
+    submit: "रोगी को भेजें",
     preview: "पूर्वावलोकन",
-    saveDraft: "ड्राफ्ट सहेजें",
-    submit: "मरीज को भेजें",
-    none: "कोई नहीं",
-    quickOptions: "त्वरित विकल्प",
-    whatsapp: "WhatsApp पर भेजें",
-    sms: "SMS पर भेजें",
-    voice: "आवाज़ की सलाह",
-    after7days: "7 दिन बाद",
-    after2weeks: "14 दिन बाद",
-    history: "इतिहास",
-    templates: "टेम्पलेट्स",
-    interactionWarning: "दवाओं का परस्पर प्रभाव",
+    allergies: "एलर्जी",
+    addMedicine: "+ दवा जोड़ें",
+    voice: "बोलकर लिखें"
+  },
+  ta: {
+    writePrescription: "மருந்துச் சீட்டு எழுதவும்",
+    diagnosis: "நோய் கண்டறிதல்",
+    medications: "மருந்துகள்",
+    labTests: "ஆய்வக சோதனைகள்",
+    followUp: "தொடர் சிகிச்சை",
+    notes: "குறிப்புகள்",
+    submit: "நோயாளிக்கு அனுப்பவும்",
+    preview: "மருந்துச் சீட்டு முன்னோட்டம்",
+    allergies: "ஒவ்வாமை",
+    addMedicine: "+ மருந்து சேர்க்கவும்",
+    voice: "குரல் தட்டச்சு"
+  },
+  te: {
+    writePrescription: "మందుల చీటి వ్రాయండి",
+    diagnosis: "వ్యాధి నిర్ధారణ",
+    medications: "మందులు",
+    labTests: "ల్యాబ్ పరీక్షలు",
+    followUp: "తదుపరి చికిత్స",
+    notes: "గమనికలు",
+    submit: "రోగికి పంపండి",
+    preview: "ప్రిస్క్రిప్షన్ ప్రివ్యూ",
+    allergies: "అలెర్జీలు",
+    addMedicine: "+ మందును జోడించండి",
+    voice: "వాయిస్ టైపింగ్"
+  },
+  bn: {
+    writePrescription: "প্রেসক্রিপশন লিখুন",
+    diagnosis: "নিদান",
+    medications: "ওষুধ",
+    labTests: "ল্যাব পরীক্ষা",
+    followUp: "ফলো আপ",
+    notes: "নোট",
+    submit: "রোগীকে পাঠান",
+    preview: "প্রেসক্রিপশন প্রিভিউ",
+    allergies: "অ্যালার্জি",
+    addMedicine: "+ ওষুধ যোগ করুন",
+    voice: "ভয়েস টাইপিং"
   }
 };
 
@@ -115,9 +147,10 @@ export default function PrescriptionForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const appointment = location.state?.appointment;
+  const { language } = useLanguage();
 
   // Language state
-  const [lang, setLang] = useState('en');
+  const [lang, setLang] = useState(language || 'en');
   const t = TRANSLATIONS[lang];
 
   // States
@@ -150,6 +183,10 @@ export default function PrescriptionForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
+
+  useEffect(() => {
+    setLang(language);
+  }, [language]);
 
   useEffect(() => {
     if (!appointment) navigate('/doctor/appointments');
@@ -275,26 +312,41 @@ export default function PrescriptionForm() {
   };
 
   return (
-    <DoctorLayout title={t.writePrescription}>
-      <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 12 }}>
+    <DoctorLayout>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
         
         {/* Header Actions */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Button startIcon={<BackIcon />} onClick={() => navigate(-1)} variant="text" color="inherit">
-            Back
-          </Button>
-          <Stack direction="row" spacing={1}>
-            <Tooltip title={t.history}>
-              <IconButton color="primary"><HistoryIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title={t.templates}>
-              <IconButton color="primary"><AddIcon /></IconButton>
-            </Tooltip>
+          <Stack direction="row" spacing={3} alignItems="center">
             <Button 
-              variant="contained" 
-              startIcon={<TranslateIcon />} 
+              startIcon={<BackIcon />} 
+              onClick={() => navigate(-1)} 
+              sx={{ color: colors.muted, textTransform: 'none', fontWeight: '500', fontSize: 16 }}
+            >
+              Back
+            </Button>
+            <Typography sx={{ fontSize: 42, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+              {t.writePrescription}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box sx={{ px: 2, py: 1, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 15, fontWeight: 500 }}>
+               {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </Box>
+            <Button 
+              variant="outlined" 
+              startIcon={<TranslateIcon sx={{ fontSize: 20 }} />} 
               onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-              sx={{ borderRadius: 6, bgcolor: 'secondary.light', color: 'secondary.contrastText', '&:hover': { bgcolor: 'secondary.main' } }}
+              sx={{ 
+                borderRadius: 99, 
+                bgcolor: '#fff', 
+                color: colors.text, 
+                borderColor: colors.line,
+                textTransform: 'none',
+                fontWeight: '600',
+                px: 2,
+                '&:hover': { bgcolor: colors.bg, borderColor: colors.line }
+              }}
             >
               {lang === 'en' ? 'HI' : 'EN'}
             </Button>
@@ -302,405 +354,396 @@ export default function PrescriptionForm() {
         </Stack>
 
         {/* Patient Info Section */}
-        <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 6, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-          <Grid container spacing={3}>
+        <Box sx={{ p: 3, mb: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={7}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" fontWeight="800" letterSpacing="-0.5px" color="primary.dark">
-                  {patientInfo.name}
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8, mb: 2 }}>
-                  ID: {patientInfo.id} • {patientInfo.age} Yrs • {patientInfo.gender}
-                </Typography>
-                
-                <TextField 
-                  label="Patient Phone (for WhatsApp/SMS)"
-                  placeholder="+919999999999"
-                  value={patientInfo.phone}
-                  onChange={(e) => setPatientInfo({...patientInfo, phone: e.target.value})}
-                  size="small"
+              <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
+                <Avatar 
                   sx={{ 
-                    maxWidth: 300, 
-                    display: 'block',
-                    '& .MuiOutlinedInput-root': { borderRadius: 3 } 
+                    width: 72, 
+                    height: 72, 
+                    bgcolor: colors.greenSoft, 
+                    color: colors.green, 
+                    fontSize: 24, 
+                    fontWeight: 700,
+                    border: `1px solid ${colors.green}20` 
                   }}
-                  helperText={!patientInfo.phone ? "Phone required for sending digital copy" : ""}
-                  error={!patientInfo.phone}
-                />
-              </Box>
+                >
+                  {patientInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
+                    {patientInfo.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: colors.muted, mb: 1.5, fontSize: 15 }}>
+                    ID: {patientInfo.id} • {patientInfo.age} Yrs • {patientInfo.gender}
+                  </Typography>
+                  
+                  <TextField 
+                    placeholder="Patient Phone (for WhatsApp)"
+                    value={patientInfo.phone}
+                    onChange={(e) => setPatientInfo({...patientInfo, phone: e.target.value})}
+                    size="small"
+                    sx={{ ...premiumTextFieldSx, maxWidth: 280 }}
+                  />
+                  <Typography variant="caption" sx={{ display: 'block', mt: 0.8, color: colors.red, fontSize: 12 }}>
+                    Phone required for digital prescription sharing
+                  </Typography>
+                </Box>
+              </Stack>
               <TextField 
                 fullWidth 
-                label={t.diagnosis}
-                placeholder="e.g. Type 2 Diabetes, Hypertension"
+                placeholder="Initial Diagnosis / Observed Symptoms..."
                 multiline
                 rows={2}
                 value={patientInfo.diagnosis}
                 onChange={(e) => setPatientInfo({...patientInfo, diagnosis: e.target.value})}
-                variant="outlined"
-                sx={{ 
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
-                    bgcolor: '#F1F5F9'
-                  }
-                }}
+                sx={premiumTextFieldSx}
               />
             </Grid>
             <Grid item xs={12} md={5}>
-              <Box sx={{ p: 3, bgcolor: '#FFF1F2', borderRadius: 4, height: '100%', border: '1px solid #FECDD3' }}>
-                <Typography variant="subtitle1" fontWeight="bold" color="error.main" sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                  <span style={{ fontSize: '1.2rem', marginRight: '6px' }}>⚠️</span> {t.allergies}
+              <Box sx={{ 
+                p: 3, 
+                bgcolor: colors.redSoft, 
+                borderRadius: 3, 
+                height: '100%', 
+                border: `1px solid ${colors.red}20`,
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
+                <Typography variant="subtitle2" fontWeight="700" sx={{ color: colors.red, display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+                  <span style={{ fontSize: '1.2rem' }}>⚠️</span> {t.allergies.toUpperCase()}
                 </Typography>
-                <Divider sx={{ mb: 1.5, borderColor: '#FDA4AF', opacity: 0.5 }} />
-                <Typography variant="body1" fontWeight="500" color="error.dark">
-                  {patientInfo.allergies}
+                <Typography variant="body2" sx={{ color: colors.red, opacity: 0.9, mb: 2, fontSize: 15 }}>
+                  {patientInfo.allergies || "None reported"}
                 </Typography>
+                <Box sx={{ mt: 'auto' }}>
+                   <TextField 
+                    fullWidth 
+                    size="small"
+                    placeholder="Add documented allergy..."
+                    sx={premiumTextFieldSx}
+                  />
+                </Box>
               </Box>
             </Grid>
           </Grid>
-        </Paper>
+        </Box>
 
         {/* Medicine Section */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" fontWeight="800" color="text.primary">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight="700" color="text.primary">
             {t.medicines}
           </Typography>
-          <Chip label={`${medicines.length} Items`} color="secondary" size="small" sx={{ fontWeight: 'bold' }} />
+          <Chip label={`${medicines.length} Item${medicines.length > 1 ? 's' : ''}`} sx={{ bgcolor: colors.green, color: colors.white, fontWeight: 'bold', px: 1, height: 24 }} />
         </Box>
 
         {medicines.map((med, index) => (
-          <Card key={med.id} 
-            elevation={0} 
+          <Box key={med.id} 
             sx={{ 
-              mb: 3, 
-              borderRadius: 6, 
-              border: '1px solid #E2E8F0', 
-              overflow: 'visible', 
-              position: 'relative', 
-              transition: 'all 0.2s',
-              '&:hover': { 
-                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.08)',
-                borderColor: 'secondary.main'
-              } 
+              p: 3, 
+              mb: 2, 
+              borderRadius: 3.5, 
+              bgcolor: colors.paper, 
+              border: `1px solid ${colors.line}`,
+              position: 'relative',
+              transition: '0.2s',
+              '&:hover': { boxShadow: colors.shadow }
             }}
           >
-            <Box sx={{ position: 'absolute', right: -12, top: -12, zIndex: 1 }}>
-              <IconButton 
-                size="large" 
-                onClick={() => removeMedicine(med.id)}
-                sx={{ 
-                  bgcolor: '#FFFFFF', 
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #E2E8F0', 
-                  color: 'error.main', 
-                  '&:hover': { bgcolor: '#FEE2E2', transform: 'scale(1.1)' } 
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Box>
-            <CardContent sx={{ p: 4 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={5}>
-                  <Autocomplete
-                    freeSolo
-                    options={MEDICINE_OPTIONS}
-                    value={med.name}
-                    onInputChange={(e, val) => updateMedicine(med.id, 'name', val)}
-                    renderInput={(params) => <TextField {...params} label={`${t.medicineName} ${index + 1}`} fullWidth variant="outlined" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />}
-                  />
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <TextField 
-                    fullWidth 
-                    label={t.dosage}
-                    placeholder="e.g. 500mg"
-                    value={med.dosage}
-                    onChange={(e) => updateMedicine(med.id, 'dosage', e.target.value)}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
-                    <InputLabel>{t.form}</InputLabel>
-                    <Select
-                      value={med.form}
-                      label={t.form}
-                      onChange={(e) => updateMedicine(med.id, 'form', e.target.value)}
-                    >
-                      <MenuItem value="Tablet">Tablet (टेबलेट)</MenuItem>
-                      <MenuItem value="Syrup">Syrup (सिरप)</MenuItem>
-                      <MenuItem value="Capsule">Capsule (कैप्सूल)</MenuItem>
-                      <MenuItem value="Injection">Injection (इंजेक्शन)</MenuItem>
-                      <MenuItem value="Cream">Cream (क्रीम)</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: 4, border: '1px solid #F1F5F9' }}>
-                    <Typography variant="subtitle2" fontWeight="700" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                      <SunIcon fontSize="small" sx={{ mr: 1, color: 'warning.main' }} /> {t.timing}
-                    </Typography>
-                    <Stack direction="row" spacing={2} justifyContent="space-around">
-                      <Tooltip title={t.timingMorning}>
-                        <IconButton 
-                          onClick={() => updateTiming(med.id, 'morning')}
-                          sx={{ 
-                            p: 2,
-                            bgcolor: med.timing.morning ? 'warning.light' : 'transparent',
-                            color: med.timing.morning ? 'warning.dark' : 'text.disabled',
-                            border: '1px solid', 
-                            borderColor: med.timing.morning ? 'warning.main' : '#E2E8F0',
-                            borderRadius: '30%'
-                          }}
-                        >
-                          <SunIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={t.timingAfternoon}>
-                        <IconButton 
-                          onClick={() => updateTiming(med.id, 'afternoon')}
-                          sx={{ 
-                            p: 2,
-                            bgcolor: med.timing.afternoon ? 'orange' : 'transparent',
-                            color: med.timing.afternoon ? 'white' : 'text.disabled',
-                            border: '1px solid', 
-                            borderColor: med.timing.afternoon ? 'orange' : '#E2E8F0',
-                            borderRadius: '30%'
-                          }}
-                        >
-                          <AfternoonIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={t.timingNight}>
-                        <IconButton 
-                          onClick={() => updateTiming(med.id, 'night')}
-                          sx={{ 
-                            p: 2,
-                            bgcolor: med.timing.night ? 'primary.main' : 'transparent',
-                            color: med.timing.night ? 'white' : 'text.disabled',
-                            border: '1px solid', 
-                            borderColor: med.timing.night ? 'primary.dark' : '#E2E8F0',
-                            borderRadius: '30%'
-                          }}
-                        >
-                          <MoonIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={2}>
-                    <ToggleButtonGroup
-                      value={med.food}
-                      exclusive
-                      onChange={(e, val) => val && updateMedicine(med.id, 'food', val)}
-                      fullWidth
-                      color="secondary"
-                      sx={{ '& .MuiToggleButton-root': { borderRadius: 3, textTransform: 'none', py: 1.5, fontWeight: '700' } }}
-                    >
-                      <ToggleButton value="Before Food">{t.beforeFood}</ToggleButton>
-                      <ToggleButton value="After Food">{t.afterFood}</ToggleButton>
-                    </ToggleButtonGroup>
-
-                    <Grid container spacing={2}>
-                       <Grid item xs={6}>
-                          <TextField 
-                            fullWidth 
-                            label={t.duration}
-                            type="number"
-                            value={med.duration}
-                            onChange={(e) => updateMedicine(med.id, 'duration', e.target.value)}
-                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
-                          />
-                       </Grid>
-                       <Grid item xs={6}>
-                          <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}>
-                            <InputLabel>{t.frequency}</InputLabel>
-                            <Select
-                              value={med.frequency}
-                              label={t.frequency}
-                              onChange={(e) => updateMedicine(med.id, 'frequency', e.target.value)}
-                            >
-                              <MenuItem value="Daily">Daily</MenuItem>
-                              <MenuItem value="Twice Daily">Twice Daily</MenuItem>
-                              <MenuItem value="Thrice Daily">Thrice Daily</MenuItem>
-                              <MenuItem value="Weekly">Weekly</MenuItem>
-                              <MenuItem value="SOS">SOS</MenuItem>
-                            </Select>
-                          </FormControl>
-                       </Grid>
-                    </Grid>
-                  </Stack>
-                </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={5}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Medicine Name</Typography>
+                <Autocomplete
+                  freeSolo
+                  options={MEDICINE_OPTIONS}
+                  value={med.name}
+                  onInputChange={(e, val) => updateMedicine(med.id, 'name', val)}
+                  renderInput={(params) => <TextField {...params} placeholder="e.g. Paracetamol" fullWidth sx={premiumTextFieldSx} />}
+                />
               </Grid>
-            </CardContent>
-          </Card>
+              <Grid item xs={12} md={3}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Dosage</Typography>
+                <TextField 
+                  fullWidth 
+                  placeholder="e.g. 500mg"
+                  value={med.dosage}
+                  onChange={(e) => updateMedicine(med.id, 'dosage', e.target.value)}
+                  sx={premiumTextFieldSx}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Stack direction="row" spacing={1} alignItems="flex-end">
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Form</Typography>
+                    <FormControl fullWidth sx={premiumTextFieldSx}>
+                      <Select
+                        value={med.form}
+                        onChange={(e) => updateMedicine(med.id, 'form', e.target.value)}
+                        displayEmpty
+                      >
+                        <MenuItem value="Tablet">Tablet (टेबलेट)</MenuItem>
+                        <MenuItem value="Syrup">Syrup (सिरप)</MenuItem>
+                        <MenuItem value="Capsule">Capsule (कैप्सूल)</MenuItem>
+                        <MenuItem value="Injection">Injection (इंजेक्शन)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                  {medicines.length > 1 && (
+                    <IconButton 
+                      onClick={() => removeMedicine(med.id)}
+                      sx={{ mb: 0.5, color: colors.muted, '&:hover': { color: colors.red, bgcolor: colors.redSoft } }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </Stack>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Timing</Typography>
+                <Stack direction="row" spacing={1.5}>
+                  {[
+                    { key: 'morning', icon: '🌅', color: '#fbbf24', bg: '#fffbeb' },
+                    { key: 'afternoon', icon: '🌞', color: '#fb923c', bg: '#fff7ed' },
+                    { key: 'night', icon: '🌙', color: '#818cf8', bg: '#eef2ff' }
+                  ].map((t) => (
+                    <Button 
+                      key={t.key}
+                      onClick={() => updateTiming(med.id, t.key)}
+                      sx={{ 
+                        minWidth: 0, 
+                        flex: 1,
+                        py: 1.5,
+                        border: '2px solid',
+                        borderColor: med.timing[t.key] ? t.color : colors.line,
+                        bgcolor: med.timing[t.key] ? t.bg : '#fff',
+                        borderRadius: 3, 
+                        fontSize: '1.4rem',
+                        transition: '0.2s',
+                        '&:hover': { borderColor: t.color, bgcolor: t.bg }
+                      }}
+                    >
+                      {t.icon}
+                    </Button>
+                  ))}
+                </Stack>
+              </Grid>
+              
+              <Grid item xs={12} md={2}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Duration (Days)</Typography>
+                <TextField 
+                  fullWidth 
+                  value={med.duration}
+                  onChange={(e) => updateMedicine(med.id, 'duration', e.target.value)}
+                  sx={premiumTextFieldSx}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={3}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Frequency</Typography>
+                <FormControl fullWidth sx={premiumTextFieldSx}>
+                  <Select
+                    value={med.frequency}
+                    onChange={(e) => updateMedicine(med.id, 'frequency', e.target.value)}
+                  >
+                    <MenuItem value="Daily">Daily</MenuItem>
+                    <MenuItem value="Twice Daily">Twice Daily</MenuItem>
+                    <MenuItem value="Thrice Daily">Thrice Daily</MenuItem>
+                    <MenuItem value="SOS">SOS</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} md={3}>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Food</Typography>
+                <FormControl fullWidth sx={premiumTextFieldSx}>
+                  <Select
+                    value={med.food}
+                    onChange={(e) => updateMedicine(med.id, 'food', e.target.value)}
+                  >
+                    <MenuItem value="Before Food">Before Food</MenuItem>
+                    <MenuItem value="After Food">After Food</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Box>
         ))}
 
         <Button 
-          variant="outlined" 
+          variant="text" 
           fullWidth 
           startIcon={<AddIcon />} 
           onClick={handleAddMedicine}
           sx={{ 
-            py: 3, 
-            borderRadius: 6, 
-            border: '2px dashed #CBD5E1', 
-            color: 'text.secondary',
-            fontWeight: 'bold',
-            fontSize: '1.1rem',
-            '&:hover': { border: '2px solid', borderColor: 'secondary.main', bgcolor: '#F1F5F9', color: 'secondary.main' }
+            py: 2, 
+            borderRadius: 3.5, 
+            bgcolor: colors.paper, 
+            color: colors.muted,
+            border: `1px dashed ${colors.line}`,
+            textTransform: 'none',
+            fontSize: 16,
+            fontWeight: 600,
+            '&:hover': { bgcolor: '#f1eee7', borderColor: colors.muted }
           }}
         >
           {t.addMedicine}
         </Button>
 
         {/* Labs and Follow Up */}
-        <Grid container spacing={4} sx={{ mt: 4 }}>
+        <Grid container spacing={3} sx={{ mt: 1 }}>
           <Grid item xs={12} md={6}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 6, border: '1px solid #E2E8F0', height: '100%', bgcolor: '#FFFFFF' }}>
-              <Typography variant="h6" fontWeight="800" sx={{ mb: 3 }}>🧪 {t.labTests}</Typography>
+            <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+              <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+                <span style={{ fontSize: '1.2rem' }}>📋</span> {t.labTests}
+              </Typography>
               <Autocomplete
                 multiple
                 options={LAB_TEST_OPTIONS}
                 value={labTests}
                 onChange={(e, val) => setLabTests(val)}
-                renderInput={(params) => <TextField {...params} variant="outlined" placeholder="Search tests..." sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />}
+                renderInput={(params) => <TextField {...params} placeholder="Search recommended tests..." sx={premiumTextFieldSx} />}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip key={index} label={option} {...getTagProps({ index })} color="secondary" variant="filled" sx={{ borderRadius: 1.5, fontWeight: '600' }} />
+                    <Chip key={index} label={option} {...getTagProps({ index })} sx={{ bgcolor: colors.green, color: colors.white, borderRadius: 2, fontWeight: '600' }} />
                   ))
                 }
               />
-            </Paper>
+            </Box>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 6, border: '1px solid #E2E8F0', height: '100%', bgcolor: '#FFFFFF' }}>
-              <Typography variant="h6" fontWeight="800" sx={{ mb: 3 }}>🗓️ {t.followUp}</Typography>
+            <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+              <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+                <span style={{ fontSize: '1.2rem' }}>🗓️</span> {t.followUp}
+              </Typography>
               <TextField 
                 type="date" 
                 fullWidth 
-                InputLabelProps={{ shrink: true }}
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
-                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+                sx={{ ...premiumTextFieldSx, mb: 2.5 }}
               />
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Chip label={t.after7days} onClick={() => {
-                  const d = new Date(); d.setDate(d.getDate() + 7);
-                  setFollowUp(d.toISOString().split('T')[0]);
-                }} 
-                  sx={{ cursor: 'pointer', mb: 1 }}
-                />
-                <Chip label={t.after2weeks} onClick={() => {
-                  const d = new Date(); d.setDate(d.getDate() + 14);
-                  setFollowUp(d.toISOString().split('T')[0]);
-                }} 
-                  sx={{ cursor: 'pointer', mb: 1 }}
-                />
+                {[
+                  { label: "7 Days", days: 7 },
+                  { label: "14 Days", days: 14 },
+                  { label: "1 Month", days: 30 }
+                ].map((opt) => (
+                  <Chip 
+                    key={opt.label}
+                    label={opt.label} 
+                    onClick={() => {
+                      const d = new Date(); d.setDate(d.getDate() + opt.days);
+                      setFollowUp(d.toISOString().split('T')[0]);
+                    }} 
+                    variant="outlined"
+                    sx={{ 
+                      borderRadius: 2, 
+                      px: 0.5,
+                      color: colors.text, 
+                      borderColor: colors.line,
+                      fontWeight: 600,
+                      '&:hover': { bgcolor: colors.bg, borderColor: colors.muted }
+                    }}
+                  />
+                ))}
               </Stack>
-            </Paper>
+            </Box>
           </Grid>
         </Grid>
 
         {/* Notes */}
-        <Paper elevation={0} sx={{ p: 4, mt: 4, borderRadius: 6, border: '1px solid #E2E8F0', bgcolor: '#FFFFFF' }}>
+        <Box sx={{ p: 3, mt: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h6" fontWeight="800">📝 {t.notes}</Typography>
-            <IconButton onClick={handleSpeak} sx={{ bgcolor: 'secondary.light', color: 'secondary.contrastText', '&:hover': { bgcolor: 'secondary.main' } }} size="small">
+            <Typography variant="subtitle2" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+              <span style={{ fontSize: '1.2rem' }}>📝</span> {t.notes}
+            </Typography>
+            <IconButton 
+              onClick={handleSpeak} 
+              sx={{ 
+                bgcolor: colors.blueSoft, 
+                color: colors.blue, 
+                '&:hover': { bgcolor: '#dbeafe' },
+                borderRadius: 2.5
+              }} 
+              size="small"
+            >
               <Tooltip title={t.voice}><VolumeIcon fontSize="small" /></Tooltip>
             </IconButton>
           </Stack>
           <TextField 
             fullWidth 
             multiline 
-            rows={5} 
-            placeholder="e.g. Drink plenty of water (8-10 glasses). Avoid fried and spicy food for 3 days. Take rest."
+            rows={4} 
+            placeholder="Additional advice (e.g. Diet restrictions, physical rest, hydration)..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#FAFAFA' } }}
+            sx={premiumTextFieldSx}
           />
-        </Paper>
+        </Box>
 
-        {/* Floating Action Bar */}
         <Box sx={{ 
           position: 'fixed', 
-          bottom: 24, 
-          left: '50%', 
+          bottom: 32, 
+          left: { lg: 'calc(50% + 160px)', xs: '50%' },
           transform: 'translateX(-50%)', 
-          width: { xs: '90%', md: '80%', lg: '1000px' },
-          bgcolor: 'rgba(255, 255, 255, 0.95)', 
-          backdropFilter: 'blur(10px)', 
-          borderRadius: 8,
-          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
-          border: '1px solid rgba(226, 232, 240, 0.8)',
-          p: 2,
+          width: { xs: '90%', md: '80%', lg: '800px' },
+          bgcolor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: 4,
+          p: 1.5,
           zIndex: 1100,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          transition: 'all 0.3s ease-in-out',
-          '&:hover': { boxShadow: '0 25px 50px -12px rgba(0,0,0,0.2)' }
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(216, 208, 196, 0.4)',
         }}>
-          <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+          <Stack direction="row" spacing={1}>
             <Button 
               variant="text" 
               startIcon={<PreviewIcon />} 
               onClick={() => setShowPreview(true)} 
-              sx={{ borderRadius: 4, px: 3, fontWeight: '700' }}
+              sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
             >
-              {t.preview}
+              Preview
             </Button>
             <Button 
               variant="text" 
               startIcon={<SaveIcon />} 
-              sx={{ borderRadius: 4, px: 3, fontWeight: '700' }}
+              sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
             >
-              {t.saveDraft}
+              Save Draft
             </Button>
           </Stack>
           
-          <Stack direction="row" spacing={2} sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: 'flex-end' }}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Tooltip title={t.whatsapp}>
-                <IconButton 
-                  onClick={() => handleSubmit('whatsapp')}
-                  sx={{ bgcolor: '#DCF8C6', color: '#075E54', '&:hover': { bgcolor: '#25D366', color: 'white' } }}
-                >
-                  <WhatsAppIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={t.sms}>
-                <IconButton 
-                  onClick={() => handleSubmit('sms')}
-                  sx={{ bgcolor: '#E0F2FE', color: '#0284C7', '&:hover': { bgcolor: '#0EA5E9', color: 'white' } }}
-                >
-                  <SmsIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Tooltip title="Send via SMS">
+              <IconButton sx={{ color: colors.blue, bgcolor: colors.blueSoft, borderRadius: 2.5, '&:hover': { bgcolor: '#dbeafe' } }}>
+                <SmsIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
             
             <Button 
               variant="contained" 
-              color="secondary" 
-              size="large"
-              startIcon={loading ? null : <SendIcon />} 
               onClick={handleSubmit}
               disabled={loading}
+              startIcon={!loading && <SendIcon />}
               sx={{ 
-                borderRadius: 4, 
-                px: 6, 
-                fontWeight: '900', 
-                fontSize: '1rem',
-                letterSpacing: '1px',
-                boxShadow: '0 10px 15px -3px rgba(109, 40, 217, 0.3)',
-                '&:hover': { boxShadow: '0 20px 25px -5px rgba(109, 40, 217, 0.4)', transform: 'translateY(-2px)' }
+                borderRadius: 2.5, 
+                px: 4, 
+                py: 1.25,
+                bgcolor: colors.green,
+                color: '#fff',
+                textTransform: 'none',
+                fontWeight: '700',
+                boxShadow: '0 4px 12px rgba(38, 163, 124, 0.25)',
+                '&:hover': { bgcolor: '#1f8c6a', boxShadow: '0 6px 16px rgba(38, 163, 124, 0.35)' },
+                '&.Mui-disabled': { bgcolor: colors.line }
               }}
             >
-              {loading ? 'WAITING...' : t.submit.toUpperCase()}
+              {loading ? 'Processing...' : t.submit}
             </Button>
           </Stack>
         </Box>
@@ -712,89 +755,97 @@ export default function PrescriptionForm() {
         onClose={() => setShowPreview(false)} 
         maxWidth="md" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: 8, overflow: 'hidden' } }}
+        PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', bgcolor: '#fff' } }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'primary.dark', color: 'white', py: 3 }}>
-          <Typography variant="h5" fontWeight="900">{t.preview} RX</Typography>
-          <IconButton onClick={() => setShowPreview(false)} sx={{ color: 'white' }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2.5, px: 4, borderBottom: `1px solid ${colors.line}` }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'Georgia, serif' }}>{t.preview}</Typography>
+          <IconButton onClick={() => setShowPreview(false)} size="small" sx={{ bgcolor: colors.bg }}>
             <BackIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ p: 0 }}>
-          <Box sx={{ p: 5, bgcolor: '#FFFFFF', minHeight: '600px' }}>
+        <DialogContent sx={{ p: 0, bgcolor: colors.bg }}>
+          <Box sx={{ p: 4, bgcolor: '#fff', m: { xs: 1, md: 3 }, borderRadius: 3, border: `1px solid ${colors.line}`, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
              {/* Prescription Header */}
-             <Stack direction="row" justifyContent="space-between" sx={{ mb: 6 }}>
+             <Stack direction="row" justifyContent="space-between" sx={{ mb: 4 }}>
                 <Box>
-                  <Typography variant="h4" fontWeight="900" color="primary.main">TeleMediRural</Typography>
-                  <Typography variant="body2" color="text.secondary">Healthcare at your doorstep</Typography>
+                  <Typography variant="h4" fontWeight="800" color={colors.green} sx={{ fontFamily: 'Georgia, serif', letterSpacing: -0.5 }}>Seva TeleHealth</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: 0.5 }}>Healing through connection</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="h6" fontWeight="bold">Dr. Sharma</Typography>
-                  <Typography variant="body2" color="text.secondary">Reg No: 123456</Typography>
-                  <Typography variant="body2" color="text.secondary">MBBS, MD</Typography>
+                  <Typography variant="h6" fontWeight="700">Dr. Sharma</Typography>
+                  <Typography variant="caption" sx={{ display: 'block', color: colors.muted }}>Reg No: 123456 • MBBS, MD</Typography>
+                  <Typography variant="caption" sx={{ display: 'block', color: colors.muted }}>Seva City Hospital, Bengaluru</Typography>
                 </Box>
              </Stack>
              
-             <Divider sx={{ mb: 4, borderStyle: 'dashed' }} />
+             <Divider sx={{ mb: 4, borderColor: colors.line }} />
              
              {/* Patient Overview */}
              <Grid container spacing={2} sx={{ mb: 4 }}>
                 <Grid item xs={8}>
-                   <Typography variant="h5" fontWeight="800">{patientInfo.name}</Typography>
-                   <Typography variant="body1">{patientInfo.age}Y • {patientInfo.gender} • ID: {patientInfo.id}</Typography>
+                   <Typography variant="subtitle1" fontWeight="800" sx={{ mb: 0.5 }}>{patientInfo.name}</Typography>
+                   <Typography variant="body2" color="text.secondary">AGE: {patientInfo.age}Y • {patientInfo.gender} • ID: {patientInfo.id}</Typography>
                 </Grid>
                 <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                   <Typography variant="body1"><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                   <Typography variant="body2"><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
                 </Grid>
              </Grid>
 
-             <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'error.main', mb: 3 }}>
-               ⚠️ ALLERGIES: {patientInfo.allergies || 'NONE'}
-             </Typography>
-
-             <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" fontWeight="800" color="primary.main" gutterBottom>DIAGNOSIS</Typography>
-                <Typography variant="body1" sx={{ p: 2, bgcolor: '#F8FAFC', borderRadius: 2 }}>{patientInfo.diagnosis || '--'}</Typography>
+             <Box sx={{ mb: 3, p: 2, bgcolor: colors.redSoft, borderRadius: 2, border: `1px solid ${colors.redBorder}` }}>
+                <Typography variant="caption" fontWeight="700" sx={{ color: colors.redText, display: 'block', mb: 0.5 }}>⚠️ ALLERGIES</Typography>
+                <Typography variant="body2" sx={{ color: colors.redText }}>{patientInfo.allergies || 'NONE REPORTED'}</Typography>
              </Box>
 
-             <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" fontWeight="800" color="primary.main" sx={{ mb: 2 }}>MEDICATIONS (℞)</Typography>
+             <Box sx={{ mb: 3 }}>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>DIAGNOSIS / SYMPTOMS</Typography>
+                <Typography variant="body2" sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>{patientInfo.diagnosis || '--'}</Typography>
+             </Box>
+
+             <Box sx={{ mb: 3 }}>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>MEDICATIONS (Rx)</Typography>
                 {medicines.map((m, i) => (
-                  <Box key={i} sx={{ mb: 2, p: 2, borderBottom: '1px solid #F1F5F9' }}>
-                    <Stack direction="row" justifyContent="space-between">
-                       <Typography variant="subtitle1" fontWeight="bold"># {i+1} {m.name}</Typography>
-                       <Typography variant="subtitle2" fontWeight="bold">{m.dosage} • {m.duration} Days</Typography>
+                  <Box key={i} sx={{ mb: 1, p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                       <Box>
+                         <Typography variant="body2" fontWeight="700">{i+1}. {m.name}</Typography>
+                         <Typography variant="caption" color="text.secondary">
+                            {m.form} • {m.frequency} • {m.food}
+                         </Typography>
+                       </Box>
+                       <Typography variant="caption" fontWeight="700">{m.dosage} • {m.duration} Days</Typography>
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                       {m.form} • {m.frequency} • {m.food} • Timing: {Object.keys(m.timing).filter(k => m.timing[k]).map(k => k.toUpperCase()).join('-')}
+                    <Typography variant="caption" sx={{ display: 'block', mt: 1, color: colors.muted }}>
+                       Timing: {Object.keys(m.timing).filter(k => m.timing[k]).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(', ')}
                     </Typography>
                   </Box>
                 ))}
              </Box>
 
-             <Grid container spacing={4}>
+             <Grid container spacing={2}>
                 <Grid item xs={6}>
-                   <Typography variant="h6" fontWeight="800" color="primary.main" gutterBottom>LAB TESTS</Typography>
-                   <Stack direction="row" flexWrap="wrap" gap={1}>
-                      {labTests.map((t, index) => <Chip key={index} label={t} size="small" variant="outlined" />)}
-                      {labTests.length === 0 && <Typography variant="body2">None prescribed</Typography>}
+                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>LAB TESTS</Typography>
+                   <Stack direction="row" flexWrap="wrap" gap={0.5}>
+                      {labTests.map((t, index) => <Chip key={index} label={t} size="small" variant="outlined" sx={{ borderRadius: 1 }} />)}
+                      {labTests.length === 0 && <Typography variant="caption">None prescribed</Typography>}
                    </Stack>
                 </Grid>
                 <Grid item xs={6}>
-                   <Typography variant="h6" fontWeight="800" color="primary.main" gutterBottom>FOLLOW UP</Typography>
-                   <Typography variant="body1">{followUp || 'Not scheduled'}</Typography>
+                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>FOLLOW UP</Typography>
+                   <Typography variant="body2" fontWeight="600">{followUp ? new Date(followUp).toLocaleDateString() : 'Not scheduled'}</Typography>
                 </Grid>
              </Grid>
 
-             <Box sx={{ mt: 4 }}>
-                <Typography variant="h6" fontWeight="800" color="primary.main" gutterBottom>INSTRUCTIONS</Typography>
-                <Typography variant="body1" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>{notes || 'No additional instructions.'}</Typography>
+             <Box sx={{ mt: 3 }}>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>NOTES / ADVICE</Typography>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>{notes || 'No additional instructions.'}</Typography>
              </Box>
              
-             <Box sx={{ mt: 10, textAlign: 'right' }}>
-                <Divider sx={{ mb: 1, width: '200px', ml: 'auto' }} />
-                <Typography variant="subtitle2">Digital Signature</Typography>
-                <Typography variant="h6" fontWeight="bold">Dr. Sharma</Typography>
+             <Box sx={{ mt: 6, textAlign: 'right' }}>
+                <Box sx={{ display: 'inline-block', textAlign: 'center' }}>
+                  <Divider sx={{ mb: 1, width: '150px' }} />
+                  <Typography variant="caption" color="text.secondary">Digital Signature</Typography>
+                  <Typography variant="subtitle2" fontWeight="700">Dr. Sharma</Typography>
+                </Box>
              </Box>
           </Box>
         </DialogContent>

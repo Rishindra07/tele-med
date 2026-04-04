@@ -18,6 +18,7 @@ import {
   LanguageRounded as LanguageIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
   bg: '#f5f1e8',
@@ -35,36 +36,36 @@ const colors = {
 
 const NAV_SECTIONS = [
   {
-    title: 'OVERVIEW',
+    titleKey: 'overview',
     items: [
-      { text: 'Dashboard', icon: DashboardIcon, path: '/admin' },
-      { text: 'Analytics', icon: AnalyticsIcon, path: '/admin/analytics' }
+      { textKey: 'dashboard', icon: DashboardIcon, path: '/admin' },
+      { textKey: 'analytics', icon: AnalyticsIcon, path: '/admin/analytics' }
     ]
   },
   {
-    title: 'PLATFORM',
+    titleKey: 'platform',
     items: [
-      { text: 'Patients', icon: PatientsIcon, path: '/admin/patients', badge: '12.4K', badgeColor: colors.green },
-      { text: 'Doctors', icon: DoctorsIcon, path: '/admin/doctors', badge: 'Pending', badgeColor: colors.orange },
-      { text: 'Pharmacies', icon: PharmaciesIcon, path: '/admin/pharmacies' },
-      { text: 'Consultations', icon: ConsultationsIcon, path: '/admin/consultations', badge: '924', badgeColor: colors.blue }
+      { textKey: 'patients', icon: PatientsIcon, path: '/admin/patients', badge: '12.4K', badgeColor: colors.green },
+      { textKey: 'doctors', icon: DoctorsIcon, path: '/admin/doctors', badge: 'Pending', badgeColor: colors.orange },
+      { textKey: 'pharmacies', icon: PharmaciesIcon, path: '/admin/pharmacies' },
+      { textKey: 'consultations', icon: ConsultationsIcon, path: '/admin/consultations', badge: '924', badgeColor: colors.blue }
     ]
   },
   {
-    title: 'INSIGHTS & FINANCES',
+    titleKey: 'insights_finances',
     items: [
-      { text: 'Health records', icon: RecordsIcon, path: '/admin/records' },
-      { text: 'Financial', icon: FinanceIcon, path: '/admin/financials', badge: '3', badgeColor: colors.red, badgeTextColor: '#fff' },
-      { text: 'Reports', icon: ReportsIcon, path: '/admin/reports' }
+      { textKey: 'health_records', icon: RecordsIcon, path: '/admin/records' },
+      { textKey: 'financial', icon: FinanceIcon, path: '/admin/financials', badge: '3', badgeColor: colors.red, badgeTextColor: '#fff' },
+      { textKey: 'reports', icon: ReportsIcon, path: '/admin/reports' }
     ]
   },
   {
-    title: 'SYSTEM',
+    titleKey: 'system',
     items: [
-      { text: 'System Health', icon: HealthIcon, path: '/admin/health', badge: '1', badgeColor: colors.red },
-      { text: 'User management', icon: UserMgmtIcon, path: '/admin/users' },
-      { text: 'Audit log', icon: AuditIcon, path: '/admin/audit' },
-      { text: 'Settings', icon: SettingsIcon, path: '/admin/settings' }
+      { textKey: 'system_health', icon: HealthIcon, path: '/admin/health', badge: '1', badgeColor: colors.red },
+      { textKey: 'user_management', icon: UserMgmtIcon, path: '/admin/users' },
+      { textKey: 'audit_log', icon: AuditIcon, path: '/admin/audit' },
+      { textKey: 'settings', icon: SettingsIcon, path: '/admin/settings' }
     ]
   }
 ];
@@ -72,7 +73,8 @@ const NAV_SECTIONS = [
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [language, setLanguage] = useState('EN');
+  const { language, setLanguage } = useLanguage();
+  const t = useTranslation();
   const adminUser = (() => {
     try {
       return JSON.parse(localStorage.getItem('user') || '{}');
@@ -95,7 +97,7 @@ export default function AdminLayout({ children }) {
     
     return (
       <Button
-        key={item.text}
+        key={item.textKey}
         onClick={() => navigate(item.path)}
         sx={{
           justifyContent: 'flex-start',
@@ -113,7 +115,7 @@ export default function AdminLayout({ children }) {
         }}
       >
         <Icon sx={{ fontSize: 20, color: active ? colors.blue : colors.muted }} />
-        <Box sx={{ flex: 1, textAlign: 'left', fontWeight: active ? 600 : 400 }}>{item.text}</Box>
+        <Box sx={{ flex: 1, textAlign: 'left', fontWeight: active ? 600 : 400 }}>{t[item.textKey]}</Box>
         {item.badge && (
           <Box
             sx={{
@@ -174,9 +176,9 @@ export default function AdminLayout({ children }) {
 
         <Box sx={{ px: 2, flex: 1, pb: 4 }}>
           {NAV_SECTIONS.map((section, idx) => (
-            <Box key={section.title} sx={{ mt: idx === 0 ? 0 : 4 }}>
+            <Box key={section.titleKey} sx={{ mt: idx === 0 ? 0 : 4 }}>
               <Typography sx={{ px: 2, mb: 1.5, fontSize: 11, fontWeight: 700, color: colors.muted, letterSpacing: 1 }}>
-                {section.title}
+                {t[section.titleKey]}
               </Typography>
               <Stack spacing={0}>
                 {section.items.map(renderNavItem)}
@@ -188,19 +190,25 @@ export default function AdminLayout({ children }) {
         {/* Footer Sidebar */}
         <Box sx={{ p: 2, borderTop: `1px solid ${colors.line}`, bgcolor: '#fcfbf7' }}>
           <Stack direction="row" spacing={0.5} sx={{ mb: 2 }}>
-            {['EN', 'HI', 'PB', 'TA'].map((lang) => (
+            {[
+              { code: 'en', label: 'EN' },
+              { code: 'hi', label: 'HI' },
+              { code: 'ta', label: 'TA' },
+              { code: 'te', label: 'TE' },
+              { code: 'bn', label: 'BN' }
+            ].map((lang) => (
               <Button
-                key={lang}
+                key={lang.code}
                 size="small"
-                onClick={() => setLanguage(lang)}
+                onClick={() => setLanguage(lang.code)}
                 sx={{
                   minWidth: 0, px: 1, py: 0.4, borderRadius: 1, fontSize: 11, fontWeight: 600,
-                  bgcolor: language === lang ? colors.blueSoft : 'transparent',
-                  color: language === lang ? colors.blue : colors.muted,
+                  bgcolor: language === lang.code ? colors.blueSoft : 'transparent',
+                  color: language === lang.code ? colors.blue : colors.muted,
                   '&:hover': { bgcolor: colors.blueSoft }
                 }}
               >
-                {lang}
+                {lang.label}
               </Button>
             ))}
           </Stack>

@@ -19,17 +19,18 @@ import {
 } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  muted: '#6f6a62',
-  text: '#252525',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  redSoft: '#fef2f2',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -143,31 +144,36 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
               Admin dashboard
             </Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5 }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Live platform analytics, pending approvals, complaints, fulfillment, and system health.
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            {refreshing && <Typography sx={{ fontSize: 13, color: colors.muted }}>Refreshing...</Typography>}
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
             <Button
               onClick={() => loadDashboard({ silent: true })}
+              variant="contained"
+              disabled={refreshing}
               sx={{
-                borderRadius: 2.5,
-                border: `1px solid ${colors.line}`,
-                px: 2.5,
-                py: 1,
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
                 textTransform: 'none',
-                color: colors.text
+                fontSize: 15,
+                '&:hover': { bgcolor: colors.blue }
               }}
             >
-              Refresh
+              {refreshing ? 'Refreshing...' : 'Refresh dashboard'}
             </Button>
-          </Stack>
+          </Box>
         </Stack>
 
         {actionMessage && (
@@ -184,191 +190,182 @@ export default function AdminDashboard() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {stats.map(([label, value, helper, tone]) => (
-                <Grid item xs={12} sm={6} md={3} key={label}>
-                  <Paper sx={{ p: 2.5, borderRadius: 4, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>{label}</Typography>
-                      <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: tone }} />
-                    </Stack>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mt: 1 }}>{value}</Typography>
-                    <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.75 }}>{helper}</Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-
-            <Grid container spacing={4}>
-              <Grid item xs={12} lg={4}>
-                <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none', height: '100%' }}>
-                  <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Pending approvals</Typography>
-                  <Stack spacing={2}>
-                    {pending.length ? pending.map((user) => (
-                      <Box key={user._id} sx={{ p: 2, borderRadius: 3, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
-                        <Stack direction="row" justifyContent="space-between" spacing={2} alignItems="flex-start">
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{user.full_name}</Typography>
-                            <Typography sx={{ fontSize: 12, color: colors.muted, mt: 0.4 }}>
-                              {user.role} • {user.email}
-                            </Typography>
-                            <Typography sx={{ fontSize: 12, color: colors.muted, mt: 0.4 }}>
-                              Requested on {formatRelativeDate(user.createdAt)}
-                            </Typography>
-                          </Box>
-                          <Button
-                            onClick={() => handleApprove(user._id)}
-                            disabled={approvingId === user._id}
-                            sx={{
-                              minWidth: 94,
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              bgcolor: colors.greenSoft,
-                              color: colors.green,
-                              '&:hover': { bgcolor: colors.greenSoft }
-                            }}
-                          >
-                            {approvingId === user._id ? 'Saving...' : 'Approve'}
-                          </Button>
-                        </Stack>
-                      </Box>
-                    )) : (
-                      <Typography sx={{ color: colors.muted }}>No pending approvals.</Typography>
-                    )}
+                <Box
+                  key={label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: tone }
+                  }}
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: tone }} />
+                    <Typography sx={{ fontSize: 16, color: colors.muted }}>{label}</Typography>
                   </Stack>
-                </Paper>
-              </Grid>
+                  <Typography sx={{ mt: 1.2, fontSize: 30, lineHeight: 1 }}>{value}</Typography>
+                  <Typography sx={{ mt: 1, color: tone, fontSize: 15 }}>{helper}</Typography>
+                </Box>
+              ))}
+            </Box>
 
-              <Grid item xs={12} lg={4}>
-                <Stack spacing={4}>
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Common health issues</Typography>
-                    <Stack spacing={2}>
-                      {(analytics?.commonHealthIssues || []).length ? analytics.commonHealthIssues.map((item) => (
-                        <Stack key={item.issue} direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: 14 }}>{item.issue}</Typography>
-                          <Chip
-                            label={formatNumber(item.count)}
-                            size="small"
-                            sx={{ bgcolor: colors.orangeSoft, color: colors.orange }}
-                          />
-                        </Stack>
-                      )) : (
-                        <Typography sx={{ color: colors.muted }}>No symptom analytics yet.</Typography>
-                      )}
-                    </Stack>
-                  </Paper>
-
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Complaint summary</Typography>
-                    <Stack spacing={2}>
-                      {complaintRows.length ? complaintRows.map((item) => (
-                        <Stack key={item.status} direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: 14 }}>{item.status}</Typography>
-                          <Chip
-                            label={formatNumber(item.count)}
-                            size="small"
-                            sx={{
-                              bgcolor: item.status.toLowerCase().includes('resolve') ? colors.greenSoft : colors.redSoft,
-                              color: item.status.toLowerCase().includes('resolve') ? colors.green : colors.red
-                            }}
-                          />
-                        </Stack>
-                      )) : (
-                        <Typography sx={{ color: colors.muted }}>No complaint data yet.</Typography>
-                      )}
-                    </Stack>
-                  </Paper>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12} lg={4}>
-                <Stack spacing={4}>
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Pharmacy fulfillment</Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mb: 0.75 }}>
-                      {analytics?.pharmacyFulfillment?.rate || 0}%
-                    </Typography>
-                    <Typography sx={{ fontSize: 12.5, color: colors.muted, mb: 2 }}>
-                      Ready, partial, and completed fulfillment rate
-                    </Typography>
-                    <Stack spacing={1.5}>
-                      {fulfillmentRows.length ? fulfillmentRows.map((item) => (
-                        <Stack key={item.status} direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: 14 }}>{item.status}</Typography>
-                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.blue }}>
-                            {formatNumber(item.count)}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '1.2fr 0.9fr 0.9fr' }, gap: 3 }}>
+              <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Typography sx={{ fontSize: 18, mb: 2 }}>Pending approvals</Typography>
+                <Stack spacing={2}>
+                  {pending.length ? pending.map((user) => (
+                    <Box key={user._id} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
+                      <Stack direction="row" justifyContent="space-between" spacing={2} alignItems="flex-start">
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{user.full_name}</Typography>
+                          <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.4 }}>
+                            {user.role} • {user.email}
                           </Typography>
-                        </Stack>
-                      )) : (
-                        <Typography sx={{ color: colors.muted }}>No fulfillment data yet.</Typography>
-                      )}
-                    </Stack>
-                  </Paper>
-
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>System health</Typography>
-                    <Stack spacing={1.5}>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 14 }}>Uptime</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{analytics?.system?.uptimeHours || 0} hrs</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 14 }}>Error count 24h</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.red }}>
-                          {formatNumber(analytics?.system?.errorCount24h)}
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 14 }}>Avg response</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-                          {formatNumber(analytics?.system?.avgResponseTimeMs)} ms
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 14 }}>Avg consultation</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-                          {analytics?.averageConsultationDurationMinutes || 0} min
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                </Stack>
-              </Grid>
-            </Grid>
-
-            <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none', mt: 4 }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Recent logs</Typography>
-              <Grid container spacing={2}>
-                {logs.length ? logs.map((log) => (
-                  <Grid item xs={12} md={6} lg={4} key={log._id}>
-                    <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#fff' }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography
+                          <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.4 }}>
+                            Requested on {formatRelativeDate(user.createdAt)}
+                          </Typography>
+                        </Box>
+                        <Button
+                          onClick={() => handleApprove(user._id)}
+                          disabled={approvingId === user._id}
+                          variant="contained"
                           sx={{
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            color: log.level === 'error' ? colors.red : log.level === 'warn' ? colors.orange : colors.text
+                            minWidth: 94,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            bgcolor: colors.greenSoft,
+                            color: colors.green,
+                            fontSize: 13,
+                            boxShadow: 'none',
+                            '&:hover': { bgcolor: colors.greenSoft, boxShadow: 'none' }
                           }}
                         >
-                          {log.level?.toUpperCase?.() || 'INFO'}
-                        </Typography>
-                        <Typography sx={{ fontSize: 11.5, color: colors.muted }}>
-                          {formatRelativeDate(log.createdAt)}
+                          {approvingId === user._id ? 'Saving...' : 'Approve'}
+                        </Button>
+                      </Stack>
+                    </Box>
+                  )) : (
+                    <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No pending approvals.</Typography>
+                  )}
+                </Stack>
+              </Box>
+
+              <Stack spacing={3}>
+                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ fontSize: 18, mb: 2 }}>Common health issues</Typography>
+                  <Stack spacing={2}>
+                    {(analytics?.commonHealthIssues || []).length ? analytics.commonHealthIssues.map((item) => (
+                      <Stack key={item.issue} direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography sx={{ fontSize: 14.5 }}>{item.issue}</Typography>
+                        <Chip
+                          label={formatNumber(item.count)}
+                          size="small"
+                          sx={{ bgcolor: colors.orangeSoft, color: colors.orange, fontWeight: 'bold' }}
+                        />
+                      </Stack>
+                    )) : (
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No symptom analytics yet.</Typography>
+                    )}
+                  </Stack>
+                </Box>
+
+                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ fontSize: 18, mb: 2 }}>Complaint summary</Typography>
+                  <Stack spacing={2}>
+                    {complaintRows.length ? complaintRows.map((item) => (
+                      <Stack key={item.status} direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography sx={{ fontSize: 14.5 }}>{item.status}</Typography>
+                        <Chip
+                          label={formatNumber(item.count)}
+                          size="small"
+                          sx={{
+                            bgcolor: item.status.toLowerCase().includes('resolve') ? colors.greenSoft : colors.redSoft,
+                            color: item.status.toLowerCase().includes('resolve') ? colors.green : colors.red,
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      </Stack>
+                    )) : (
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No complaint data yet.</Typography>
+                    )}
+                  </Stack>
+                </Box>
+              </Stack>
+
+              <Stack spacing={3}>
+                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ fontSize: 18, mb: 2 }}>Pharmacy fulfillment</Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1 }}>
+                    {analytics?.pharmacyFulfillment?.rate || 0}%
+                  </Typography>
+                  <Typography sx={{ fontSize: 15, color: colors.muted, mt: 1, mb: 2 }}>
+                    Ready, partial, and completed fulfillment rate
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {fulfillmentRows.length ? fulfillmentRows.map((item) => (
+                      <Stack key={item.status} direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography sx={{ fontSize: 14.5 }}>{item.status}</Typography>
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: colors.blue }}>
+                          {formatNumber(item.count)}
                         </Typography>
                       </Stack>
-                      <Typography sx={{ fontSize: 13, color: colors.text, mt: 1 }}>
-                        {formatLogLabel(log)}
+                    )) : (
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No fulfillment data yet.</Typography>
+                    )}
+                  </Stack>
+                </Box>
+
+                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ fontSize: 18, mb: 2 }}>System health</Typography>
+                  <Stack spacing={1.5}>
+                    {[
+                      ['Uptime', `${analytics?.system?.uptimeHours || 0} hrs`, colors.text],
+                      ['Error count 24h', formatNumber(analytics?.system?.errorCount24h), colors.red],
+                      ['Avg response', `${formatNumber(analytics?.system?.avgResponseTimeMs)} ms`, colors.text],
+                      ['Avg consultation', `${analytics?.averageConsultationDurationMinutes || 0} min`, colors.text]
+                    ].map(([label, value, tone]) => (
+                      <Stack key={label} direction="row" justifyContent="space-between">
+                        <Typography sx={{ fontSize: 14.5 }}>{label}</Typography>
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: tone }}>{value}</Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Box>
+              </Stack>
+            </Box>
+
+            <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mt: 4 }}>
+              <Typography sx={{ fontSize: 18, mb: 2 }}>Recent logs</Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2 }}>
+                {logs.length ? logs.map((log) => (
+                  <Box key={log._id} sx={{ p: 1.6, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography
+                        sx={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: log.level === 'error' ? colors.red : log.level === 'warn' ? colors.orange : colors.text
+                        }}
+                      >
+                        {log.level?.toUpperCase?.() || 'INFO'}
                       </Typography>
-                    </Box>
-                  </Grid>
+                      <Typography sx={{ fontSize: 11.5, color: colors.muted }}>
+                        {formatRelativeDate(log.createdAt)}
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: 13, color: colors.text, mt: 1 }}>
+                      {formatLogLabel(log)}
+                    </Typography>
+                  </Box>
                 )) : (
-                  <Grid item xs={12}>
-                    <Typography sx={{ color: colors.muted }}>No recent system logs.</Typography>
-                  </Grid>
+                  <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No recent system logs.</Typography>
                 )}
-              </Grid>
-            </Paper>
+              </Box>
+            </Box>
           </>
         )}
       </Box>

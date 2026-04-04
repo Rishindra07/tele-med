@@ -12,21 +12,19 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 
 const colors = {
-  paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  redSoft: '#fef2f2',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed',
-  yellow: '#ca8a04',
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const ACCOUNTS = [
@@ -42,48 +40,70 @@ export default function AdminUserManagement() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1000, mx: 'auto' }}>
         
         {/* Header */}
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>User management</Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5 }}>Admin accounts, roles and access permissions</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>User management</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
+              Admin accounts, roles and access permissions
+            </Typography>
           </Box>
-          <Button startIcon={<AddIcon />} variant="contained" sx={{ bgcolor: colors.text, color: '#fff', borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontWeight: 600 }}>
-            Invite admin
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              startIcon={<AddIcon />}
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Invite admin
+            </Button>
+          </Box>
         </Stack>
 
-        <Paper sx={{ p: 0, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none', overflow: 'hidden' }}>
+        <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
            <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700 }}>Admin accounts</Typography>
-              <Button startIcon={<AuditIcon />} size="small" sx={{ textTransform: 'none', color: colors.green, fontWeight: 700 }}>Audit log →</Button>
+              <Typography sx={{ fontSize: 18 }}>Admin accounts</Typography>
+              <Button startIcon={<AuditIcon />} size="small" sx={{ textTransform: 'none', color: colors.green, fontWeight: 800, fontSize: 14 }}>Audit log →</Button>
            </Box>
            
            <Stack spacing={0}>
               {ACCOUNTS.map((a, i) => (
-                <Box key={i} sx={{ p: 3, px: 4, display: 'flex', alignItems: 'center', borderBottom: i === ACCOUNTS.length - 1 ? 'none' : `1px solid ${colors.line}` }}>
-                   <Avatar sx={{ width: 44, height: 44, bgcolor: a.color + '15', color: a.color, fontWeight: 700, fontSize: 14, mr: 3 }}>{a.avatar}</Avatar>
+                <Box key={i} sx={{ px: 4, py: 3, display: 'flex', alignItems: 'center', borderBottom: i === ACCOUNTS.length - 1 ? 'none' : `1px solid ${colors.line}`, transition: '0.2s', '&:hover': { bgcolor: '#fbfbfb' } }}>
+                   <Avatar sx={{ width: 48, height: 48, bgcolor: a.color + '20', color: a.color, fontWeight: 800, fontSize: 16, mr: 3 }}>{a.avatar}</Avatar>
                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{a.name}</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted }}>{a.email} • {a.access} • Last active: {a.last}</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800 }}>{a.name}</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.2 }}>{a.email} • {a.access} • Last active: {a.last}</Typography>
                    </Box>
-                   <Stack direction="row" spacing={2} alignItems="center">
-                      <Chip label={a.role} size="small" sx={{ borderRadius: 1.5, height: 24, fontSize: 11, fontWeight: 700, bgcolor: a.color + '10', color: a.color }} />
-                      <Button variant="outlined" size="small" sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}>Edit</Button>
+                   <Stack direction="row" spacing={3} alignItems="center">
+                      <Chip label={a.role} size="small" sx={{ borderRadius: 1.5, height: 26, fontSize: 12, fontWeight: 800, bgcolor: a.color + '15', color: a.color }} />
+                      <Button variant="outlined" size="small" sx={{ borderRadius: 2, textTransform: 'none', px: 3, fontWeight: 700, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.text, bgcolor: 'transparent' } }}>Edit</Button>
                    </Stack>
                 </Box>
               ))}
            </Stack>
-        </Paper>
+        </Box>
 
-        <Box sx={{ mt: 5, p: 4, borderRadius: 5, bgcolor: colors.soft, border: `1px solid ${colors.line}` }}>
+        <Box sx={{ mt: 5, p: 4, borderRadius: 3.5, bgcolor: colors.soft, border: `1px solid ${colors.line}` }}>
            <Stack direction="row" spacing={3} alignItems="flex-start">
-              <SecurityIcon sx={{ color: colors.muted }} />
+              <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: colors.paper, display: 'grid', placeItems: 'center', border: `1px solid ${colors.line}` }}>
+                <SecurityIcon sx={{ color: colors.muted }} />
+              </Box>
               <Box>
-                 <Typography sx={{ fontSize: 15, fontWeight: 700 }}>Role-based Access Control (RBAC)</Typography>
-                 <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5, maxWidth: '80%', lineHeight: 1.5 }}>
+                 <Typography sx={{ fontSize: 16, fontWeight: 800 }}>Role-based Access Control (RBAC)</Typography>
+                 <Typography sx={{ fontSize: 14, color: colors.muted, mt: 1, maxWidth: '85%', lineHeight: 1.6 }}>
                     Define precise permissions for your team. Ensure users only have access to the data and tools they need for their specific role.
                  </Typography>
-                 <Button sx={{ mt: 2, textTransform: 'none', fontWeight: 700, color: colors.blue, p: 0 }}>Define new role →</Button>
+                 <Button sx={{ mt: 2, textTransform: 'none', fontWeight: 800, color: colors.blue, p: 0, fontSize: 15 }}>Define new role →</Button>
               </Box>
            </Stack>
         </Box>

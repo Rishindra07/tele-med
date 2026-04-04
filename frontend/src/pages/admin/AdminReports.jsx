@@ -23,15 +23,19 @@ import {
 } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  muted: '#6f6a62',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed',
-  soft: '#f5f1e8'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -148,10 +152,34 @@ export default function AdminReports() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Reports</Typography>
-        <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5, mb: 4 }}>
-          Generate and download live platform reports from the backend.
-        </Typography>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Reports</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
+              Generate and download live platform reports from the backend.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Custom Report
+            </Button>
+          </Box>
+        </Stack>
 
         {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
         {error && <Alert severity="error" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
@@ -162,37 +190,75 @@ export default function AdminReports() {
           </Box>
         ) : (
           <Stack spacing={4}>
-            <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 4 }}>Quick reports</Typography>
+            <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+              <Typography sx={{ fontSize: 18, mb: 4 }}>Quick reports</Typography>
               <Stack spacing={3}>
                 {quickReports.map((report) => (
-                  <Stack key={report.key} direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
+                  <Stack key={report.key} direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ p: 2, borderRadius: 2.5, bgcolor: colors.soft, transition: '0.2s', '&:hover': { bgcolor: '#fbfbfb', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' } }}>
                     <Box>
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 700 }}>{report.title}</Typography>
-                      <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.5 }}>{report.desc}</Typography>
-                      <Typography sx={{ fontSize: 11.5, color: colors.muted, mt: 0.8 }}>{report.helper}</Typography>
+                      <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{report.title}</Typography>
+                      <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>{report.desc}</Typography>
+                      <Typography sx={{ fontSize: 12.5, color: colors.blue, fontWeight: 700, mt: 0.8 }}>{report.helper}</Typography>
                     </Box>
-                    <Stack direction="row" spacing={1}>
-                      <Button startIcon={<PdfIcon />} variant="outlined" onClick={() => handleExport(report.key, 'pdf')} disabled={loadingType === `${report.key}:pdf`} sx={{ borderRadius: 1.5, textTransform: 'none' }}>
+                    <Stack direction="row" spacing={1.5}>
+                      <Button 
+                        startIcon={<PdfIcon />} 
+                        variant="outlined" 
+                        onClick={() => handleExport(report.key, 'pdf')} 
+                        disabled={loadingType === `${report.key}:pdf`} 
+                        sx={{ 
+                          borderRadius: 2, 
+                          textTransform: 'none', 
+                          borderColor: colors.line, 
+                          color: colors.text,
+                          fontWeight: 700,
+                          px: 2,
+                          '&:hover': { borderColor: colors.text, bgcolor: 'transparent' }
+                        }}
+                      >
                         {loadingType === `${report.key}:pdf` ? 'Generating...' : 'PDF'}
                       </Button>
-                      <Button startIcon={<ExcelIcon />} variant="outlined" onClick={() => handleExport(report.key, 'excel')} disabled={loadingType === `${report.key}:excel`} sx={{ borderRadius: 1.5, textTransform: 'none' }}>
+                      <Button 
+                        startIcon={<ExcelIcon />} 
+                        variant="outlined" 
+                        onClick={() => handleExport(report.key, 'excel')} 
+                        disabled={loadingType === `${report.key}:excel`} 
+                        sx={{ 
+                          borderRadius: 2, 
+                          textTransform: 'none', 
+                          borderColor: colors.line, 
+                          color: colors.text,
+                          fontWeight: 700,
+                          px: 2,
+                          '&:hover': { borderColor: colors.text, bgcolor: 'transparent' }
+                        }}
+                      >
                         {loadingType === `${report.key}:excel` ? 'Generating...' : 'Excel'}
                       </Button>
                     </Stack>
                   </Stack>
                 ))}
               </Stack>
-            </Paper>
+            </Box>
 
-            <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3 }}>Live report snapshot</Typography>
+            <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+              <Typography sx={{ fontSize: 18, mb: 3 }}>Live report snapshot</Typography>
               <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
                 {snapshotChips.map((chip) => (
-                  <Chip key={chip.label} label={chip.label} sx={chip.sx} />
+                  <Chip 
+                    key={chip.label} 
+                    label={chip.label} 
+                    sx={{ 
+                      ...chip.sx, 
+                      borderRadius: 2, 
+                      fontWeight: 700, 
+                      fontSize: 14,
+                      py: 2.2
+                    }} 
+                  />
                 ))}
               </Stack>
-            </Paper>
+            </Box>
           </Stack>
         )}
       </Box>

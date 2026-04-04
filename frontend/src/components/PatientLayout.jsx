@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, IconButton, Avatar, useTheme, useMediaQuery } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, IconButton, Avatar, useTheme, useMediaQuery, Stack, Button } from '@mui/material';
 import { Dashboard as DashboardIcon, EventNote as EventIcon, FolderShared as MedicalIcon, Logout as LogoutIcon, Menu as MenuIcon, HealthAndSafety as HealthIcon, SmartToy as SmartToyIcon } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const drawerWidth = 260;
 
@@ -11,6 +12,8 @@ const PatientLayout = ({ children, title }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { language, setLanguage } = useLanguage();
+  const t = useTranslation();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -19,10 +22,10 @@ const PatientLayout = ({ children, title }) => {
   };
 
   const navItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/patient' },
-    { text: 'My Appointments', icon: <EventIcon />, path: '/patient/appointments' },
-    { text: 'Symptom Checker', icon: <SmartToyIcon />, path: '/symptom-checker' },
-    { text: 'Medical Records', icon: <MedicalIcon />, path: '/patient/records' },
+    { textKey: 'dashboard', icon: <DashboardIcon />, path: '/patient' },
+    { textKey: 'my_appointments', icon: <EventIcon />, path: '/patient/appointments' },
+    { textKey: 'symptom_checker', icon: <SmartToyIcon />, path: '/symptom-checker' },
+    { textKey: 'medical_records', icon: <MedicalIcon />, path: '/patient/records' },
   ];
 
   const drawer = (
@@ -38,7 +41,7 @@ const PatientLayout = ({ children, title }) => {
           return (
             <ListItem 
               button 
-              key={item.text} 
+              key={item.textKey} 
               onClick={() => { navigate(item.path); setMobileOpen(false); }}
               sx={{ 
                 mb: 1, 
@@ -51,18 +54,43 @@ const PatientLayout = ({ children, title }) => {
               <ListItemIcon sx={{ color: selected ? 'primary.main' : 'inherit', minWidth: 40 }}>
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: selected ? 600 : 500 }} />
+              <ListItemText primary={t[item.textKey]} primaryTypographyProps={{ fontWeight: selected ? 600 : 500 }} />
             </ListItem>
           );
         })}
       </List>
       <Divider />
-      <List sx={{ px: 2, pb: 2 }}>
-        <ListItem button onClick={handleLogout} sx={{ borderRadius: 2, color: 'error.main', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><LogoutIcon /></ListItemIcon>
-          <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 600 }} />
-        </ListItem>
-      </List>
+      <Box sx={{ p: 2 }}>
+        <Stack direction="row" spacing={0.5} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
+          {[
+            { code: 'en', label: 'EN' },
+            { code: 'hi', label: 'HI' },
+            { code: 'ta', label: 'TA' },
+            { code: 'te', label: 'TE' },
+            { code: 'bn', label: 'BN' }
+          ].map((lang) => (
+            <Button
+              key={lang.code}
+              size="small"
+              onClick={() => setLanguage(lang.code)}
+              sx={{
+                minWidth: 0, px: 1, py: 0.4, borderRadius: 1, fontSize: 11, fontWeight: 600,
+                bgcolor: language === lang.code ? 'rgba(37, 99, 235, 0.12)' : 'transparent',
+                color: language === lang.code ? 'primary.main' : 'text.secondary',
+                '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)' }
+              }}
+            >
+              {lang.label}
+            </Button>
+          ))}
+        </Stack>
+        <List disablePadding>
+          <ListItem button onClick={handleLogout} sx={{ borderRadius: 2, color: 'error.main', '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.08)' } }}>
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}><LogoutIcon /></ListItemIcon>
+            <ListItemText primary={t.logout || "Logout"} primaryTypographyProps={{ fontWeight: 600 }} />
+          </ListItem>
+        </List>
+      </Box>
     </Box>
   );
 

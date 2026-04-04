@@ -23,18 +23,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchConsultationMonitor } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  redSoft: '#fef2f2',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -145,16 +146,34 @@ export default function AdminConsultations() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Consultations</Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5 }}>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Consultations</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               All platform consultations with live feed monitoring.
             </Typography>
           </Box>
-          <Button startIcon={<ExportIcon />} onClick={handleExport} variant="contained" sx={{ bgcolor: colors.text, color: '#fff', borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontWeight: 600 }}>
-            Export log
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              startIcon={<ExportIcon />}
+              onClick={handleExport}
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Export log
+            </Button>
+          </Box>
         </Stack>
 
         {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
@@ -167,26 +186,34 @@ export default function AdminConsultations() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {stats.map((stat) => (
-                <Grid item xs={12} sm={6} md={3} key={stat.label}>
-                  <Paper sx={{ p: 2.5, borderRadius: 4, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 600, mb: 1.5 }}>
-                      <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: stat.color, display: 'inline-block', mr: 1 }} />
-                      {stat.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mb: 0.5 }}>{stat.val}</Typography>
-                    <Typography sx={{ fontSize: 12, color: colors.muted }}>{stat.change}</Typography>
-                  </Paper>
-                </Grid>
+                <Box
+                  key={stat.label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: stat.color }
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, color: colors.muted, mb: 1.5, display: 'flex', alignItems: 'center' }}>
+                    <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: stat.color, display: 'inline-block', mr: 1 }} />
+                    {stat.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1, mb: 1 }}>{stat.val}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>{stat.change}</Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={7}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Stack direction="row" justifyContent="space-between" mb={4}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 700 }}>Live consultation feed</Typography>
+                    <Typography sx={{ fontSize: 18 }}>Live consultation feed</Typography>
                     <Chip label={`${formatNumber(summary.liveNow)} active`} size="small" sx={{ bgcolor: colors.greenSoft, color: colors.green, fontWeight: 700 }} />
                   </Stack>
                   <Stack spacing={3}>
@@ -197,111 +224,111 @@ export default function AdminConsultations() {
                             {getInitials(item.doctorName)}
                           </Avatar>
                           <Box sx={{ flex: 1 }}>
-                            <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{item.doctorName} ↔ {item.patientName}</Typography>
-                            <Typography sx={{ fontSize: 12, color: colors.muted }}>{item.specialization} • {modeLabel[item.mode] || 'Video'} call</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{item.doctorName} ↔ {item.patientName}</Typography>
+                            <Typography sx={{ fontSize: 13, color: colors.muted }}>{item.specialization} • {modeLabel[item.mode] || 'Video'} call</Typography>
                           </Box>
-                          <Stack direction="row" spacing={2} alignItems="center">
+                          <Stack direction="row" spacing={2} alignItems="center" sx={{ flexShrink: 0 }}>
                             <Chip
                               label={item.status}
                               size="small"
                               icon={<ModeIcon mode={item.mode} />}
                               sx={{
-                                height: 22,
+                                height: 26,
+                                px: 1,
                                 fontSize: 11,
                                 fontWeight: 700,
                                 bgcolor: item.flagged ? colors.redSoft : colors.soft,
-                                color: item.flagged ? colors.red : colors.muted
+                                color: item.flagged ? colors.red : colors.text
                               }}
                             />
                             <Button
                               variant={item.flagged ? 'contained' : 'outlined'}
-                              color={item.flagged ? 'error' : 'inherit'}
                               size="small"
-                              sx={{ borderRadius: 1.5, textTransform: 'none', minWidth: 90 }}
+                              sx={{
+                                borderRadius: 1.5,
+                                textTransform: 'none',
+                                minWidth: 90,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                ...(item.flagged ? { bgcolor: colors.red, '&:hover': { bgcolor: colors.red } } : { borderColor: colors.line, color: colors.text })
+                              }}
                             >
                               {item.flagged ? 'Intervene' : 'Monitor'}
                             </Button>
                           </Stack>
                         </Stack>
-                        {index < liveFeed.length - 1 && <Divider sx={{ mt: 3 }} />}
+                        {index < liveFeed.length - 1 && <Divider sx={{ mt: 3, borderColor: colors.line, opacity: 0.5 }} />}
                       </Box>
                     )) : (
-                      <Typography sx={{ color: colors.muted }}>No active consultations are in the live feed right now.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No active consultations are in the live feed right now.</Typography>
                     )}
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={5}>
                 <Stack spacing={4}>
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Today&apos;s trend</Typography>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>Today&apos;s trend</Typography>
                     <Stack direction="row" spacing={1.5} alignItems="flex-end" sx={{ height: 110, mb: 2 }}>
                       {trend.map((item) => (
                         <Box key={item.label} sx={{ flex: 1, textAlign: 'center' }}>
-                          <Box sx={{ height: `${Math.max(8, ((item.count || 0) / maxTrend) * 100)}px`, bgcolor: item.label === 'Peak' ? colors.green : colors.greenSoft, borderRadius: 1 }} />
-                          <Typography sx={{ fontSize: 9, mt: 1, fontWeight: 700, color: colors.muted }}>{item.label}</Typography>
+                          <Box sx={{ height: `${Math.max(8, ((item.count || 0) / maxTrend) * 100)}px`, bgcolor: item.label === 'Peak' ? colors.green : colors.greenSoft, borderRadius: 1.2 }} />
+                          <Typography sx={{ fontSize: 10, mt: 1, fontWeight: 700, color: colors.muted }}>{item.label}</Typography>
                         </Box>
                       ))}
                     </Stack>
-                    <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                    <Stack direction="row" flexWrap="wrap" gap={2} sx={{ mt: 3 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.green }} />
-                        <Typography sx={{ fontSize: 11, fontWeight: 600 }}>Video ({formatPercent(modes.video)})</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Video ({formatPercent(modes.video)})</Typography>
                       </Stack>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.blue }} />
-                        <Typography sx={{ fontSize: 11, fontWeight: 600 }}>Audio ({formatPercent(modes.audio)})</Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Audio ({formatPercent(modes.audio)})</Typography>
                       </Stack>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.soft }} />
-                        <Typography sx={{ fontSize: 11, fontWeight: 600 }}>Chat ({formatPercent(modes.chat)})</Typography>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.line }} />
+                        <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Chat ({formatPercent(modes.chat)})</Typography>
                       </Stack>
                     </Stack>
-                  </Paper>
+                  </Box>
 
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Outcomes — today</Typography>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>Outcomes — today</Typography>
                     <Stack spacing={2}>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>Prescription issued</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatPercent(outcomes.prescriptionIssued)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>Follow-up scheduled</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatPercent(outcomes.followUpScheduled)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>Insurance authorized</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatPercent(outcomes.insuranceAuthorized)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>Deep-ref (Consultant)</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatPercent(outcomes.deepRefConsultant)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 500 }}>Avg doctor rating</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{Number(outcomes.avgDoctorRating || 0).toFixed(1)} / 5</Typography>
-                      </Stack>
+                      {[
+                        ['Prescription issued', formatPercent(outcomes.prescriptionIssued)],
+                        ['Follow-up scheduled', formatPercent(outcomes.followUpScheduled)],
+                        ['Insurance authorized', formatPercent(outcomes.insuranceAuthorized)],
+                        ['Deep-ref (Consultant)', formatPercent(outcomes.deepRefConsultant)],
+                        ['Avg doctor rating', `${Number(outcomes.avgDoctorRating || 0).toFixed(1)} / 5`]
+                      ].map(([label, val]) => (
+                        <Stack key={label} direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography sx={{ fontSize: 14.5, color: colors.muted }}>{label}</Typography>
+                          <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{val}</Typography>
+                        </Stack>
+                      ))}
                     </Stack>
-                  </Paper>
+                  </Box>
 
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 2.5 }}>Complaints — today</Typography>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>Complaints — today</Typography>
                     <Stack spacing={2}>
                       {complaints.length ? complaints.map((item, index) => (
-                        <Box key={`${item.id}-${index}`} sx={{ p: 1.5, borderRadius: 3, border: `1px solid ${colors.line}`, borderLeft: `4px solid ${item.severity === 'high' ? colors.red : item.severity === 'medium' ? colors.orange : colors.soft}` }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
-                            {item.id} <WarningIcon sx={{ fontSize: 14, color: item.severity === 'high' ? colors.red : colors.orange, verticalAlign: 'middle', ml: 0.5 }} />
-                          </Typography>
-                          <Typography sx={{ fontSize: 12, fontWeight: 600, color: item.severity === 'high' ? colors.red : colors.text, mt: 0.5 }}>{item.reason}</Typography>
-                          <Typography sx={{ fontSize: 11, color: colors.muted, mt: 0.2 }}>{item.details} • {item.createdAtLabel}</Typography>
+                        <Box key={`${item.id}-${index}`} sx={{ p: 1.8, borderRadius: 2.5, bgcolor: colors.soft, borderLeft: `4px solid ${item.severity === 'high' ? colors.red : item.severity === 'medium' ? colors.orange : colors.muted}50` }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{item.id}</Typography>
+                            <WarningIcon sx={{ fontSize: 18, color: item.severity === 'high' ? colors.red : colors.orange }} />
+                          </Stack>
+                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: item.severity === 'high' ? colors.red : colors.text, mt: 0.5 }}>{item.reason}</Typography>
+                          <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.4 }}>{item.details} • {item.createdAtLabel}</Typography>
                         </Box>
                       )) : (
-                        <Typography sx={{ color: colors.muted }}>No complaints logged today.</Typography>
+                        <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No complaints logged today.</Typography>
                       )}
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Stack>
               </Grid>
             </Grid>

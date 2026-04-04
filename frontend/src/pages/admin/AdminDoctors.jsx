@@ -14,16 +14,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { approvePendingUser, fetchDoctorsDirectory } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  muted: '#6f6a62',
-  text: '#252525',
-  blue: '#2563eb',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -104,10 +107,33 @@ export default function AdminDoctors() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Doctors</Typography>
-        <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5, mb: 4 }}>
-          Live doctor registry, verification queue, and performance overview.
-        </Typography>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Doctors</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
+              Live doctor registry, verification queue, and performance overview.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Add Doctor
+            </Button>
+          </Box>
+        </Stack>
 
         {loading ? (
           <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
@@ -117,44 +143,61 @@ export default function AdminDoctors() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {stats.map(([label, value, helper, color]) => (
-                <Grid item xs={12} sm={6} md={3} key={label}>
-                  <Paper sx={{ p: 2.5, borderRadius: 4, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 600, mb: 1.5 }}>
-                      <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, display: 'inline-block', mr: 1 }} />
-                      {label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mb: 0.5 }}>{value}</Typography>
-                    <Typography sx={{ fontSize: 12, color: colors.muted }}>{helper}</Typography>
-                  </Paper>
-                </Grid>
+                <Box
+                  key={label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: color }
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, color: colors.muted, mb: 1.5, display: 'flex', alignItems: 'center' }}>
+                    <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, display: 'inline-block', mr: 1 }} />
+                    {label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1, mb: 1 }}>{value}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>{helper}</Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             <Grid container spacing={4} sx={{ mb: 5 }}>
               <Grid item xs={12} lg={7}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                  <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 4 }}>Verification queue</Typography>
-                  <Stack spacing={3}>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                  <Typography sx={{ fontSize: 18, mb: 4 }}>Verification queue</Typography>
+                  <Stack spacing={2}>
                     {pendingDoctors.length ? pendingDoctors.map((doctor) => (
-                      <Box key={doctor.userId} sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}` }}>
-                        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} justifyContent="space-between">
-                          <Box>
-                            <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{doctor.full_name}</Typography>
-                            <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.5 }}>
+                      <Box key={doctor.userId} sx={{ p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} justifyContent="space-between" alignItems="center">
+                          <Box sx={{ flex: 1 }}>
+                            <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{doctor.full_name}</Typography>
+                            <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.4 }}>
                               {doctor.specialization || 'Specialization pending'} • {doctor.hospitalName || 'Hospital not added'}
                             </Typography>
-                            <Typography sx={{ fontSize: 12, color: colors.muted, mt: 0.5 }}>
+                            <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.4 }}>
                               {doctor.email} • License: {doctor.medicalLicense || 'Pending'}
                             </Typography>
                           </Box>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Chip label="Pending" size="small" sx={{ bgcolor: colors.orangeSoft, color: colors.orange }} />
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Chip label="Pending" size="small" sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: colors.orangeSoft, color: colors.orange }} />
                             <Button
                               onClick={() => handleApprove(doctor.userId)}
                               disabled={approvingId === doctor.userId}
-                              sx={{ borderRadius: 1.5, textTransform: 'none', bgcolor: colors.greenSoft, color: colors.green }}
+                              variant="contained"
+                              sx={{
+                                borderRadius: 1.5,
+                                textTransform: 'none',
+                                bgcolor: colors.greenSoft,
+                                color: colors.green,
+                                fontWeight: 700,
+                                boxShadow: 'none',
+                                '&:hover': { bgcolor: colors.greenSoft, boxShadow: 'none' }
+                              }}
                             >
                               {approvingId === doctor.userId ? 'Saving...' : 'Approve'}
                             </Button>
@@ -162,71 +205,75 @@ export default function AdminDoctors() {
                         </Stack>
                       </Box>
                     )) : (
-                      <Typography sx={{ color: colors.muted }}>No doctors are waiting for approval.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No doctors are waiting for approval.</Typography>
                     )}
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={5}>
                 <Stack spacing={4}>
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>By specialization</Typography>
-                    <Stack spacing={2.5}>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>By specialization</Typography>
+                    <Stack spacing={1.5}>
                       {specializationRows.length ? specializationRows.map((item) => (
-                        <Stack key={item.name} direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography sx={{ fontSize: 13.5 }}>{item.name}</Typography>
-                          <Chip label={formatNumber(item.count)} size="small" sx={{ bgcolor: colors.greenSoft, color: colors.green }} />
-                        </Stack>
+                        <Box key={item.name} sx={{ p: 1.6, borderRadius: 2.5, bgcolor: colors.soft }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</Typography>
+                            <Chip label={formatNumber(item.count)} size="small" sx={{ fontWeight: 700, bgcolor: colors.greenSoft, color: colors.green }} />
+                          </Stack>
+                        </Box>
                       )) : (
-                        <Typography sx={{ color: colors.muted }}>No specialization data yet.</Typography>
+                        <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No specialization data yet.</Typography>
                       )}
                     </Stack>
-                  </Paper>
+                  </Box>
 
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Approval status snapshot</Typography>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>Status snapshot</Typography>
                     <Stack spacing={2}>
-                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 13.5, color: colors.muted }}>Approved</Typography><Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatNumber(doctors.filter((d) => d.is_approved).length)}</Typography></Stack>
-                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 13.5, color: colors.muted }}>Pending</Typography><Typography sx={{ fontSize: 14, fontWeight: 700, color: colors.orange }}>{formatNumber(pendingDoctors.length)}</Typography></Stack>
-                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 13.5, color: colors.muted }}>Inactive</Typography><Typography sx={{ fontSize: 14, fontWeight: 700, color: colors.red }}>{formatNumber(doctors.filter((d) => !d.is_active).length)}</Typography></Stack>
+                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 15, color: colors.muted }}>Approved</Typography><Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.green }}>{formatNumber(doctors.filter((d) => d.is_approved).length)}</Typography></Stack>
+                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 15, color: colors.muted }}>Pending</Typography><Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.orange }}>{formatNumber(pendingDoctors.length)}</Typography></Stack>
+                      <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 15, color: colors.muted }}>Inactive</Typography><Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.red }}>{formatNumber(doctors.filter((d) => !d.is_active).length)}</Typography></Stack>
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Stack>
               </Grid>
             </Grid>
 
-            <Paper sx={{ borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none', overflow: 'hidden' }}>
+            <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
               <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}` }}>
-                <Typography sx={{ fontSize: 18, fontWeight: 700 }}>Top doctors by performance</Typography>
+                <Typography sx={{ fontSize: 18 }}>Top doctors by performance</Typography>
               </Box>
-              <Box sx={{ px: 3, py: 2, bgcolor: colors.soft, display: 'flex' }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '24%' }}>Doctor</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '16%' }}>Specialization</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '16%' }}>Hospital</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '14%' }}>Consultations</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '10%' }}>Rating</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '10%' }}>Rx count</Typography>
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, width: '10%', textAlign: 'right' }}>Status</Typography>
+              <Box sx={{ px: 4, py: 2, bgcolor: colors.soft, display: { xs: 'none', lg: 'flex' } }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '24%' }}>Doctor</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '16%' }}>Specialization</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '16%' }}>Hospital</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '14%' }}>Consultations</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '10%' }}>Rating</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '10%' }}>Rx count</Typography>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '10%', textAlign: 'right' }}>Status</Typography>
               </Box>
               {topDoctors.map((doctor, index) => (
-                <Box key={doctor.userId} sx={{ px: 3, py: 2.5, display: 'flex', borderBottom: index === topDoctors.length - 1 ? 'none' : `1px solid ${colors.line}` }}>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: 700, width: '24%' }}>{doctor.full_name}</Typography>
-                  <Typography sx={{ fontSize: 13, color: colors.muted, width: '16%' }}>{doctor.specialization || 'Unspecified'}</Typography>
-                  <Typography sx={{ fontSize: 13, color: colors.muted, width: '16%' }}>{doctor.hospitalName || 'Not added'}</Typography>
-                  <Typography sx={{ fontSize: 13, width: '14%' }}>{formatNumber(doctor.totalConsultations)}</Typography>
-                  <Typography sx={{ fontSize: 13, width: '10%' }}>{Number(doctor.rating || 0).toFixed(1)}</Typography>
-                  <Typography sx={{ fontSize: 13, width: '10%' }}>{formatNumber(doctor.totalPrescriptions)}</Typography>
-                  <Box sx={{ width: '10%', textAlign: 'right' }}>
+                <Box key={doctor.userId} sx={{ px: 4, py: 2.5, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, borderBottom: index === topDoctors.length - 1 ? 'none' : `1px solid ${colors.line}`, '&:hover': { bgcolor: '#fbfbfb' } }}>
+                  <Box sx={{ width: { xs: '100%', lg: '24%' }, mb: { xs: 1, lg: 0 } }}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{doctor.full_name}</Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: 14, color: colors.muted, width: { xs: '100%', lg: '16%' }, mb: { xs: 0.5, lg: 0 } }}>{doctor.specialization || 'Unspecified'}</Typography>
+                  <Typography sx={{ fontSize: 14, color: colors.muted, width: { xs: '100%', lg: '16%' }, mb: { xs: 0.5, lg: 0 } }}>{doctor.hospitalName || 'Not added'}</Typography>
+                  <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '14%' }, mb: { xs: 0.5, lg: 0 } }}>{formatNumber(doctor.totalConsultations)} sessions</Typography>
+                  <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '10%' }, mb: { xs: 0.5, lg: 0 } }}>★ {Number(doctor.rating || 0).toFixed(1)}</Typography>
+                  <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '10%' }, mb: { xs: 0.5, lg: 0 } }}>{formatNumber(doctor.totalPrescriptions)} Rx</Typography>
+                  <Box sx={{ width: { xs: '100%', lg: '10%' }, textAlign: { lg: 'right' }, mt: { xs: 1, lg: 0 } }}>
                     <Chip
                       label={doctor.is_approved ? 'Active' : 'Pending'}
                       size="small"
-                      sx={{ bgcolor: doctor.is_approved ? colors.greenSoft : colors.orangeSoft, color: doctor.is_approved ? colors.green : colors.orange }}
+                      sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: doctor.is_approved ? colors.greenSoft : colors.orangeSoft, color: doctor.is_approved ? colors.green : colors.orange }}
                     />
                   </Box>
                 </Box>
               ))}
-            </Paper>
+            </Box>
           </>
         )}
       </Box>
