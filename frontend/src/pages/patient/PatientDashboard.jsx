@@ -27,9 +27,11 @@ import {
   HistoryRounded as HistoryIcon,
   VisibilityOutlined as ViewIcon,
   VideocamRounded as VideoIcon,
-  PlayCircleFilledRounded as OngoingIcon
+  PlayCircleFilledRounded as OngoingIcon,
+  LocalShippingRounded as ShippingIcon,
+  ShoppingBagRounded as OrderIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
 import {
   bookAppointment,
@@ -40,7 +42,9 @@ import {
 import { 
   fetchMyAppointments, 
   fetchMyRecords, 
-  fetchPharmacies 
+  fetchPharmacies,
+  fetchMyOrders,
+  cancelMyOrder
 } from '../../api/patientApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
 
@@ -79,6 +83,7 @@ const initials = (name) =>
 
 function PatientDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const bookingRef = useRef(null);
   const patientName = (() => {
     try {
@@ -107,6 +112,7 @@ function PatientDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [records, setRecords] = useState([]);
   const [pharmacies, setPharmacies] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [statsLoading, setStatsLoading] = useState(false);
 
   const resetSelection = () => { setSelectedDoctor(null); setSelectedDate(''); setSlots([]); setSelectedSlot(''); };
@@ -129,14 +135,16 @@ function PatientDashboard() {
     const fetchStats = async () => {
       setStatsLoading(true);
       try {
-        const [apptsRes, recsRes, pharRes] = await Promise.all([
+        const [apptsRes, recsRes, pharRes, ordsRes] = await Promise.all([
           fetchMyAppointments(),
           fetchMyRecords(),
-          fetchPharmacies()
+          fetchPharmacies(),
+          fetchMyOrders()
         ]);
         if (apptsRes.success) setAppointments(apptsRes.appointments || []);
         if (recsRes.success) setRecords(recsRes.records || []);
         if (pharRes.success) setPharmacies(pharRes.pharmacies || []);
+        if (ordsRes.success) setOrders(ordsRes.orders || []);
       } catch (err) {
         console.error('Failed to fetch dashboard stats', err);
       } finally {
@@ -145,6 +153,55 @@ function PatientDashboard() {
     };
     fetchStats();
   }, []);
+
+  // Listen for specialization query param from Symptom Checker
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const specParam = params.get('specialization');
+    if (specParam) {
+      setSpecialization(specParam);
+      // We need to wait for allDoctors to be populated if it hasn't yet
+      if (allDoctors.length > 0) {
+        handleAutoFilter(specParam);
+      }
+    }
+  }, [location.search, allDoctors]);
+
+  const handleAutoFilter = async (specValue) => {
+    const trimmed = specValue.trim().toLowerCase();
+    setDoctorsLoading(true);
+    setDoctorsError('');
+    resetSelection();
+    try {
+      const res = await getDoctorsBySpecialization(trimmed);
+      const filtered = res.doctors || [];
+      setDoctors(filtered);
+      setDoctorsError(filtered.length ? '' : `No doctors found for ${specValue}. Showing all doctors instead.`);
+      if (filtered.length === 0) setDoctors(allDoctors);
+      
+      // Scroll to booking section
+      setTimeout(() => {
+        bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (error) {
+       setDoctors(allDoctors);
+    } finally {
+      setDoctorsLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    try {
+      const res = await cancelMyOrder(orderId);
+      if (res.success) {
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o));
+        setSnackbar({ open: true, severity: 'success', message: 'Order cancelled successfully.' });
+      }
+    } catch (err) {
+        setSnackbar({ open: true, severity: 'error', message: 'Failed to cancel order.' });
+    }
+  };
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -442,6 +499,62 @@ function PatientDashboard() {
             </Box>
           </Grid>
         </Grid>
+
+        {/* Prescription Orders Tracking */}
+        <Box sx={{ mb: 4, p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>Active Prescription Orders</Typography>
+            <Button onClick={() => navigate('/patient/orders')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>Track Orders</Button>
+          </Stack>
+          
+          {orders.length > 0 ? (
+            <Grid container spacing={2}>
+              {orders.slice(0, 3).map((order) => (
+                <Grid key={order._id} size={{ xs: 12, md: 4 }}>
+                  <Box sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.bg, transition: 'all 0.2s', '&:hover': { borderColor: c.primary } }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Box sx={{ width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: order.status === 'Delivered' ? c.successSoft : order.status === 'Accepted' ? c.primarySoft : c.warningSoft, color: order.status === 'Delivered' ? c.success : order.status === 'Accepted' ? c.primary : c.warning }}>
+                        {order.deliveryType === 'HOME' ? <ShippingIcon fontSize="small" /> : <OrderIcon fontSize="small" />}
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {order.pharmacy?.pharmacyName || 'Pharmacy'}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: c.muted, mb: 0.5 }}>#{order._id.slice(-6).toUpperCase()}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Chip 
+                            label={order.status.toUpperCase()} 
+                            size="small" 
+                            sx={{ 
+                              height: 18, fontSize: 9, fontWeight: 800,
+                              bgcolor: order.status === 'Delivered' ? c.successSoft : order.status === 'Rejected' || order.status === 'Cancelled' ? c.dangerSoft : order.status === 'Pending' ? c.warningSoft : c.primarySoft,
+                              color: order.status === 'Delivered' ? c.success : order.status === 'Rejected' || order.status === 'Cancelled' ? c.danger : order.status === 'Pending' ? c.warning : c.primary
+                            }} 
+                          />
+                          <Typography sx={{ fontSize: 10, color: c.muted, mr: 1 }}>{order.deliveryType}</Typography>
+                          {order.status === 'Pending' && (
+                            <Button 
+                              size="small" 
+                              onClick={() => handleCancelOrder(order._id)}
+                              sx={{ p: 0, minWidth: 0, color: c.danger, fontSize: 10, fontWeight: 700, textTransform: 'none' }}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: c.soft, borderRadius: 2, border: `1px dashed ${c.line}`, textAlign: 'center' }}>
+               <OrderIcon sx={{ fontSize: 32, color: '#d0d0d0', mb: 1.5 }} />
+               <Typography sx={{ fontSize: 14, color: c.muted, maxWidth: 300 }}>You haven't sent any prescriptions to pharmacies yet. Your active orders will appear here.</Typography>
+            </Box>
+          )}
+        </Box>
 
         {/* Booking Section */}
         <Box ref={bookingRef} sx={{ p: { xs: 3, md: 4 }, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>

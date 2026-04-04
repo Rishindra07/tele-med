@@ -16,6 +16,7 @@ import PatientProfile from "./pages/patient/PatientProfile.jsx";
 import PatientSettings from "./pages/patient/PatientSettings.jsx";
 import ConsultationScreen from "./pages/patient/ConsultationScreen.jsx";
 import HealthRecords from "./pages/patient/HealthRecords.jsx";
+import OrderTracking from "./pages/patient/OrderTracking.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments.jsx";
 import PrescriptionForm from "./pages/doctor/PrescriptionForm.jsx";
@@ -28,6 +29,7 @@ import PharmacyPrescriptions from "./pages/pharmacy/PharmacyPrescriptions.jsx";
 import PharmacyInventory from "./pages/pharmacy/PharmacyInventory.jsx";
 import PharmacySales from "./pages/pharmacy/PharmacySales.jsx";
 import PharmacyExpiry from "./pages/pharmacy/PharmacyExpiry.jsx";
+import PharmacyOrders from "./pages/pharmacy/PharmacyOrders.jsx";
 import PharmacySuppliers from "./pages/pharmacy/PharmacySuppliers.jsx";
 import PharmacyProfile from "./pages/pharmacy/PharmacyProfile.jsx";
 import PharmacySettings from "./pages/pharmacy/PharmacySettings.jsx";
@@ -113,6 +115,20 @@ function App() {
         <ProtectedRoute>
           <RoleRoute role="patient">
             <ConsultationScreen/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/pharmacy/orders' element={
+        <ProtectedRoute>
+          <RoleRoute role="pharmacist">
+            <PharmacyOrders/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/orders' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <OrderTracking/>
           </RoleRoute>
         </ProtectedRoute>
       }/>

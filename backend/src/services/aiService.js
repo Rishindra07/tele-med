@@ -58,7 +58,8 @@ Return ONLY valid JSON:
 {
   "conditions": ["condition name"],
   "severity": "low|medium|high",
-  "advice": "short simple advice for patient"
+  "advice": "short simple advice for patient",
+  "suggestedSpecialization": "Recommended medical specialization (e.g. Cardiologist, Neurologist, General Physician, etc.)"
 }
 `;
 
@@ -73,7 +74,7 @@ Return ONLY valid JSON:
         models,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.1,
-        max_tokens: 250
+        max_tokens: 300
       },
       {
         headers: {
@@ -98,7 +99,8 @@ Return ONLY valid JSON:
       data: {
         conditions: parsed.conditions || [],
         severity: normalizeSeverity(parsed.severity),
-        advice: parsed.advice || "Consult doctor if symptoms persist"
+        advice: parsed.advice || "Consult doctor if symptoms persist",
+        suggestedSpecialization: parsed.suggestedSpecialization || "General Physician"
       }
     };
   } catch (err) {

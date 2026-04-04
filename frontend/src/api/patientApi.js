@@ -60,6 +60,14 @@ export const fetchSymptomLogs = async () => {
   return await API.get('/symptoms/logs');
 };
 
+export const fetchMyOrders = async () => {
+  return await API.get('/patient/prescriptions/orders');
+};
+
+export const cancelMyOrder = async (orderId) => {
+  return await API.delete(`/patient/prescriptions/orders/${orderId}`);
+};
+
 export const fetchPharmacies = async () => {
   return await API.get('/patient/pharmacies');
 };

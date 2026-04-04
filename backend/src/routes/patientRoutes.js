@@ -5,14 +5,12 @@ const { allowRoles } = require("../middleware/roleMiddleware.js");
 const { getPatientProfile, updatePatientProfile, updatePatientSettings } = require("../controllers/userControllers.js");
 const { getMyRecords, addRecord, deleteRecord } = require("../controllers/medicalRecordController");
 const { getAllPharmacies, getPharmacyStock } = require("../controllers/pharmacyController");
-const { assignToPharmacy } = require("../controllers/prescriptionController");
+const { assignToPharmacy, getMyOrders, cancelOrder } = require("../controllers/prescriptionController");
 
 // Profile & Settings
 router.get("/profile", protect, allowRoles("patient"), getPatientProfile);
 router.put("/profile", protect, allowRoles("patient"), updatePatientProfile);
 router.put("/settings", protect, allowRoles("patient"), updatePatientSettings);
-// Reschedule appointment is now in appointmentRoutes
-
 
 // Medical Records
 router.get("/records", protect, allowRoles("patient"), getMyRecords);
@@ -23,7 +21,7 @@ router.delete("/records/:id", protect, allowRoles("patient"), deleteRecord);
 router.get("/pharmacies", protect, allowRoles("patient"), getAllPharmacies);
 router.get("/pharmacies/:id/stock", protect, allowRoles("patient"), getPharmacyStock);
 router.post("/prescriptions/assign-pharmacy", protect, allowRoles("patient"), assignToPharmacy);
-
-// Future patient specific routes (records, etc.) will go here
+router.get("/prescriptions/orders", protect, allowRoles("patient"), getMyOrders);
+router.delete("/prescriptions/orders/:orderId", protect, allowRoles("patient"), cancelOrder);
 
 module.exports = router;

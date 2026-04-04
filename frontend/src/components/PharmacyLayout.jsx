@@ -9,7 +9,8 @@ import {
   LocalShippingOutlined as SuppliersIcon,
   PersonOutlineRounded as ProfileIcon,
   SettingsOutlined as SettingsIcon,
-  LogoutRounded as LogoutIcon
+  LogoutRounded as LogoutIcon,
+  ShoppingBagRounded as OrderIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -27,6 +28,7 @@ const colors = {
 
 const mainNavItems = [
   { text: 'Dashboard', icon: DashboardIcon, path: '/pharmacy' },
+  { text: 'Orders', icon: OrderIcon, path: '/pharmacy/orders', badge: 3, badgeColor: colors.green },
   { text: 'Prescriptions', icon: PrescriptionsIcon, path: '/pharmacy/prescriptions', badge: 5, badgeColor: colors.green },
   { text: 'Inventory', icon: InventoryIcon, path: '/pharmacy/inventory' },
   { text: 'Sales & Reports', icon: SalesIcon, path: '/pharmacy/sales' },
