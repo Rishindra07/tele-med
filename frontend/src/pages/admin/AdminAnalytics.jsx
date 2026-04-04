@@ -13,15 +13,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchAdminAnalytics } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  muted: '#6f6a62',
-  text: '#252525',
-  blue: '#2563eb',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -118,16 +122,33 @@ export default function AdminAnalytics() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Analytics</Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5 }}>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Analytics</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Platform-wide growth, engagement and health metrics
             </Typography>
           </Box>
-          <Button onClick={handleExport} variant="contained" sx={{ bgcolor: colors.text, color: '#fff', borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontWeight: 600 }}>
-            Export report
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              onClick={handleExport}
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Export report
+            </Button>
+          </Box>
         </Stack>
 
         {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
@@ -140,28 +161,36 @@ export default function AdminAnalytics() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {growthStats.map(([label, val, change, sub, color]) => (
-                <Grid item xs={12} sm={6} md={3} key={label}>
-                  <Paper sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 600, mb: 1.5 }}>
-                      <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, display: 'inline-block', mr: 1 }} />
-                      {label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mb: 0.5 }}>{val}</Typography>
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 700, color }}>{change}</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted }}>{sub}</Typography>
-                    </Stack>
-                  </Paper>
-                </Grid>
+                <Box
+                  key={label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: color }
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, color: colors.muted, mb: 1.5, display: 'flex', alignItems: 'center' }}>
+                    <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, display: 'inline-block', mr: 1 }} />
+                    {label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1, mb: 1 }}>{val}</Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color }}>{change}</Typography>
+                    <Typography sx={{ fontSize: 12, color: colors.muted }}>{sub}</Typography>
+                  </Stack>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             <Grid container spacing={4} sx={{ mb: 5 }}>
               <Grid item xs={12} lg={8}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                  <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 4 }}>Patient & consultation growth</Typography>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                  <Typography sx={{ fontSize: 18, mb: 4 }}>Patient & consultation growth</Typography>
                   <Box sx={{ height: 260, borderBottom: `1px solid ${colors.line}`, mb: 4, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 1 }}>
                     {monthlyGrowth.map((item) => (
                       <Box key={item.label} sx={{ flex: 1, textAlign: 'center' }}>
@@ -183,36 +212,36 @@ export default function AdminAnalytics() {
                       <Typography sx={{ fontSize: 12, color: colors.muted }}>Consultations</Typography>
                     </Stack>
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={4}>
                 <Stack spacing={4}>
-                  <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Patient acquisition</Typography>
-                    <Stack spacing={3}>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 3 }}>Patient acquisition</Typography>
+                    <Stack spacing={2}>
                       {[
                         ['App installs', formatNumber(acquisition.appInstalls), '100%'],
                         ['Registrations', formatNumber(acquisition.registrations), formatPercent(acquisition.registrationRate)],
                         ['First consultation', formatNumber(acquisition.firstConsultation), formatPercent(acquisition.firstConsultationRate)],
                         ['Retained (30d)', formatNumber(acquisition.retained30d), formatPercent(acquisition.retained30dRate)]
                       ].map(([label, val, perc]) => (
-                        <Stack key={label} direction="row" alignItems="center" justifyContent="space-between">
-                          <Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{label}</Typography>
-                          </Box>
-                          <Box sx={{ textAlign: 'right' }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 800 }}>{val}</Typography>
-                            <Typography sx={{ fontSize: 11, color: colors.muted }}>{perc}</Typography>
-                          </Box>
-                        </Stack>
+                        <Box key={label} sx={{ p: 1.8, borderRadius: 2.5, bgcolor: colors.soft }}>
+                          <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography sx={{ fontSize: 15, fontWeight: 600 }}>{label}</Typography>
+                            <Box sx={{ textAlign: 'right' }}>
+                              <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{val}</Typography>
+                              <Typography sx={{ fontSize: 12, color: colors.muted }}>{perc}</Typography>
+                            </Box>
+                          </Stack>
+                        </Box>
                       ))}
                     </Stack>
-                  </Paper>
+                  </Box>
 
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 2 }}>Consultation outcomes</Typography>
-                    <Stack spacing={1.5} mb={3}>
+                  <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 2 }}>Outcome summary</Typography>
+                    <Stack spacing={1.5} sx={{ mb: 4, p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
                       <OutcomeRow color={colors.green} label="Prescription issued" value={outcomes.prescriptionIssued} />
                       <OutcomeRow color={colors.orange} label="Follow-up booked" value={outcomes.followUpBooked} />
                       <OutcomeRow color={colors.blue} label="Escalated" value={outcomes.escalated} />
@@ -222,36 +251,36 @@ export default function AdminAnalytics() {
                       <MetricRow label="Audio call" val={formatPercent(modes.audio)} showBar color={colors.blue} />
                       <MetricRow label="Chat / async" val={formatPercent(modes.chat)} showBar color={colors.muted} />
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Stack>
               </Grid>
             </Grid>
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={4}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 4 }}>Top states by patients</Typography>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                  <Typography sx={{ fontSize: 18, mb: 4 }}>Top states by patients</Typography>
                   <Stack spacing={2.5}>
                     {topStates.map((state, index) => (
                       <Stack key={state.state} direction="row" alignItems="center" spacing={2}>
                         <Typography sx={{ fontSize: 12, color: colors.muted, width: 20 }}>{index + 1}</Typography>
-                        <Typography sx={{ fontSize: 13, fontWeight: 600, width: 130 }}>{state.state}</Typography>
-                        <Box sx={{ flex: 1, height: 6, bgcolor: colors.soft, borderRadius: 3, overflow: 'hidden' }}>
+                        <Typography sx={{ fontSize: 13.5, fontWeight: 600, width: 130 }}>{state.state}</Typography>
+                        <Box sx={{ flex: 1, height: 8, bgcolor: colors.soft, borderRadius: 4, overflow: 'hidden' }}>
                           <Box sx={{ width: `${(state.patients / Math.max(...topStates.map((item) => item.patients), 1)) * 100}%`, height: '100%', bgcolor: colors.green }} />
                         </Box>
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, width: 55, textAlign: 'right' }}>{formatNumber(state.patients)}</Typography>
+                        <Typography sx={{ fontSize: 13.5, fontWeight: 700, width: 55, textAlign: 'right' }}>{formatNumber(state.patients)}</Typography>
                       </Stack>
                     ))}
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={8}>
                 <Grid container spacing={4}>
                   <Grid item xs={12} md={7}>
-                    <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none', height: '100%' }}>
-                      <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Consultation heatmap (by hour)</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted, mb: 4 }}>Avg consultations per hour · Past 30 days</Typography>
+                    <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                      <Typography sx={{ fontSize: 18, mb: 2 }}>Heatmap (by hour)</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted, mb: 4 }}>Avg consultations per hour · Past 30 days</Typography>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1, mb: 2 }}>
                         {hourlyConsultations.map((item) => {
                           const intensity = item.count / maxHourly;
@@ -260,7 +289,7 @@ export default function AdminAnalytics() {
                               key={item.hour}
                               sx={{
                                 aspectRatio: '1',
-                                borderRadius: 1,
+                                borderRadius: 1.2,
                                 bgcolor: intensity > 0.75 ? colors.green : intensity > 0.45 ? '#88d3a6' : intensity > 0.2 ? colors.greenSoft : '#eef6f1'
                               }}
                             />
@@ -277,19 +306,19 @@ export default function AdminAnalytics() {
                         <Box sx={{ flex: 1, height: 4, borderRadius: 2, background: `linear-gradient(to right, #eef6f1, ${colors.green})` }} />
                         <Typography sx={{ fontSize: 10, color: colors.muted }}>High</Typography>
                       </Stack>
-                    </Paper>
+                    </Box>
                   </Grid>
 
                   <Grid item xs={12} md={5}>
-                    <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                      <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Key engagement metrics</Typography>
+                    <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                      <Typography sx={{ fontSize: 18, mb: 3 }}>Engagement metrics</Typography>
                       <Stack spacing={3.5}>
                         <MetricRow label="Avg session duration" val={`${analytics?.averageConsultationDurationMinutes || 0} min`} />
                         <MetricRow label="Symptom checker usage" val={formatPercent(engagement.symptomCheckerUsageRate)} showBar color={colors.green} />
                         <MetricRow label="Offline mode usage" val={formatPercent(engagement.offlineModeUsageRate)} showBar color={colors.blue} />
                         <MetricRow label="Rural (non-urban) patients" val={formatPercent(engagement.ruralPatientRate)} />
                       </Stack>
-                    </Paper>
+                    </Box>
                   </Grid>
                 </Grid>
               </Grid>

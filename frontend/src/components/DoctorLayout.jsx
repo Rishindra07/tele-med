@@ -10,6 +10,7 @@ import {
   SettingsOutlined as SettingsIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
   bg: '#f5f1e8',
@@ -21,12 +22,11 @@ const colors = {
 };
 
 const navItems = [
-  { text: 'Dashboard', icon: DashboardIcon, path: '/doctor' },
-  { text: 'Appointments', icon: CalendarIcon, path: '/doctor/appointments' },
-  { text: 'Patients', icon: PeopleIcon, path: '/doctor/patients' },
-  { text: 'Profile', icon: PersonIcon, path: '/doctor/profile' },
-  { text: 'Settings', icon: SettingsIcon, path: '/doctor/settings' },
-  { text: 'Prescribe', icon: NoteIcon, path: '/doctor/prescribe' }
+  { textKey: 'dashboard', icon: DashboardIcon, path: '/doctor' },
+  { textKey: 'appointments', icon: CalendarIcon, path: '/doctor/appointments' },
+  { textKey: 'patients', icon: PeopleIcon, path: '/doctor/patients' },
+  { textKey: 'profile', icon: PersonIcon, path: '/doctor/profile' },
+  { textKey: 'settings', icon: SettingsIcon, path: '/doctor/settings' }
 ];
 
 const initials = (name) =>
@@ -49,8 +49,8 @@ function DoctorLayout({ children }) {
   });
   const doctorName = doctor?.full_name || doctor?.name || 'Doctor';
   const profileImage = doctor?.profileImage || doctor?.avatar || doctor?.image || '';
-  const [language, setLanguage] = useState('EN');
-
+  const { language, setLanguage } = useLanguage();
+  const t = useTranslation();
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -94,7 +94,7 @@ function DoctorLayout({ children }) {
               const active = location.pathname === item.path;
               return (
                 <Button
-                  key={item.text}
+                  key={item.textKey}
                   onClick={() => navigate(item.path)}
                   sx={{
                     justifyContent: 'flex-start',
@@ -110,7 +110,7 @@ function DoctorLayout({ children }) {
                   }}
                 >
                   <Icon />
-                  <Box>{item.text}</Box>
+                  <Box>{t[item.textKey]}</Box>
                 </Button>
               );
             })}
@@ -120,23 +120,29 @@ function DoctorLayout({ children }) {
         <Box sx={{ p: 2.5, borderTop: `1px solid ${colors.line}` }}>
           <Typography sx={{ color: colors.muted, fontSize: 16, mb: 1.75 }}>Language</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {['EN', 'HIN', 'TAM', 'TEL', 'BAN'].map((item) => (
+            {[
+              { code: 'en', label: 'EN' },
+              { code: 'hi', label: 'HI' },
+              { code: 'ta', label: 'TA' },
+              { code: 'te', label: 'TE' },
+              { code: 'bn', label: 'BN' }
+            ].map((lang) => (
               <Button
-                key={item}
-                onClick={() => setLanguage(item)}
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
                 sx={{
                   minWidth: 0,
                   px: 1.8,
                   py: 0.75,
                   borderRadius: 999,
-                  border: `1px solid ${language === item ? colors.green : '#bcb4aa'}`,
-                  bgcolor: language === item ? colors.greenSoft : '#fff',
-                  color: language === item ? colors.greenDark : '#5f5a52',
+                  border: `1px solid ${language === lang.code ? colors.green : '#bcb4aa'}`,
+                  bgcolor: language === lang.code ? colors.greenSoft : '#fff',
+                  color: language === lang.code ? colors.greenDark : '#5f5a52',
                   textTransform: 'none',
                   fontSize: 15
                 }}
               >
-                {item}
+                {lang.label}
               </Button>
             ))}
           </Stack>
@@ -168,7 +174,7 @@ function DoctorLayout({ children }) {
               '&:hover': { bgcolor: '#f7f3ea' }
             }}
           >
-            Logout
+            {t.logout || 'Logout'}
           </Button>
         </Box>
       </Box>

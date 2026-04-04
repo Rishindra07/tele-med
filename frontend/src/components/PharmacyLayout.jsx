@@ -13,6 +13,7 @@ import {
   ShoppingBagRounded as OrderIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
   bg: '#f5f1e8',
@@ -37,8 +38,8 @@ const mainNavItems = [
 ];
 
 const settingsNavItems = [
-  { text: 'Pharmacy Profile', icon: ProfileIcon, path: '/pharmacy/profile' },
-  { text: 'Settings', icon: SettingsIcon, path: '/pharmacy/settings' }
+  { textKey: 'pharmacy_profile', icon: ProfileIcon, path: '/pharmacy/profile' },
+  { textKey: 'settings', icon: SettingsIcon, path: '/pharmacy/settings' }
 ];
 
 const initials = (name) =>
@@ -52,7 +53,8 @@ const initials = (name) =>
 function PharmacyLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [language, setLanguage] = useState('EN');
+  const { language, setLanguage } = useLanguage();
+  const t = useTranslation();
 
   const storedUser = useMemo(() => {
     try {
@@ -79,7 +81,7 @@ function PharmacyLayout({ children }) {
     
     return (
       <Button
-        key={item.text}
+        key={item.textKey}
         onClick={() => navigate(item.path)}
         sx={{
           justifyContent: 'flex-start',
@@ -97,7 +99,7 @@ function PharmacyLayout({ children }) {
         }}
       >
         <Icon sx={{ fontSize: 22 }} />
-        <Box sx={{ flex: 1, textAlign: 'left' }}>{item.text}</Box>
+        <Box sx={{ flex: 1, textAlign: 'left' }}>{t[item.textKey]}</Box>
         {item.badge && (
           <Box
             sx={{
@@ -164,24 +166,30 @@ function PharmacyLayout({ children }) {
 
         <Box sx={{ p: 2.5, borderTop: `1px solid ${colors.line}` }}>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
-            {['EN', 'हिं', 'ਪੰ', 'தமிழ்'].map((item) => (
+            {[
+              { code: 'en', label: 'EN' },
+              { code: 'hi', label: 'HI' },
+              { code: 'ta', label: 'TA' },
+              { code: 'te', label: 'TE' },
+              { code: 'bn', label: 'BN' }
+            ].map((lang) => (
               <Button
-                key={item}
-                onClick={() => setLanguage(item)}
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
                 sx={{
                   minWidth: 0,
                   px: 1.5,
                   py: 0.5,
                   borderRadius: 999,
-                  border: `1px solid ${language === item ? colors.green : '#bcb4aa'}`,
-                  bgcolor: language === item ? colors.greenSoft : 'transparent',
-                  color: language === item ? colors.greenDark : '#5f5a52',
+                  border: `1px solid ${language === lang.code ? colors.green : '#bcb4aa'}`,
+                  bgcolor: language === lang.code ? colors.greenSoft : 'transparent',
+                  color: language === lang.code ? colors.greenDark : '#5f5a52',
                   textTransform: 'none',
                   fontSize: 13,
-                  fontWeight: language === item ? 600 : 400
+                  fontWeight: language === lang.code ? 600 : 400
                 }}
               >
-                {item}
+                {lang.label}
               </Button>
             ))}
           </Stack>

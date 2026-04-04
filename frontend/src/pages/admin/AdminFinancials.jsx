@@ -22,20 +22,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchFinancialOverview } from '../../api/adminApi';
 
 const colors = {
-  paper: '#ffffff',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  redSoft: '#fef2f2',
-  orange: '#ea580c',
-  orangeSoft: '#fff7ed',
-  yellow: '#ca8a04'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
@@ -156,14 +155,35 @@ export default function AdminFinancials() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '-0.5px' }}>Financial</Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5, fontWeight: 500 }}>Platform revenue, partner payouts and tax management</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Financials</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
+              Platform revenue, partner payouts and tax management
+            </Typography>
           </Box>
-          <Button startIcon={<ExportIcon />} onClick={handleExport} variant="contained" sx={{ bgcolor: colors.text, color: '#fff', borderRadius: 3, px: 3, py: 1.2, textTransform: 'none', fontWeight: 700 }}>
-            Export accounts
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              startIcon={<ExportIcon />}
+              onClick={handleExport}
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
+              Export accounts
+            </Button>
+          </Box>
         </Stack>
 
         {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
@@ -176,135 +196,149 @@ export default function AdminFinancials() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Alert icon={<WarningIcon sx={{ color: colors.red }} />} sx={{ mb: 4, borderRadius: 4, bgcolor: colors.redSoft, border: `1px solid ${colors.red}15`, color: colors.red, fontWeight: 700, fontSize: 14, py: 1.5 }}>
-              {`${alerts.count || 0} alerts — ${formatCompactRupees(alerts.totalAmount)} outstanding - ${alerts.message || 'No active payout alerts'}`}
+            <Alert
+              icon={<WarningIcon sx={{ color: colors.red }} />}
+              sx={{
+                mb: 4,
+                borderRadius: 3.5,
+                bgcolor: colors.redSoft,
+                border: `1px solid ${colors.red}20`,
+                color: colors.red,
+                fontSize: 15,
+                py: 1.5,
+                '& .MuiAlert-icon': { pt: 1 }
+              }}
+            >
+              <Box component="span" sx={{ fontWeight: 800 }}>{alerts.count || 0} alerts</Box>
+              {` — ${formatCompactRupees(alerts.totalAmount)} outstanding • ${alerts.message || 'No active payout alerts'}`}
             </Alert>
 
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {stats.map((stat) => (
-                <Grid item xs={12} sm={6} md={3} key={stat.label}>
-                  <Paper sx={{ p: 3, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${stat.color}10`, color: stat.color }}>
-                        {React.cloneElement(stat.icon, { sx: { fontSize: 20 } })}
-                      </Box>
-                      <Box sx={{ bgcolor: colors.soft, px: 1, py: 0.4, borderRadius: 1.5 }}>
-                        <Typography sx={{ fontSize: 10, fontWeight: 800, color: stat.color }}>{stat.change}</Typography>
-                      </Box>
+                <Box
+                  key={stat.label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: stat.color }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: `${stat.color}15`, color: stat.color }}>
+                      {React.cloneElement(stat.icon, { sx: { fontSize: 22 } })}
                     </Box>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 700, mb: 0.5 }}>{stat.label}</Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 900 }}>{stat.val}</Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.muted, mt: 0.5 }}>{stat.helper}</Typography>
-                  </Paper>
-                </Grid>
+                    <Box sx={{ bgcolor: colors.soft, px: 1.2, py: 0.5, borderRadius: 1.5 }}>
+                      <Typography sx={{ fontSize: 11, fontWeight: 800, color: stat.color }}>{stat.change}</Typography>
+                    </Box>
+                  </Box>
+                  <Typography sx={{ fontSize: 16, color: colors.muted, mb: 0.5 }}>{stat.label}</Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1, mb: 0.8 }}>{stat.val}</Typography>
+                  <Typography sx={{ fontSize: 12, color: colors.muted }}>{stat.helper}</Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={8}>
-                <Paper sx={{ p: 4, borderRadius: 6, border: `1px solid ${colors.line}`, boxShadow: 'none', background: colors.paper, height: '100%' }}>
+          <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                     <Box>
-                      <Typography sx={{ fontSize: 20, fontWeight: 800 }}>Revenue Growth</Typography>
+                      <Typography sx={{ fontSize: 18 }}>Revenue growth</Typography>
                       <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
                         {`${summary.revenueGrowthRate >= 0 ? '↑' : '↓'} ${Math.abs(summary.revenueGrowthRate || 0)}% vs last month performance`}
                       </Typography>
                     </Box>
                   </Stack>
-
-                  <Box sx={{ height: 220, mt: 4, display: 'flex', alignItems: 'flex-end', gap: 2 }}>
+                  <Box sx={{ height: 220, mt: 4, display: 'flex', alignItems: 'flex-end', gap: 1.5 }}>
                     {revenueGrowth.map((item) => (
                       <Box key={item.label} sx={{ flex: 1, textAlign: 'center' }}>
-                        <Box sx={{ mx: 'auto', width: '70%', height: `${Math.max(12, ((item.revenue || 0) / maxRevenue) * 180)}px`, borderRadius: '12px 12px 0 0', bgcolor: colors.blue }} />
-                        <Typography sx={{ fontSize: 10, fontWeight: 700, color: colors.muted, mt: 1 }}>{item.label}</Typography>
+                        <Box sx={{ mx: 'auto', width: '65%', height: `${Math.max(12, ((item.revenue || 0) / maxRevenue) * 180)}px`, borderRadius: '6px 6px 0 0', bgcolor: colors.blue }} />
+                        <Typography sx={{ fontSize: 11, color: colors.muted, mt: 1.5 }}>{item.label}</Typography>
                       </Box>
                     ))}
                   </Box>
-
-                  <Divider sx={{ my: 4 }} />
-
-                  <Typography sx={{ fontSize: 16, fontWeight: 800, mb: 3 }}>Recent Payouts</Typography>
+                  <Divider sx={{ my: 4, borderColor: colors.line, opacity: 0.5 }} />
+                  <Typography sx={{ fontSize: 18, mb: 3 }}>Recent Payouts</Typography>
                   <Stack spacing={2}>
                     {recentPayouts.length ? recentPayouts.map((payout, index) => {
                       const statusColor = payout.status === 'Paid' ? colors.green : payout.status === 'Flagged' ? colors.red : colors.orange;
                       return (
-                        <Box key={`${payout.doctorName}-${index}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: 3, border: `1px solid ${colors.line}` }}>
+                        <Box key={`${payout.doctorName}-${index}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
                           <Stack direction="row" spacing={2} alignItems="center">
-                            <Avatar sx={{ width: 36, height: 36, bgcolor: `${statusColor}15`, color: statusColor, fontWeight: 800, fontSize: 12 }}>
+                            <Avatar sx={{ width: 44, height: 44, bgcolor: `${statusColor}15`, color: statusColor, fontWeight: 800, fontSize: 14 }}>
                               {getInitials(payout.doctorName)}
                             </Avatar>
                             <Box>
-                              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{payout.doctorName}</Typography>
-                              <Typography sx={{ fontSize: 11, color: colors.muted }}>{payout.dateLabel} • {payout.method}</Typography>
+                              <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{payout.doctorName}</Typography>
+                              <Typography sx={{ fontSize: 12, color: colors.muted }}>{payout.dateLabel} • {payout.method}</Typography>
                             </Box>
                           </Stack>
                           <Box sx={{ textAlign: 'right' }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 900 }}>{formatCurrency(payout.amount)}</Typography>
-                            <Typography sx={{ fontSize: 10, fontWeight: 800, color: statusColor }}>● {payout.status}</Typography>
+                            <Typography sx={{ fontSize: 16, fontWeight: 800 }}>{formatCurrency(payout.amount)}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, mt: 0.2 }}>
+                              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: statusColor }} />
+                              <Typography sx={{ fontSize: 11, fontWeight: 700, color: statusColor }}>{payout.status}</Typography>
+                            </Box>
                           </Box>
                         </Box>
                       );
                     }) : (
-                      <Typography sx={{ color: colors.muted }}>No payout activity available yet.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No payout activity available yet.</Typography>
                     )}
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={4}>
                 <Stack spacing={4}>
-                  <Paper sx={{ p: 4, borderRadius: 6, border: `1px solid ${colors.line}`, boxShadow: 'none', bgcolor: '#fff' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 800, mb: 4 }}>GST summary — {monthLabel}</Typography>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                    <Typography sx={{ fontSize: 18, mb: 4 }}>GST summary — {monthLabel}</Typography>
                     <Stack spacing={2.5}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography sx={{ fontSize: 14, color: colors.muted, fontWeight: 500 }}>Taxable turnover</Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{formatCompactRupees(gst.taxableTurnover)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography sx={{ fontSize: 14, color: colors.muted, fontWeight: 500 }}>CGST (9%)</Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{formatCompactRupees(gst.cgst)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography sx={{ fontSize: 14, color: colors.muted, fontWeight: 500 }}>SGST (9%)</Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{formatCompactRupees(gst.sgst)}</Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography sx={{ fontSize: 14, color: colors.muted, fontWeight: 500 }}>GSTR-1 Due</Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 800 }}>
-                          {gst.dueDate ? new Date(gst.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : 'TBD'}
-                        </Typography>
-                      </Stack>
+                      {[
+                        ['Taxable turnover', formatCompactRupees(gst.taxableTurnover)],
+                        ['CGST (9%)', formatCompactRupees(gst.cgst)],
+                        ['SGST (9%)', formatCompactRupees(gst.sgst)],
+                        ['GSTR-1 Due', gst.dueDate ? new Date(gst.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : 'TBD']
+                      ].map(([label, val]) => (
+                        <Stack key={label} direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography sx={{ fontSize: 14.5, color: colors.muted }}>{label}</Typography>
+                          <Typography sx={{ fontSize: 16, fontWeight: 800 }}>{val}</Typography>
+                        </Stack>
+                      ))}
                     </Stack>
-                  </Paper>
+                  </Box>
 
-                  <Paper sx={{ p: 4, borderRadius: 6, border: `1px solid ${colors.line}`, boxShadow: 'none', background: 'linear-gradient(180deg, #fff 0%, #fcfbf7 100%)' }}>
-                    <Typography sx={{ fontSize: 18, fontWeight: 800, mb: 4 }}>Revenue breakdown</Typography>
-                    <Stack spacing={3.5}>
+                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, background: `linear-gradient(180deg, ${colors.paper} 0%, #fcfbf7 100%)` }}>
+                    <Typography sx={{ fontSize: 18, mb: 4 }}>Revenue breakdown</Typography>
+                    <Stack spacing={3}>
                       {revenueBreakdown.map((item, index) => {
                         const barColor = [colors.blue, colors.green, colors.orange][index % 3];
                         return (
-                          <Stack key={item.label} spacing={1.5}>
+                          <Stack key={item.label} spacing={1.2}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                              <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Stack direction="row" spacing={1.2} alignItems="center">
                                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: barColor }} />
-                                <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{item.label}</Typography>
+                                <Typography sx={{ fontSize: 14.5, fontWeight: 700 }}>{item.label}</Typography>
                               </Stack>
-                              <Typography sx={{ fontSize: 14, fontWeight: 800 }}>{formatCompactRupees(item.value)}</Typography>
+                              <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{formatCompactRupees(item.value)}</Typography>
                             </Stack>
-                            <Box sx={{ height: 8, bgcolor: colors.soft, borderRadius: 4, overflow: 'hidden' }}>
-                              <Box sx={{ width: `${Math.max(8, ((item.value || 0) / maxBreakdown) * 100)}%`, height: '100%', bgcolor: barColor, borderRadius: 4 }} />
+                            <Box sx={{ height: 10, bgcolor: colors.soft, borderRadius: 5, overflow: 'hidden' }}>
+                              <Box sx={{ width: `${Math.max(8, ((item.value || 0) / maxBreakdown) * 100)}%`, height: '100%', bgcolor: barColor, borderRadius: 5 }} />
                             </Box>
                           </Stack>
                         );
                       })}
                     </Stack>
-                    <Box sx={{ mt: 5, p: 3, borderRadius: 4, bgcolor: colors.blueSoft, border: `1px solid ${colors.blue}10` }}>
-                      <Typography sx={{ fontSize: 13, color: colors.blue, fontWeight: 700, mb: 1 }}>Performance Insight</Typography>
-                      <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.5 }}>
+                    <Box sx={{ mt: 4, p: 2.5, borderRadius: 3, bgcolor: colors.blueSoft, border: `1px solid ${colors.blue}15` }}>
+                      <Typography sx={{ fontSize: 14, color: colors.blue, fontWeight: 800, mb: 1 }}>Performance Insight</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.6 }}>
                         {`${insight.topSource || 'Consultation fees'} is the top revenue driver, contributing about ${insight.topSourceShare || 0}% of current estimated monthly revenue.`}
                       </Typography>
                     </Box>
-                  </Paper>
+                  </Box>
                 </Stack>
               </Grid>
             </Grid>

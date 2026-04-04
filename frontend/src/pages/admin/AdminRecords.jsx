@@ -6,9 +6,9 @@ import {
   CircularProgress,
   Divider,
   Grid,
-  Paper,
   Stack,
-  Typography
+  Typography,
+  Chip
 } from '@mui/material';
 import {
   SyncRounded as SyncIcon,
@@ -18,16 +18,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchRecordsOverview } from '../../api/adminApi';
 
 const colors = {
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  blue: '#2563eb',
-  green: '#16a34a',
-  greenSoft: '#f0fdf4',
-  red: '#dc2626',
-  orange: '#ea580c',
-  yellow: '#ca8a04'
+  paper: '#fffdf8',
+  line: '#d8d0c4',
+  text: '#2c2b28',
+  muted: '#8b857d',
+  blue: '#4a90e2',
+  blueSoft: '#e9f2ff',
+  green: '#26a37c',
+  greenSoft: '#dff3eb',
+  red: '#d9635b',
+  redSoft: '#fbeaea',
+  orange: '#d18a1f',
+  orangeSoft: '#fdf4e4',
+  soft: '#f7f3ea'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -135,19 +138,52 @@ export default function AdminRecords() {
   return (
     <AdminLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Georgia, serif' }}>Health Records</Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 14.5 }}>Platform-wide record storage, sync status and data management</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Health Records</Typography>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
+              Platform-wide record storage, sync status and data management
+            </Typography>
           </Box>
-          <Stack direction="row" spacing={1.5}>
-            <Button startIcon={<SyncIcon />} onClick={handleSync} variant="contained" sx={{ bgcolor: colors.text, color: '#fff', borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontWeight: 600 }}>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Box>
+            <Button
+              startIcon={<SyncIcon />}
+              onClick={handleSync}
+              variant="contained"
+              sx={{
+                bgcolor: colors.blue,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                '&:hover': { bgcolor: colors.blue }
+              }}
+            >
               Sync now
             </Button>
-            <Button onClick={handleExport} variant="outlined" sx={{ borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontWeight: 600 }}>
+            <Button
+              onClick={handleExport}
+              variant="outlined"
+              sx={{
+                borderColor: colors.line,
+                color: colors.text,
+                borderRadius: 3,
+                px: 3,
+                py: 1.25,
+                textTransform: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                '&:hover': { borderColor: colors.text, bgcolor: 'transparent' }
+              }}
+            >
               Export CSV
             </Button>
-          </Stack>
+          </Box>
         </Stack>
 
         {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
@@ -160,79 +196,101 @@ export default function AdminRecords() {
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={2.5} sx={{ mb: 5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
               {stats.map((stat) => (
-                <Grid item xs={12} sm={6} md={3} key={stat.label}>
-                  <Paper sx={{ p: 2.5, borderRadius: 4, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                    <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 600, mb: 1.5 }}>
-                      <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: stat.color, display: 'inline-block', mr: 1 }} />
-                      {stat.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 28, fontWeight: 700, mb: 0.5 }}>{stat.val}</Typography>
-                    <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 600 }}>{stat.change}</Typography>
-                  </Paper>
-                </Grid>
+                <Box
+                  key={stat.label}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3.5,
+                    border: `1px solid ${colors.line}`,
+                    bgcolor: colors.paper,
+                    transition: '0.2s',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderColor: stat.color }
+                  }}
+                >
+                  <Typography sx={{ fontSize: 16, color: colors.muted, mb: 1.5, display: 'flex', alignItems: 'center' }}>
+                    <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: stat.color, display: 'inline-block', mr: 1 }} />
+                    {stat.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 30, lineHeight: 1, mb: 1 }}>{stat.val}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>{stat.change}</Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={7}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                  <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 4 }}>Record type breakdown</Typography>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                  <Typography sx={{ fontSize: 18, mb: 4 }}>Record type breakdown</Typography>
                   <Stack spacing={4}>
                     {breakdown.length ? breakdown.map((item, index) => {
-                      const barColor = [colors.green, colors.blue, '#6366f1', colors.orange, colors.yellow][index % 5];
+                      const barColor = [colors.green, colors.blue, '#6366f1', colors.orange, colors.red][index % 5];
                       return (
                         <Stack key={item.name} spacing={1.5}>
-                          <Stack direction="row" justifyContent="space-between">
-                            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{item.name}</Typography>
-                            <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{formatNumber(item.count)}</Typography>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{item.name}</Typography>
+                            <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{formatNumber(item.count)}</Typography>
                           </Stack>
-                          <Box sx={{ height: 8, bgcolor: colors.soft, borderRadius: 4, overflow: 'hidden' }}>
-                            <Box sx={{ width: `${Math.min(item.percentage, 100)}%`, height: '100%', bgcolor: barColor }} />
+                          <Box sx={{ height: 10, bgcolor: colors.soft, borderRadius: 5, overflow: 'hidden' }}>
+                            <Box sx={{ width: `${Math.min(item.percentage, 100)}%`, height: '100%', bgcolor: barColor, borderRadius: 5 }} />
                           </Box>
                         </Stack>
                       );
                     }) : (
-                      <Typography sx={{ color: colors.muted }}>No health record data is available yet.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No health record data is available yet.</Typography>
                     )}
                   </Stack>
-                  <Divider sx={{ my: 4 }} />
+                  <Divider sx={{ my: 4, borderColor: colors.line, opacity: 0.5 }} />
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Linked patient records</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted }}>Across active patient population with stored health records</Typography>
+                      <Typography sx={{ fontSize: 15, fontWeight: 800 }}>Linked patient records</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted }}>Across active patient population with stored records</Typography>
                     </Box>
-                    <Typography sx={{ fontSize: 24, fontWeight: 800 }}>{formatPercent(highlights.linkedCoverageRate)}</Typography>
+                    <Typography sx={{ fontSize: 28, fontWeight: 900 }}>{formatPercent(highlights.linkedCoverageRate)}</Typography>
                   </Stack>
-                  <Divider sx={{ my: 4 }} />
+                  <Divider sx={{ my: 4, borderColor: colors.line, opacity: 0.5 }} />
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 700 }}>Offline cached records</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted }}>Stored on records flagged for offline availability</Typography>
+                      <Typography sx={{ fontSize: 15, fontWeight: 800 }}>Offline cached records</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted }}>Stored on records flagged for offline availability</Typography>
                     </Box>
-                    <Typography sx={{ fontSize: 24, fontWeight: 800 }}>{formatNumber(highlights.offlineCachedRecords)}</Typography>
+                    <Typography sx={{ fontSize: 28, fontWeight: 900 }}>{formatNumber(highlights.offlineCachedRecords)}</Typography>
                   </Stack>
-                </Paper>
+                </Box>
               </Grid>
 
               <Grid item xs={12} lg={5}>
-                <Paper sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, boxShadow: 'none' }}>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>Storage & sync health</Typography>
+                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Typography sx={{ fontSize: 18, mb: 3 }}>Storage & sync health</Typography>
                   <Stack spacing={2.5}>
                     {healthRows.map((row) => (
                       <Stack key={row.label} direction="row" justifyContent="space-between">
-                        <Typography sx={{ fontSize: 13.5, color: colors.muted, fontWeight: 500 }}>{row.label}</Typography>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700, textAlign: 'right', color: row.label === 'Pending sync issues' && Number(health.pendingSyncIssues || 0) > 0 ? colors.red : colors.text }}>
+                        <Typography sx={{ fontSize: 14.5, color: colors.muted }}>{row.label}</Typography>
+                        <Typography sx={{ fontSize: 15, fontWeight: 800, textAlign: 'right', color: row.label === 'Pending sync issues' && Number(health.pendingSyncIssues || 0) > 0 ? colors.red : colors.text }}>
                           {row.val}
                         </Typography>
                       </Stack>
                     ))}
                   </Stack>
-                  <Button fullWidth startIcon={<SecureIcon />} variant="outlined" sx={{ mt: 4, borderRadius: 2.5, textTransform: 'none', py: 1.2, fontWeight: 600 }}>
+                  <Button
+                    fullWidth
+                    startIcon={<SecureIcon />}
+                    variant="outlined"
+                    sx={{
+                      mt: 4,
+                      borderRadius: 2.5,
+                      textTransform: 'none',
+                      py: 1.4,
+                      fontWeight: 800,
+                      borderColor: colors.line,
+                      color: colors.text,
+                      '&:hover': { borderColor: colors.text, bgcolor: 'transparent' }
+                    }}
+                  >
                     Manage encryption keys
                   </Button>
-                </Paper>
+                </Box>
               </Grid>
             </Grid>
           </>
