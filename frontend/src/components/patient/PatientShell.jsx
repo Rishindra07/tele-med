@@ -9,7 +9,8 @@ import {
   LogoutRounded as LogoutIcon,
   PersonOutlineRounded as PersonIcon,
   SearchRounded as SearchIcon,
-  SettingsOutlined as SettingsIcon
+  SettingsOutlined as SettingsIcon,
+  LocalShippingRounded as OrderIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,7 +28,8 @@ const navItems = [
   { label: 'Appointments', icon: EventIcon, action: 'appointments' },
   { label: 'Health Records', icon: HealthRecordsIcon, action: 'records' },
   { label: 'Symptom Checker', icon: SearchIcon, action: 'symptoms' },
-  { label: 'Pharmacies', icon: HospitalIcon, action: 'pharmacies' }
+  { label: 'Pharmacies', icon: HospitalIcon, action: 'pharmacies' },
+  { label: 'Orders', icon: OrderIcon, action: 'orders' }
 ];
 
 const settingsSections = [
@@ -79,6 +81,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
     if (action === 'records') navigate('/patient/records');
     if (action === 'symptoms') navigate('/symptom-checker');
     if (action === 'pharmacies') navigate('/patient/pharmacies');
+    if (action === 'orders') navigate('/patient/orders');
     if (action === 'profile') navigate('/patient/profile');
     if (action === 'settings') navigate('/patient/settings');
   };

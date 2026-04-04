@@ -48,6 +48,11 @@ const symptomLogSchema = new mongoose.Schema(
       trim: true,
       default: "Follow general precautions"
     },
+    suggestedSpecialization: {
+      type: String,
+      trim: true,
+      default: "General Physician"
+    },
     aiSource: {
       type: String,
       enum: ["online_ml", "offline_rule_based", "cloud", "local", "unknown"],

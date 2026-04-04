@@ -3,6 +3,22 @@ import { Avatar, Box, Button, CircularProgress, Stack, TextField, Typography } f
 import { PhotoCameraRounded as CameraIcon, EditRounded as EditIcon, SaveRounded as SaveIcon, CloseRounded as CloseIcon } from '@mui/icons-material';
 import PatientShell from '../../components/patient/PatientShell';
 import { fetchPatientProfile, updatePatientProfile } from '../../api/patientApi';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { MyLocationRounded as LocationIcon } from '@mui/icons-material';
+
+// Fix for leaflet default icons
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const colors = {
   bg: '#f8f9fa',
@@ -53,7 +69,8 @@ export default function PatientProfile() {
     profile_image: initialUser.profile_image || '',
     emergencyContactName: '',
     emergencyContactRelation: '',
-    emergencyContactPhone: ''
+    emergencyContactPhone: '',
+    location: { lat: 17.3850, lng: 78.4867 }
   });
 
   const [counts, setCounts] = useState({
@@ -100,7 +117,8 @@ export default function PatientProfile() {
             address: profile?.address || '',
             emergencyContactName: profile?.emergency_contact?.name || '',
             emergencyContactRelation: profile?.emergency_contact?.relation || '',
-            emergencyContactPhone: profile?.emergency_contact?.phone || ''
+            emergencyContactPhone: profile?.emergency_contact?.phone || '',
+            location: profile?.location?.lat ? profile.location : { lat: 17.3850, lng: 78.4867 }
           };
           
           setProfileData(newData);
@@ -167,7 +185,8 @@ export default function PatientProfile() {
           address: profile?.address || '',
           emergencyContactName: profile?.emergency_contact?.name || '',
           emergencyContactRelation: profile?.emergency_contact?.relation || '',
-          emergencyContactPhone: profile?.emergency_contact?.phone || ''
+          emergencyContactPhone: profile?.emergency_contact?.phone || '',
+          location: profile?.location?.lat ? profile.location : { lat: 17.3850, lng: 78.4867 }
         };
         setProfileData(newData);
         if (resCounts) {
@@ -185,6 +204,60 @@ export default function PatientProfile() {
       const errorMsg = err.response?.data?.message || err.message || 'Failed to update profile';
       const detail = err.response?.data ? JSON.stringify(err.response.data) : (err.stack || '');
       alert(`${errorMsg}\n\nDetails: ${detail.substring(0, 200)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+      const data = await response.json();
+      if (data && data.address) {
+        const addr = data.address;
+        const village = addr.village || addr.town || addr.suburb || addr.neighbourhood || '';
+        const mandal = addr.county || addr.subdistrict || '';
+        const dist = addr.state_district || addr.county || '';
+        const state = addr.state || '';
+        const pincode = addr.postcode || '';
+        
+        const fullParts = [village, mandal, dist, state, pincode].filter(Boolean);
+        return fullParts.join(', ');
+      }
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch (err) {
+      console.error('Reverse geocode failed:', err);
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  };
+
+  const handleSaveDirectly = async (fields) => {
+    try {
+      setSaving(true);
+      
+      let updatedFields = { ...fields };
+      if (fields.location && !fields.address) {
+        const addrText = await reverseGeocode(fields.location.lat, fields.location.lng);
+        updatedFields.address = addrText;
+      }
+      
+      const res = await updatePatientProfile({ ...profileData, ...updatedFields });
+      if (res && res.success) {
+        const { user, profile } = res;
+        const newData = {
+          ...profileData,
+          name: user.full_name || profileData.name,
+          email: user.email || profileData.email,
+          phone: user.phone || profileData.phone,
+          profile_image: user.profile_image || profileData.profile_image,
+          address: profile?.address || profileData.address,
+          location: profile?.location || profileData.location
+        };
+        setProfileData(newData);
+        setEditForm(newData);
+      }
+    } catch (err) {
+      console.error('Direct save failed:', err);
     } finally {
       setSaving(false);
     }
@@ -372,38 +445,90 @@ export default function PatientProfile() {
                   <Box sx={{ flex: 1, pr: 2 }}>
                     <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
                     {isEditing ? (
-                      <TextField
-                        name={key}
-                        value={editForm[key]}
-                        onChange={handleChange}
-                        placeholder={placeholder}
-                        fullWidth
-                        size="small"
-                        sx={{ mt: 1 }}
-                      />
+                        <TextField
+                          name={key}
+                          value={editForm[key]}
+                          onChange={handleChange}
+                          placeholder={placeholder}
+                          fullWidth
+                          size="small"
+                          sx={{ mt: 1 }}
+                          InputProps={key === 'address' ? {
+                            endAdornment: (
+                              <Button 
+                                size="small" 
+                                onClick={async () => {
+                                  if (navigator.geolocation) {
+                                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                                      const { latitude, longitude } = pos.coords;
+                                      const addrText = await reverseGeocode(latitude, longitude);
+                                      setEditForm(prev => ({ 
+                                        ...prev, 
+                                        location: { lat: latitude, lng: longitude },
+                                        address: addrText
+                                      }));
+                                    });
+                                  }
+                                }}
+                                sx={{ minWidth: 'auto', p: 0.5, borderRadius: 1 }}
+                              >
+                                📍
+                              </Button>
+                            )
+                          } : undefined}
+                        />
                     ) : (
-                      <Typography sx={{ mt: 0.5, fontSize: 15, color: profileData[key] ? colors.text : colors.gray, fontWeight: profileData[key] ? 500 : 400 }}>
-                        {profileData[key] || 'Not provided'}
-                      </Typography>
+                      <Box>
+                        <Typography sx={{ mt: 0.5, fontSize: 15, color: profileData[key] ? colors.text : colors.gray, fontWeight: profileData[key] ? 500 : 400 }}>
+                          {profileData[key] || 'Not provided'}
+                        </Typography>
+                        {key === 'address' && profileData.location?.lat && (
+                          <Typography sx={{ mt: 0.5, fontSize: 11, color: colors.muted, bgcolor: colors.soft, display: 'inline-block', px: 1, py: 0.25, borderRadius: 1 }}>
+                            Coordinates: {profileData.location.lat.toFixed(6)}, {profileData.location.lng.toFixed(6)}
+                          </Typography>
+                        )}
+                      </Box>
                     )}
                   </Box>
                   {!isEditing && (
-                    <Button
-                      sx={{
-                        minWidth: 90,
-                        px: 2,
-                        py: 0.75,
-                        borderRadius: 1.5,
-                        border: `1px solid ${profileData[key] ? colors.success : colors.line}`,
-                        bgcolor: profileData[key] ? '#e6f4ea' : '#fff',
-                        color: profileData[key] ? colors.success : colors.text,
-                        textTransform: 'none',
-                        fontSize: 13,
-                        fontWeight: 500
-                      }}
-                    >
-                      {profileData[key] ? 'Verified' : 'Add'}
-                    </Button>
+                    <Stack direction="row" spacing={1}>
+                      {key === 'address' && (
+                        <Button
+                          onClick={() => {
+                            if (navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition(async (pos) => {
+                                handleSaveDirectly({ 
+                                  location: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+                                  address: `Current Location: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`
+                                });
+                              });
+                            }
+                          }}
+                          sx={{
+                            minWidth: 40, px: 2, py: 0.75, borderRadius: 1.5, border: `1px solid ${colors.line}`,
+                            bgcolor: '#fff', color: colors.primary, textTransform: 'none', fontSize: 13, fontWeight: 500
+                          }}
+                        >
+                          <LocationIcon sx={{ fontSize: 16 }} />
+                        </Button>
+                      )}
+                      <Button
+                        sx={{
+                          minWidth: 90,
+                          px: 2,
+                          py: 0.75,
+                          borderRadius: 1.5,
+                          border: `1px solid ${profileData[key] ? colors.success : colors.line}`,
+                          bgcolor: profileData[key] ? '#e6f4ea' : '#fff',
+                          color: profileData[key] ? colors.success : colors.text,
+                          textTransform: 'none',
+                          fontSize: 13,
+                          fontWeight: 500
+                        }}
+                      >
+                        {profileData[key] ? 'Verified' : 'Add'}
+                      </Button>
+                    </Stack>
                   )}
                 </Stack>
               ))}
@@ -439,8 +564,69 @@ export default function PatientProfile() {
               ))}
             </Box>
           </Box>
+
+          <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Box>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Geo-Location</Typography>
+                <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>Used for faster home delivery and mapping</Typography>
+              </Box>
+              {isEditing && (
+                <Button 
+                  variant="outlined" 
+                  startIcon={<LocationIcon />} 
+                  onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition((pos) => {
+                        setEditForm(prev => ({ ...prev, location: { lat: pos.coords.latitude, lng: pos.coords.longitude } }));
+                      });
+                    }
+                  }}
+                  sx={{ textTransform: 'none', borderRadius: 1.5 }}
+                >
+                  Detect My Location
+                </Button>
+              )}
+            </Stack>
+            
+            <Box sx={{ height: 300, borderRadius: 2, overflow: 'hidden', border: `1px solid ${colors.line}`, position: 'relative' }}>
+              <MapContainer 
+                center={[isEditing ? editForm.location.lat : profileData.location.lat, isEditing ? editForm.location.lng : profileData.location.lng]} 
+                zoom={13} 
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Marker position={[isEditing ? editForm.location.lat : profileData.location.lat, isEditing ? editForm.location.lng : profileData.location.lng]} />
+                {isEditing && <LocationPicker onLocationSelect={(lat, lng) => setEditForm(prev => ({ ...prev, location: { lat, lng } }))} />}
+                <MapUpdater center={[isEditing ? editForm.location.lat : profileData.location.lat, isEditing ? editForm.location.lng : profileData.location.lng]} />
+              </MapContainer>
+              {!isEditing && (
+                <Box sx={{ position: 'absolute', inset: 0, zIndex: 1000, bgcolor: 'rgba(255,255,255,0.01)', cursor: 'default' }} />
+              )}
+            </Box>
+            <Typography sx={{ mt: 2, fontSize: 12, color: colors.muted, textAlign: 'center' }}>
+              Coordinates: {isEditing ? editForm.location.lat.toFixed(4) : profileData.location.lat.toFixed(4)}, {isEditing ? editForm.location.lng.toFixed(4) : profileData.location.lng.toFixed(4)}
+            </Typography>
+          </Box>
         </Stack>
       </Box>
     </PatientShell>
   );
+}
+
+function LocationPicker({ onLocationSelect }) {
+  useMapEvents({
+    click(e) {
+      onLocationSelect(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
+function MapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center);
+  }, [center, map]);
+  return null;
 }

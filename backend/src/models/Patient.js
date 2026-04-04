@@ -155,6 +155,10 @@ const patientSchema = new mongoose.Schema(
     settings: {
       type: mongoose.Schema.Types.Mixed,
       default: {}
+    },
+    location: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null }
     }
   },
   {

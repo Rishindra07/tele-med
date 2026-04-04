@@ -21,6 +21,7 @@ const checkSymptoms = async (req, res) => {
       predictedConditions: aiResult.conditions,
       severity: aiResult.severity,
       advice: aiResult.advice,
+      suggestedSpecialization: aiResult.suggestedSpecialization,
       aiSource: aiResponse.source
     });
 

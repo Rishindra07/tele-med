@@ -9,7 +9,8 @@ import {
   LocalShippingOutlined as SuppliersIcon,
   PersonOutlineRounded as ProfileIcon,
   SettingsOutlined as SettingsIcon,
-  LogoutRounded as LogoutIcon
+  LogoutRounded as LogoutIcon,
+  ShoppingBagRounded as OrderIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage, useTranslation } from '../context/LanguageContext';
@@ -27,12 +28,13 @@ const colors = {
 };
 
 const mainNavItems = [
-  { textKey: 'dashboard', icon: DashboardIcon, path: '/pharmacy' },
-  { textKey: 'prescriptions', icon: PrescriptionsIcon, path: '/pharmacy/prescriptions', badge: 5, badgeColor: colors.green },
-  { textKey: 'inventory', icon: InventoryIcon, path: '/pharmacy/inventory' },
-  { textKey: 'sales_reports', icon: SalesIcon, path: '/pharmacy/sales' },
-  { textKey: 'expiry_alerts', icon: ExpiryIcon, path: '/pharmacy/expiry', badge: 3, badgeColor: colors.red },
-  { textKey: 'suppliers', icon: SuppliersIcon, path: '/pharmacy/suppliers' }
+  { text: 'Dashboard', icon: DashboardIcon, path: '/pharmacy' },
+  { text: 'Orders', icon: OrderIcon, path: '/pharmacy/orders', badge: 3, badgeColor: colors.green },
+  { text: 'Prescriptions', icon: PrescriptionsIcon, path: '/pharmacy/prescriptions', badge: 5, badgeColor: colors.green },
+  { text: 'Inventory', icon: InventoryIcon, path: '/pharmacy/inventory' },
+  { text: 'Sales & Reports', icon: SalesIcon, path: '/pharmacy/sales' },
+  { text: 'Expiry Alerts', icon: ExpiryIcon, path: '/pharmacy/expiry', badge: 3, badgeColor: colors.red },
+  { text: 'Suppliers', icon: SuppliersIcon, path: '/pharmacy/suppliers' }
 ];
 
 const settingsNavItems = [

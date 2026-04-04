@@ -376,3 +376,41 @@ exports.getAllPrescriptions = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch prescriptions" });
   }
 };
+exports.getMyOrders = async (req, res) => {
+  try {
+    const orders = await PrescriptionOrder.find({ patient: req.user._id })
+      .populate("pharmacy", "pharmacyName location deliveryAvailable")
+      .populate({
+        path: "prescription",
+        populate: { path: "doctor", select: "full_name email" }
+      })
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      orders
+    });
+  } catch (error) {
+    console.error("[PRESCRIPTION] fetch my orders failed", error);
+    return res.status(500).json({ message: "Failed to fetch orders" });
+  }
+};
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await PrescriptionOrder.findOne({ _id: orderId, patient: req.user._id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.status !== 'Pending') {
+      return res.status(400).json({ message: "Only pending orders can be cancelled." });
+    }
+
+    order.status = 'Cancelled';
+    await order.save();
+
+    return res.json({ success: true, message: "Order cancelled successfully" });
+  } catch (error) {
+    console.error("[PRESCRIPTION] cancel order failed", error);
+    return res.status(500).json({ message: "Failed to cancel order" });
+  }
+};

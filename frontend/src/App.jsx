@@ -16,6 +16,7 @@ import PatientProfile from "./pages/patient/PatientProfile.jsx";
 import PatientSettings from "./pages/patient/PatientSettings.jsx";
 import ConsultationScreen from "./pages/patient/ConsultationScreen.jsx";
 import HealthRecords from "./pages/patient/HealthRecords.jsx";
+import OrderTracking from "./pages/patient/OrderTracking.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments.jsx";
 import PrescriptionForm from "./pages/doctor/PrescriptionForm.jsx";
@@ -28,6 +29,7 @@ import PharmacyPrescriptions from "./pages/pharmacy/PharmacyPrescriptions.jsx";
 import PharmacyInventory from "./pages/pharmacy/PharmacyInventory.jsx";
 import PharmacySales from "./pages/pharmacy/PharmacySales.jsx";
 import PharmacyExpiry from "./pages/pharmacy/PharmacyExpiry.jsx";
+import PharmacyOrders from "./pages/pharmacy/PharmacyOrders.jsx";
 import PharmacySuppliers from "./pages/pharmacy/PharmacySuppliers.jsx";
 import PharmacyProfile from "./pages/pharmacy/PharmacyProfile.jsx";
 import PharmacySettings from "./pages/pharmacy/PharmacySettings.jsx";
@@ -68,57 +70,71 @@ function App() {
             </ProtectedRoute>
           }/>
 
-          {/* Patient Routes */}
-          <Route path='/patient' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientDashboard/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/appointments' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientAppointments/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/records' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientHealthRecords/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/pharmacies' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientPharmacies/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/profile' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientProfile/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/settings' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <PatientSettings/>
-                </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path='/patient/consultation' element={
-            <ProtectedRoute>
-              <RoleRoute role="patient">
-                <ConsultationScreen/>
-              </RoleRoute>
-            </ProtectedRoute>
-          }/>
-          <Route path="/symptom-checker" element={<SymptomChecker />} />
+      {/* Patient Routes */}
+      <Route path='/patient' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientDashboard/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/appointments' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientAppointments/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/records' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientHealthRecords/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/pharmacies' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientPharmacies/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/profile' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientProfile/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/settings' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientSettings/>
+            </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/consultation' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <ConsultationScreen/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/pharmacy/orders' element={
+        <ProtectedRoute>
+          <RoleRoute role="pharmacist">
+            <PharmacyOrders/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/orders' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <OrderTracking/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path="/symptom-checker" element={<SymptomChecker />} />
 
           {/* Doctor Routes */}
           <Route path="/doctor" element={

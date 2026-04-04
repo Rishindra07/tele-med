@@ -214,7 +214,8 @@ const updatePatientProfile = async (req, res, next) => {
       profile_image,
       emergencyContactName,
       emergencyContactRelation,
-      emergencyContactPhone
+      emergencyContactPhone,
+      location
     } = req.body;
     
     const user = await User.findById(req.user._id);
@@ -257,6 +258,13 @@ const updatePatientProfile = async (req, res, next) => {
         name: emergencyContactName !== undefined ? emergencyContactName : profile.emergency_contact?.name || null,
         relation: emergencyContactRelation !== undefined ? emergencyContactRelation : profile.emergency_contact?.relation || null,
         phone: emergencyContactPhone !== undefined ? emergencyContactPhone : profile.emergency_contact?.phone || null
+      };
+    }
+
+    if (location !== undefined) {
+      profile.location = {
+        lat: location?.lat || null,
+        lng: location?.lng || null
       };
     }
 

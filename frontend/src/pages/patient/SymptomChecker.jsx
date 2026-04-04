@@ -458,6 +458,21 @@ export default function SymptomChecker() {
                     <Typography sx={{ fontSize: 15, color: colors.muted, mb: 2 }}>
                       {result.prediction.conditions.join(', ')}
                     </Typography>
+
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
+                      Recommended Specialization:
+                    </Typography>
+                    <Chip 
+                      label={result.prediction.suggestedSpecialization || 'General Physician'} 
+                      sx={{ 
+                        bgcolor: colors.primarySoft,
+                        color: colors.primaryDark,
+                        fontWeight: 600,
+                        borderRadius: 1,
+                        mb: 2
+                      }} 
+                    />
+
                     <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
                       Severity Level:
                     </Typography>
@@ -478,9 +493,9 @@ export default function SymptomChecker() {
                     {result.prediction.advice}
                   </Typography>
 
-                  {(result.immediateConsult || result.prediction.severity === 'medium' || result.prediction.severity === 'high') && (
+                  <Stack direction="row" spacing={2}>
                     <Button
-                      onClick={() => navigate('/patient')}
+                      onClick={() => navigate(`/patient?specialization=${encodeURIComponent(result.prediction.suggestedSpecialization || 'General Physician')}`)}
                       sx={{
                         px: 4,
                         py: 1.25,
@@ -494,9 +509,25 @@ export default function SymptomChecker() {
                         '&:hover': { bgcolor: colors.primaryDark }
                       }}
                     >
-                      Book Consultation Now
+                      Book Appointment with {result.prediction.suggestedSpecialization || 'General Physician'}
                     </Button>
-                  )}
+                    <Button
+                      variant="outlined"
+                      onClick={() => navigate('/patient')}
+                      sx={{
+                        px: 4,
+                        py: 1.25,
+                        borderRadius: 1.5,
+                        borderColor: colors.primary,
+                        color: colors.primary,
+                        textTransform: 'none',
+                        fontSize: 15,
+                        fontWeight: 600,
+                      }}
+                    >
+                      View All Doctors
+                    </Button>
+                  </Stack>
                 </Box>
               )}
             </Box>
