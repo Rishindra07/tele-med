@@ -24,6 +24,8 @@ import { updateAppointmentStatus, rescheduleAppointment } from '../../api/doctor
 import { getConsultationStatus } from '../../utils/consultationUtils';
 import PatientHistoryDialog from '../../components/doctor/PatientHistoryDialog';
 import PrescriptionViewDialog from '../../components/doctor/PrescriptionViewDialog';
+import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_APPOINTMENTS_TRANSLATIONS, DOCTOR_DASHBOARD_TRANSLATIONS } from '../../utils/translations/doctor';
 
 const colors = {
   paper: '#fffdf8', line: '#d8d0c4', soft: '#e7dfd3', muted: '#8a857d',
@@ -34,13 +36,17 @@ const colors = {
   red: '#d9635b', redSoft: '#fdeaea'
 };
 
-const formatDate = (value) => {
+const formatDate = (value, fallbackText = 'Date pending') => {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Date pending'
+  return Number.isNaN(date.getTime()) ? fallbackText
     : date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 export default function DoctorAppointments() {
+  const { language } = useLanguage();
+  const tDash = DOCTOR_DASHBOARD_TRANSLATIONS[language] || DOCTOR_DASHBOARD_TRANSLATIONS['en'];
+  const tAppt = DOCTOR_APPOINTMENTS_TRANSLATIONS[language] || DOCTOR_APPOINTMENTS_TRANSLATIONS['en'];
+
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,11 +131,11 @@ export default function DoctorAppointments() {
         callLabel,
         isJoinNear,
         patientName: a.patient?.full_name || 'Patient',
-        specialization: a.specialization || 'General consultation',
-        dateLabel: formatDate(a.appointmentDate),
+        specialization: a.specialization || tDash.general_consult,
+        dateLabel: formatDate(a.appointmentDate, tDash.date_pending),
         timeLabel: a.timeSlot || '--:--'
       };
-    }), [appointments]);
+    }), [appointments, tDash]);
 
   const filteredAppointments = useMemo(() =>
     normalizedAppointments.filter(a => {
@@ -178,38 +184,38 @@ export default function DoctorAppointments() {
           {dashStatus === 'upcoming' && (
             <>
               {isJoinNear ? (
-                <Button size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>Join Consultation</Button>
+                <Button size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{tDash.join_consult}</Button>
               ) : (
                 <Box sx={{ px: 2, py: 0.8, borderRadius: 1.5, bgcolor: colors.amberSoft, border: `1px solid ${colors.amber}30` }}>
                    <Typography sx={{ color: colors.amber, fontSize: 13, fontWeight: 600 }}>{a.callLabel}</Typography>
                 </Box>
               )}
-              <Button onClick={() => handleOpenReschedule(a)} disabled={updatingId === a._id} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Reschedule</Button>
-              <Button onClick={() => handleStatusUpdate(a._id, 'Cancelled')} disabled={updatingId === a._id} size="small" variant="text" sx={{ color: colors.red, textTransform: 'none' }}>{updatingId === a._id ? 'Processing...' : 'Cancel Appointment'}</Button>
+              <Button onClick={() => handleOpenReschedule(a)} disabled={updatingId === a._id} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.reschedule}</Button>
+              <Button onClick={() => handleStatusUpdate(a._id, 'Cancelled')} disabled={updatingId === a._id} size="small" variant="text" sx={{ color: colors.red, textTransform: 'none' }}>{updatingId === a._id ? tAppt.processing : tAppt.cancel_appt}</Button>
             </>
           )}
           {dashStatus === 'ongoing' && (
             <>
-              <Button size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>Join Now</Button>
-              <Button size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Chat with Patient</Button>
-              <Button size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Upload Reports</Button>
-              <Button onClick={() => navigate('/doctor/prescribe', { state: { appointment: a } })} variant="contained" startIcon={<CompleteIcon />} sx={{ ml: 'auto', bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>Prescribe</Button>
+              <Button size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{tDash.join_now}</Button>
+              <Button size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.chat_patient}</Button>
+              <Button size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tAppt.upload_reports}</Button>
+              <Button onClick={() => navigate('/doctor/prescribe', { state: { appointment: a } })} variant="contained" startIcon={<CompleteIcon />} sx={{ ml: 'auto', bgcolor: colors.green, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{tDash.prescribe}</Button>
             </>
           )}
           {dashStatus === 'completed' && (
             <>
-              <Button onClick={() => setPrescriptionDialog({ open: true, consultationId: a._id })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Prescription</Button>
-              <Button onClick={() => setHistoryDialog({ open: true, patient: a.patient })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>View Records</Button>
-              <Button size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Feedback</Button>
+              <Button onClick={() => setPrescriptionDialog({ open: true, consultationId: a._id })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.view_prescription}</Button>
+              <Button onClick={() => setHistoryDialog({ open: true, patient: a.patient })} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.view_records}</Button>
+              <Button size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.feedback}</Button>
             </>
           )}
           {dashStatus === 'cancelled' && (
-            <Button size="small" variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Rebook Patient</Button>
+            <Button size="small" variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.rebook}</Button>
           )}
           {dashStatus === 'missed' && (
             <>
-              <Button size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>Reschedule</Button>
-              <Button size="small" variant="contained" sx={{ bgcolor: colors.amber, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.amber } }}>Book Again</Button>
+              <Button size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.reschedule}</Button>
+              <Button size="small" variant="contained" sx={{ bgcolor: colors.amber, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none', '&:hover': { bgcolor: colors.amber } }}>{tDash.book_again}</Button>
             </>
           )}
         </Box>
@@ -221,14 +227,14 @@ export default function DoctorAppointments() {
     <DoctorLayout>
       <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
         <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-          Appointments Queue
+          {tAppt.title}
         </Typography>
         <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, mb: 3 }}>
-          Manage your schedule and perform actions based on consultation status.
+          {tAppt.subtitle}
         </Typography>
 
         <TextField
-          placeholder="Search patient or visit type"
+          placeholder={tAppt.search}
           value={query}
           onChange={e => setQuery(e.target.value)}
           fullWidth
@@ -237,7 +243,7 @@ export default function DoctorAppointments() {
         />
 
         <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
-          {[['all', 'All'], ['upcoming', 'Upcoming'], ['ongoing', 'Ongoing'], ['completed', 'Completed'], ['missed', 'Missed'], ['cancelled', 'Cancelled']].map(([value, label]) => (
+          {[['all', tAppt.filters.all], ['upcoming', tAppt.filters.upcoming], ['ongoing', tAppt.filters.ongoing], ['completed', tAppt.filters.completed], ['missed', tAppt.filters.missed], ['cancelled', tAppt.filters.cancelled]].map(([value, label]) => (
             <Chip
               key={value}
               label={label}
@@ -256,25 +262,25 @@ export default function DoctorAppointments() {
           <Stack spacing={4}>
             {(grouped.ongoing.length > 0 || grouped.upcoming.length > 0) && (
               <Box>
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>LIVE & UPCOMING</Typography>
+                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>{tAppt.groups.live}</Typography>
                 <Stack spacing={2}>{[...grouped.ongoing, ...grouped.upcoming].map(renderAppointment)}</Stack>
               </Box>
             )}
             {grouped.completed.length > 0 && (
               <Box>
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>COMPLETED</Typography>
+                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>{tAppt.groups.completed}</Typography>
                 <Stack spacing={2}>{grouped.completed.map(renderAppointment)}</Stack>
               </Box>
             )}
             {grouped.missed.length > 0 && (
               <Box>
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>MISSED</Typography>
+                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>{tAppt.groups.missed}</Typography>
                 <Stack spacing={2}>{grouped.missed.map(renderAppointment)}</Stack>
               </Box>
             )}
             {grouped.cancelled.length > 0 && (
               <Box>
-                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>CANCELLED</Typography>
+                <Typography sx={{ color: '#b1aaa1', fontSize: 15, letterSpacing: 1.1, mb: 1.5, fontWeight: 700 }}>{tAppt.groups.cancelled}</Typography>
                 <Stack spacing={2}>{grouped.cancelled.map(renderAppointment)}</Stack>
               </Box>
             )}
@@ -287,20 +293,20 @@ export default function DoctorAppointments() {
       </Snackbar>
 
       <Dialog open={rescheduleData.open} onClose={() => setRescheduleData(p => ({ ...p, open: false }))} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 450 } }}>
-        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>Reschedule Consultation</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>{tDash.reschedule_title}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: colors.muted, mb: 3 }}>Move this session to another time based on your set availability.</Typography>
+          <Typography variant="body2" sx={{ color: colors.muted, mb: 3 }}>{tDash.reschedule_desc}</Typography>
           
           <Stack spacing={3}>
-            <TextField label="Choose New Date" type="date" value={rescheduleData.date} onChange={(e) => handleDateChange(e.target.value)} InputLabelProps={{ shrink: true }} inputProps={{ min: new Date().toISOString().split('T')[0] }} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
+            <TextField label={tDash.choose_date} type="date" value={rescheduleData.date} onChange={(e) => handleDateChange(e.target.value)} InputLabelProps={{ shrink: true }} inputProps={{ min: new Date().toISOString().split('T')[0] }} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }} />
 
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>Select New Time</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>{tDash.choose_time}</Typography>
               {rescheduleData.loadingSlots ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}><CircularProgress size={24} /></Box>
               ) : rescheduleData.slots.length === 0 ? (
                 <Box sx={{ py: 3, textAlign: 'center', bgcolor: '#f5f5f5', borderRadius: 3 }}>
-                   <Typography variant="body2" sx={{ color: colors.muted }}>No available slots for this date.</Typography>
+                   <Typography variant="body2" sx={{ color: colors.muted }}>{tDash.no_slots}</Typography>
                 </Box>
               ) : (
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -313,9 +319,9 @@ export default function DoctorAppointments() {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setRescheduleData(p => ({ ...p, open: false }))} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 600 }}>Cancel</Button>
+          <Button onClick={() => setRescheduleData(p => ({ ...p, open: false }))} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 600 }}>{tDash.cancel}</Button>
           <Button onClick={handleRescheduleSubmit} disabled={!rescheduleData.selectedSlot || rescheduleData.loadingSlots} variant="contained" sx={{ bgcolor: colors.green, borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 700, '&:hover': { bgcolor: colors.green } }}>
-             {rescheduleData.loadingSlots ? 'Rescheduling...' : 'Confirm Reschedule'}
+             {rescheduleData.loadingSlots ? tDash.rescheduling : tDash.confirm_reschedule}
           </Button>
         </DialogActions>
       </Dialog>

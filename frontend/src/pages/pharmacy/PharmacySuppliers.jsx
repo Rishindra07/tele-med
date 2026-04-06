@@ -9,6 +9,8 @@ import {
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
 import { fetchSuppliers, fetchSupplyOrders, fetchReorderSuggestions } from '../../api/pharmacyApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_SUPPLIERS_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
@@ -27,13 +29,13 @@ const colors = {
   red: '#d9635b'
 };
 
-const getStatusTheme = (status) => {
+const getStatusTheme = (status, t) => {
   switch (status) {
-    case 'In transit': return { color: colors.green, bg: colors.greenSoft };
-    case 'Confirmed': return { color: colors.amber, bg: colors.amberSoft };
-    case 'Ordered': return { color: colors.blue, bg: colors.blueSoft };
-    case 'Draft': return { color: colors.muted, bg: colors.graySoft };
-    case 'Delivered': return { color: colors.green, bg: colors.greenSoft };
+    case 'In transit': case t.status_in_transit: return { color: colors.green, bg: colors.greenSoft };
+    case 'Confirmed': case t.status_confirmed: return { color: colors.amber, bg: colors.amberSoft };
+    case 'Ordered': case t.status_ordered: return { color: colors.blue, bg: colors.blueSoft };
+    case 'Draft': case t.status_draft: return { color: colors.muted, bg: colors.graySoft };
+    case 'Delivered': case t.status_delivered: return { color: colors.green, bg: colors.greenSoft };
     default: return { color: colors.muted, bg: colors.graySoft };
   }
 };
@@ -71,6 +73,9 @@ export default function PharmacySuppliers() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
 
+  const { language } = useLanguage();
+  const t = PHARMACY_SUPPLIERS_TRANSLATIONS[language] || PHARMACY_SUPPLIERS_TRANSLATIONS['en'];
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -102,19 +107,33 @@ export default function PharmacySuppliers() {
     }, 0);
 
     return [
-      { title: 'Total\nsuppliers', value: String(suppliers.length), sub: 'All active', color: colors.blue },
-      { title: 'In transit', value: String(inTransit), sub: inTransit > 0 ? `Arriving soon` : 'No orders', color: colors.green },
-      { title: 'Pending\npayment', value: `₹${pendingPayment.toLocaleString()}`, sub: `${orders.filter(o => o.paymentStatus === 'Pending').length} orders`, color: colors.amber },
-      { title: 'This month\nspend', value: `₹${monthSpend.toLocaleString()}`, sub: `${orders.filter(o => new Date(o.createdAt).getMonth() === new Date().getMonth()).length} orders`, color: colors.blue }
+      { title: t.stats_total, value: String(suppliers.length), sub: t.stats_total_sub, color: colors.blue },
+      { title: t.stats_transit, value: String(inTransit), sub: inTransit > 0 ? t.stats_transit_sub1 : t.stats_transit_sub2, color: colors.green },
+      { title: t.stats_pending, value: `₹${pendingPayment.toLocaleString()}`, sub: `${orders.filter(o => o.paymentStatus === 'Pending').length} ${t.stats_pending_sub}`, color: colors.amber },
+      { title: t.stats_spend, value: `₹${monthSpend.toLocaleString()}`, sub: `${orders.filter(o => new Date(o.createdAt).getMonth() === new Date().getMonth()).length} ${t.stats_spend_sub}`, color: colors.blue }
     ];
-  }, [suppliers, orders]);
+  }, [suppliers, orders, t]);
 
   const filteredOrders = useMemo(() => {
-    if (activeFilter === 'All') return orders;
-    return orders.filter(o => o.status === activeFilter);
-  }, [orders, activeFilter]);
+    if (activeFilter === 'All' || activeFilter === t.filter_all) return orders;
+    return orders.filter(o => {
+      if (activeFilter === t.filter_transit) return o.status === 'In transit';
+      if (activeFilter === t.filter_confirmed) return o.status === 'Confirmed';
+      if (activeFilter === t.filter_ordered) return o.status === 'Ordered';
+      if (activeFilter === t.filter_delivered) return o.status === 'Delivered';
+      if (activeFilter === t.filter_draft) return o.status === 'Draft';
+      return o.status === activeFilter;
+    });
+  }, [orders, activeFilter, t]);
 
-  const FILTERS = ['All', 'In transit', 'Confirmed', 'Ordered', 'Delivered', 'Draft'];
+  const FILTERS = [
+    { key: 'All', label: t.filter_all },
+    { key: 'In transit', label: t.filter_transit },
+    { key: 'Confirmed', label: t.filter_confirmed },
+    { key: 'Ordered', label: t.filter_ordered },
+    { key: 'Delivered', label: t.filter_delivered },
+    { key: 'Draft', label: t.filter_draft }
+  ];
 
   if (loading) return <PharmacyLayout><Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.green }} /></Box></PharmacyLayout>;
 
@@ -124,10 +143,10 @@ export default function PharmacySuppliers() {
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-              Suppliers
+              {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5 }}>
-              Manage distributor relationships, orders and<br/>deliveries
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+              {t.subtitle}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -139,8 +158,8 @@ export default function PharmacySuppliers() {
                 <BellIcon sx={{ color: '#5f5a52' }} />
               </Badge>
             </IconButton>
-            <Button sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}>
-              + New<br/>order
+            <Button sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, whiteSpace: 'pre-line', lineHeight: 1.2 }}>
+              {t.new_order}
             </Button>
           </Stack>
         </Stack>
@@ -151,67 +170,76 @@ export default function PharmacySuppliers() {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' }, gap: 3 }}>
           <Box>
-            <SectionTitle title="Orders" action="Purchase history →" />
+            <SectionTitle title={t.orders_title} action={t.purchase_history} />
             <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', gap: 1 }}>
               {FILTERS.map(f => (
-                <Box key={f} 
-                  onClick={() => setActiveFilter(f)}
-                  sx={{ px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, cursor: 'pointer', bgcolor: activeFilter === f ? colors.green : 'transparent', color: activeFilter === f ? '#fff' : colors.text }}>
-                  {f}
+                <Box key={f.key} 
+                  onClick={() => setActiveFilter(f.label)}
+                  sx={{ px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, cursor: 'pointer', bgcolor: activeFilter === f.label ? colors.green : 'transparent', color: activeFilter === f.label ? '#fff' : colors.text }}>
+                  {f.label}
                 </Box>
               ))}
             </Stack>
 
             <Stack spacing={2.5}>
               {filteredOrders.length > 0 ? filteredOrders.map((o) => {
-                const theme = getStatusTheme(o.status);
+                const theme = getStatusTheme(o.status, t);
                 const init = getInitials(o.supplier?.name || 'S');
+                
+                // Map status to translated status
+                let transStatus = o.status;
+                if (o.status === 'In transit') transStatus = t.status_in_transit;
+                if (o.status === 'Confirmed') transStatus = t.status_confirmed;
+                if (o.status === 'Ordered') transStatus = t.status_ordered;
+                if (o.status === 'Draft') transStatus = t.status_draft;
+                if (o.status === 'Delivered') transStatus = t.status_delivered;
+
                 return (
                   <Box key={o._id} sx={{ display: 'flex', gap: 2.5, p: 3, bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, borderLeft: `3px solid ${theme.color}` }}>
                     <Avatar sx={{ width: 48, height: 48, bgcolor: colors.soft, color: colors.muted, fontSize: 16 }}>{init}</Avatar>
                     <Box sx={{ flex: 1 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
                         <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{o.supplier?.name || 'Supplier'} — {o.orderId}</Typography>
-                        <Box sx={{ px: 1.5, py: 0.4, borderRadius: 1.5, bgcolor: theme.bg, color: theme.color, fontSize: 11, fontWeight: 600 }}>{o.status}</Box>
+                        <Box sx={{ px: 1.5, py: 0.4, borderRadius: 1.5, bgcolor: theme.bg, color: theme.color, fontSize: 11, fontWeight: 600 }}>{transStatus}</Box>
                       </Stack>
-                      <Typography sx={{ fontSize: 13, color: colors.muted, mb: 2 }}>{o.items?.length || 0} items • ₹{(o.totalAmount || 0).toLocaleString()} • Placed {o.placedDate ? new Date(o.placedDate).toLocaleDateString() : 'N/A'}</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.muted, mb: 2 }}>{o.items?.length || 0} {t.items} • ₹{(o.totalAmount || 0).toLocaleString()} • {t.placed} {o.placedDate ? new Date(o.placedDate).toLocaleDateString() : 'N/A'}</Typography>
                       <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
                         {(o.items || []).slice(0, 3).map((it, idx) => <Box key={idx} sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.muted, fontSize: 11 }}>{it.medicineName} × {it.quantity}</Box>)}
                       </Stack>
                       <Stack direction="row" spacing={1.5}>
-                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>View items</Button>
-                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>Call supplier</Button>
+                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>{t.view_items}</Button>
+                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>{t.call_supplier}</Button>
                       </Stack>
                     </Box>
                   </Box>
                 );
-              }) : <Box sx={{ p: 10, textAlign: 'center', bgcolor: colors.soft, borderRadius: 4, border: `1px dashed ${colors.line}` }}><Typography sx={{ color: colors.muted }}>No orders found.</Typography></Box>}
+              }) : <Box sx={{ p: 10, textAlign: 'center', bgcolor: colors.soft, borderRadius: 4, border: `1px dashed ${colors.line}` }}><Typography sx={{ color: colors.muted }}>{t.no_orders}</Typography></Box>}
             </Stack>
           </Box>
 
           <Stack spacing={3}>
             {/* Auto-reorder suggestions */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>Auto-reorder suggestions</Typography>
+              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.suggestions_title}</Typography>
               <Stack spacing={2}>
                 {suggestions.length > 0 ? suggestions.map((s, idx) => (
                   <Box key={idx} sx={{ p: 1.5, borderRadius: 2.5, bgcolor: s.priority === 'High' ? colors.amberSoft : colors.soft, border: `1px solid ${s.priority === 'High' ? colors.amber : 'transparent'}` }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Box>
                         <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>{s.medicineName}</Typography>
-                        <Typography sx={{ fontSize: 11, color: colors.muted }}>{s.reason} • Stock: {s.currentStock}</Typography>
+                        <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.supplier} {s.reason} • {t.stock} {s.currentStock}</Typography>
                       </Box>
-                      <Button size="small" sx={{ color: colors.green, fontSize: 11.5, textTransform: 'none', minWidth: 0, p: 0 }}>Add →</Button>
+                      <Button size="small" sx={{ color: colors.green, fontSize: 11.5, textTransform: 'none', minWidth: 0, p: 0 }}>{t.add}</Button>
                     </Stack>
                   </Box>
                 )) : (
-                  <Typography sx={{ fontSize: 13, color: colors.muted, textAlign: 'center', py: 2 }}>Stock levels are healthy.</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted, textAlign: 'center', py: 2 }}>{t.healthy_stock}</Typography>
                 )}
               </Stack>
             </Box>
 
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>Supplier directory</Typography>
+              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.directory_title}</Typography>
               <Stack spacing={3}>
                 {suppliers.slice(0, 5).map(s => (
                   <Box key={s._id} sx={{ display: 'flex', gap: 1.5 }}>
@@ -224,11 +252,11 @@ export default function PharmacySuppliers() {
                   </Box>
                 ))}
               </Stack>
-              <Button fullWidth startIcon={<AddIcon />} sx={{ mt: 3, border: `1px dashed ${colors.line}`, color: colors.green, borderRadius: 2, textTransform: 'none', py: 1.1, fontSize: 13 }}>Add supplier</Button>
+              <Button fullWidth startIcon={<AddIcon />} sx={{ mt: 3, border: `1px dashed ${colors.line}`, color: colors.green, borderRadius: 2, textTransform: 'none', py: 1.1, fontSize: 13 }}>{t.add_supplier}</Button>
             </Box>
 
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>Pending payments</Typography>
+              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.pending_payments}</Typography>
               <Stack spacing={2}>
                 {orders.filter(o => o.paymentStatus === 'Pending').slice(0, 3).map(o => (
                   <Stack key={o._id} direction="row" justifyContent="space-between">
@@ -238,7 +266,7 @@ export default function PharmacySuppliers() {
                 ))}
                 <Divider />
                 <Stack direction="row" justifyContent="space-between" sx={{ pt: 1 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Total due</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{t.total_due}</Typography>
                   <Typography sx={{ fontSize: 15, fontWeight: 700, color: colors.red }}>₹{orders.reduce((s,o) => o.paymentStatus === 'Pending' ? s + o.totalAmount : s, 0).toLocaleString()}</Typography>
                 </Stack>
               </Stack>

@@ -11,6 +11,8 @@ import {
 } from '@mui/icons-material';
 import DoctorLayout from '../../components/DoctorLayout';
 import { fetchDoctorProfile, updateDoctorProfile } from '../../api/doctorApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_PROFILE_TRANSLATIONS } from '../../utils/translations/doctor';
 
 const colors = {
   paper: '#fffdf8', line: '#d8d0c4', soft: '#e9e2d8',
@@ -24,6 +26,9 @@ const initials = (name = '') =>
   name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('') || 'DR';
 
 export default function DoctorProfile() {
+  const { language } = useLanguage();
+  const t = DOCTOR_PROFILE_TRANSLATIONS[language] || DOCTOR_PROFILE_TRANSLATIONS['en'];
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -111,25 +116,25 @@ export default function DoctorProfile() {
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 3 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-              Doctor Profile
+              {t.title}
             </Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18 }}>
-              Review and update your professional details
+              {t.subtitle}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5}>
             {editing ? (
               <>
                 <Button onClick={() => setEditing(false)} sx={{ px: 2.5, py: 1.1, borderRadius: 3, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button onClick={handleSave} disabled={saving} startIcon={<SaveIcon />} sx={{ px: 2.5, py: 1.1, borderRadius: 3, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 15, '&:hover': { bgcolor: colors.greenDark } }}>
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? t.saving : t.save_changes}
                 </Button>
               </>
             ) : (
               <Button onClick={() => setEditing(true)} sx={{ px: 2.5, py: 1.1, borderRadius: 3, border: `1px solid ${colors.green}`, color: colors.green, textTransform: 'none', fontSize: 15 }}>
-                Edit Profile
+                {t.edit_profile}
               </Button>
             )}
           </Stack>
@@ -139,16 +144,16 @@ export default function DoctorProfile() {
           {/* Left: Profile Card */}
           <Box sx={{ width: { xs: '100%', md: '35%' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper, textAlign: 'center' }}>
-              <Typography sx={{ fontSize: 18, mb: 2, textAlign: 'left' }}>Doctor Profile</Typography>
+              <Typography sx={{ fontSize: 18, mb: 2, textAlign: 'left' }}>{t.title}</Typography>
               <Avatar sx={{ width: 92, height: 92, margin: '0 auto', bgcolor: colors.greenSoft, color: colors.green, fontSize: '2rem', fontWeight: 800, border: '4px solid #dceee8', mb: 1.5 }}>
                 {initials(name)}
               </Avatar>
               <Typography sx={{ fontSize: 22, fontFamily: 'Georgia, serif' }}>{name}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 14.5, mb: 2 }}>{form.specialization || doctor.specialization || 'Specialist'}</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 14.5, mb: 2 }}>{form.specialization || doctor.specialization || t.spec_def}</Typography>
 
               <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                 <Typography sx={{ color: available ? colors.green : colors.muted, fontSize: 14.5, fontWeight: available ? 600 : 400 }}>
-                  {available ? 'Available' : 'Busy / Offline'}
+                  {available ? t.avail : t.busy}
                 </Typography>
                 <Switch
                   checked={available}
@@ -162,40 +167,40 @@ export default function DoctorProfile() {
               <Stack spacing={1.5} sx={{ textAlign: 'left' }}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><PhoneIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{form.phone || user.phone || 'Not provided'}</Typography>
+                  <Typography sx={{ fontSize: 14.5 }}>{form.phone || user.phone || t.not_provided}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><EmailIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography noWrap sx={{ fontSize: 14.5 }}>{user.email || 'Not provided'}</Typography>
+                  <Typography noWrap sx={{ fontSize: 14.5 }}>{user.email || t.not_provided}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1.5} alignItems="flex-start">
                   <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green, flexShrink: 0 }}><LocationIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{form.hospitalName || doctor.hospitalName || 'Not provided'}</Typography>
+                  <Typography sx={{ fontSize: 14.5 }}>{form.hospitalName || doctor.hospitalName || t.not_provided}</Typography>
                 </Stack>
               </Stack>
             </Box>
 
             <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 18, mb: 2 }}>About Doctor</Typography>
+              <Typography sx={{ fontSize: 18, mb: 2 }}>{t.about}</Typography>
               <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.7 }}>
-                {form.bio || doctor.bio || 'No bio added yet.'}
+                {form.bio || doctor.bio || t.no_bio}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 2 }}>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Specialty</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_spec}</Typography>
                   <Chip label={form.specialization || doctor.specialization || 'N/A'} sx={{ bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12.5, mt: 0.6 }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Experience</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{(form.experience || doctor.experience) ? `${form.experience || doctor.experience} years` : 'Not specified'}</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_exp}</Typography>
+                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{(form.experience || doctor.experience) ? `${form.experience || doctor.experience} ${t.years}` : t.not_spec}</Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Languages</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{finalLanguages.join(', ') || 'Not specified'}</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_lang}</Typography>
+                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{finalLanguages.join(', ') || t.not_spec}</Typography>
                 </Box>
                 {(form.consultationFee > 0 || doctor.consultationFee > 0) && (
                   <Box>
-                    <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>Consultation Fee</Typography>
+                    <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_fee}</Typography>
                     <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>₹{form.consultationFee || doctor.consultationFee}</Typography>
                   </Box>
                 )}
@@ -207,41 +212,41 @@ export default function DoctorProfile() {
           <Box sx={{ flex: 1 }}>
             {editing ? (
               <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 2.5 }}>Edit Details</Typography>
+                <Typography sx={{ fontSize: 18, mb: 2.5 }}>{t.edit_details}</Typography>
                 <Stack spacing={2.2}>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label="Full Name" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} />
-                    <TextField fullWidth label="Phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+                    <TextField fullWidth label={t.f_name} value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} />
+                    <TextField fullWidth label={t.f_phone} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
                   </Stack>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label="Specialization" value={form.specialization} onChange={e => setForm(p => ({ ...p, specialization: e.target.value }))} />
-                    <TextField fullWidth label="Qualification" value={form.qualification} onChange={e => setForm(p => ({ ...p, qualification: e.target.value }))} />
+                    <TextField fullWidth label={t.f_spec} value={form.specialization} onChange={e => setForm(p => ({ ...p, specialization: e.target.value }))} />
+                    <TextField fullWidth label={t.f_qual} value={form.qualification} onChange={e => setForm(p => ({ ...p, qualification: e.target.value }))} />
                   </Stack>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label="Hospital / Clinic Name" value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} />
-                    <TextField fullWidth label="Medical License" value={form.medicalLicense} onChange={e => setForm(p => ({ ...p, medicalLicense: e.target.value }))} />
+                    <TextField fullWidth label={t.f_hosp} value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} />
+                    <TextField fullWidth label={t.f_lic} value={form.medicalLicense} onChange={e => setForm(p => ({ ...p, medicalLicense: e.target.value }))} />
                   </Stack>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label="Consultation Fee (₹)" type="number" value={form.consultationFee} onChange={e => setForm(p => ({ ...p, consultationFee: e.target.value }))} />
-                    <TextField fullWidth label="Experience (years)" type="number" value={form.experience} onChange={e => setForm(p => ({ ...p, experience: e.target.value }))} />
+                    <TextField fullWidth label={t.f_fee} type="number" value={form.consultationFee} onChange={e => setForm(p => ({ ...p, consultationFee: e.target.value }))} />
+                    <TextField fullWidth label={t.f_exp} type="number" value={form.experience} onChange={e => setForm(p => ({ ...p, experience: e.target.value }))} />
                   </Stack>
-                  <TextField fullWidth label="Languages (comma separated)" value={form.languages} onChange={e => setForm(p => ({ ...p, languages: e.target.value }))} />
-                  <TextField fullWidth multiline minRows={4} label="Professional Bio" value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} />
+                  <TextField fullWidth label={t.f_lang} value={form.languages} onChange={e => setForm(p => ({ ...p, languages: e.target.value }))} />
+                  <TextField fullWidth multiline minRows={4} label={t.f_bio} value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} />
                 </Stack>
               </Box>
             ) : (
               <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 2 }}>Professional Information</Typography>
+                <Typography sx={{ fontSize: 18, mb: 2 }}>{t.prof_info}</Typography>
                 {[
-                  ['Full Name', name],
+                  [t.f_name, name],
                   ['Email', user.email],
-                  ['Phone', user.phone],
-                  ['Specialization', doctor.specialization],
-                  ['Qualification', doctor.qualification],
-                  ['Hospital', doctor.hospitalName],
-                  ['Experience', doctor.experience ? `${doctor.experience} years` : null],
-                  ['Consultation Fee', doctor.consultationFee > 0 ? `₹${doctor.consultationFee}` : null],
-                  ['Medical License', doctor.medicalLicense]
+                  [t.f_phone, user.phone],
+                  [t.f_spec, doctor.specialization],
+                  [t.f_qual, doctor.qualification],
+                  [t.f_hosp, doctor.hospitalName],
+                  [t.f_exp, doctor.experience ? `${doctor.experience} ${t.years}` : null],
+                  [t.f_fee, doctor.consultationFee > 0 ? `₹${doctor.consultationFee}` : null],
+                  [t.f_lic, doctor.medicalLicense]
                 ].map(([label, value]) => value ? (
                   <Box key={label} sx={{ py: 1.5, borderBottom: `1px solid ${colors.soft}` }}>
                     <Typography sx={{ fontSize: 12.5, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</Typography>

@@ -20,6 +20,8 @@ import {
   CancelOutlined as RejectIcon 
 } from '@mui/icons-material';
 import { Button, Switch, FormControlLabel } from '@mui/material';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_DASHBOARD_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
@@ -45,6 +47,8 @@ export default function PharmacyDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { language } = useLanguage();
+  const t = PHARMACY_DASHBOARD_TRANSLATIONS[language] || PHARMACY_DASHBOARD_TRANSLATIONS['en'];
 
   const load = async () => {
     try {
@@ -84,12 +88,12 @@ export default function PharmacyDashboard() {
   const stats = useMemo(() => {
     const summary = data?.summary || {};
     return [
-      ['Prescriptions today', summary.prescriptionsToday || 0, 'Incoming queue', colors.green],
-      ['Pending', summary.pendingPrescriptions || 0, 'Awaiting stock or action', colors.amber],
-      ['Ready', summary.readyPrescriptions || 0, 'Ready for pickup', colors.blue],
-      ['Low stock', summary.lowStockCount || 0, 'Needs reorder soon', colors.red]
+      [t.rx_today, summary.prescriptionsToday || 0, t.incoming_queue, colors.green],
+      [t.pending, summary.pendingPrescriptions || 0, t.awaiting_stock, colors.amber],
+      [t.ready, summary.readyPrescriptions || 0, t.ready_pickup, colors.blue],
+      [t.low_stock, summary.lowStockCount || 0, t.needs_reorder, colors.red]
     ];
-  }, [data]);
+  }, [data, t]);
 
   return (
     <PharmacyLayout>
@@ -97,10 +101,10 @@ export default function PharmacyDashboard() {
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 32, md: 38 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-              Hello, {pharmacyName}
+              {t.hello}, {pharmacyName}
             </Typography>
             <Typography sx={{ mt: 1.5, color: colors.muted, fontSize: 14.5 }}>
-              Live prescription queue, stock pressure, and fulfillment updates.
+              {t.subtitle}
             </Typography>
           </Box>
           <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
@@ -114,7 +118,7 @@ export default function PharmacyDashboard() {
               }
               label={
                 <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-                  {data?.profile?.pharmacy?.deliveryAvailable ? '🚚 Delivery Active' : '🏬 Pickup Only'}
+                  {data?.profile?.pharmacy?.deliveryAvailable ? `🚚 ${t.delivery_active}` : `🏬 ${t.pickup_only}`}
                 </Typography>
               }
             />
@@ -141,7 +145,7 @@ export default function PharmacyDashboard() {
 
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.1fr 0.9fr' }, gap: 3 }}>
               <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 3 }}>Fulfillment Orders (Direct)</Typography>
+                <Typography sx={{ fontSize: 18, mb: 3 }}>{t.fulfillment_orders}</Typography>
                 <Stack spacing={2}>
                   {(data?.orders || []).length ? (
                     data.orders.map((item) => (
@@ -149,7 +153,7 @@ export default function PharmacyDashboard() {
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                           <Box>
                             <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
-                              {item.patient?.full_name || 'Patient'}
+                              {item.patient?.full_name || t.patient}
                             </Typography>
                             <Typography sx={{ fontSize: 13, color: colors.muted }}>
                               {item.prescription?.prescriptionId}
@@ -165,7 +169,7 @@ export default function PharmacyDashboard() {
 
                         {item.deliveryType === 'HOME' && item.deliveryAddress && (
                           <Box sx={{ mt: 2, p: 1.5, bgcolor: '#fff', borderRadius: 2, border: `1px dashed ${colors.line}` }}>
-                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, mb: 0.5 }}>DELIVERY ADDRESS</Typography>
+                            <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, mb: 0.5 }}>{t.delivery_address}</Typography>
                             <Typography sx={{ fontSize: 13 }}>{item.deliveryAddress}</Typography>
                           </Box>
                         )}
@@ -181,7 +185,7 @@ export default function PharmacyDashboard() {
                                 onClick={() => handleUpdateStatus(item._id, 'Accepted')}
                                 sx={{ bgcolor: colors.green, '&:hover': { bgcolor: colors.greenDark }, textTransform: 'none', borderRadius: 2 }}
                               >
-                                Accept
+                                {t.accept}
                               </Button>
                               <Button 
                                 fullWidth 
@@ -191,13 +195,13 @@ export default function PharmacyDashboard() {
                                 onClick={() => handleUpdateStatus(item._id, 'Rejected')}
                                 sx={{ color: colors.red, borderColor: colors.red, '&:hover': { borderColor: colors.red, bgcolor: '#fff0f0' }, textTransform: 'none', borderRadius: 2 }}
                               >
-                                Reject
+                                {t.reject}
                               </Button>
                             </>
                           ) : (
                             <Box sx={{ width: '100%', p: 1, textAlign: 'center', borderRadius: 2, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
                               <Typography sx={{ fontSize: 13, fontWeight: 700, color: item.status === 'Accepted' || item.status === 'Ready' ? colors.green : colors.muted }}>
-                                STATUS: {item.status.toUpperCase()}
+                                {t.status} {item.status.toUpperCase()}
                               </Typography>
                             </Box>
                           )}
@@ -205,14 +209,14 @@ export default function PharmacyDashboard() {
                       </Box>
                     ))
                   ) : (
-                    <Typography sx={{ color: colors.muted }}>No direct orders yet.</Typography>
+                    <Typography sx={{ color: colors.muted }}>{t.no_orders}</Typography>
                   )}
                 </Stack>
               </Box>
 
               <Stack spacing={3}>
                 <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 18, mb: 3 }}>Low Stock Items</Typography>
+                  <Typography sx={{ fontSize: 18, mb: 3 }}>{t.low_stock_items}</Typography>
                   <Stack spacing={1.5}>
                     {(data?.lowStockItems || []).length ? (
                       data.lowStockItems.map((stock) => (
@@ -220,7 +224,7 @@ export default function PharmacyDashboard() {
                           <Box>
                             <Typography sx={{ fontSize: 14.5 }}>{stock.medicineName}</Typography>
                             <Typography sx={{ fontSize: 12.5, color: colors.muted }}>
-                              Threshold {stock.lowStockThreshold}
+                              {t.threshold} {stock.lowStockThreshold}
                             </Typography>
                           </Box>
                           <Typography sx={{ fontSize: 14, color: colors.amber, fontWeight: 600 }}>
@@ -229,13 +233,13 @@ export default function PharmacyDashboard() {
                         </Box>
                       ))
                     ) : (
-                      <Typography sx={{ color: colors.muted }}>No low stock alerts right now.</Typography>
+                      <Typography sx={{ color: colors.muted }}>{t.no_low_stock}</Typography>
                     )}
                   </Stack>
                 </Box>
 
                 <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 18, mb: 3 }}>Notifications</Typography>
+                  <Typography sx={{ fontSize: 18, mb: 3 }}>{t.notifications}</Typography>
                   <Stack spacing={1.5}>
                     {(data?.notifications || []).slice(0, 5).map((item) => (
                       <Box key={item._id}>
@@ -246,7 +250,7 @@ export default function PharmacyDashboard() {
                       </Box>
                     ))}
                     {!(data?.notifications || []).length && (
-                      <Typography sx={{ color: colors.muted }}>No notifications right now.</Typography>
+                      <Typography sx={{ color: colors.muted }}>{t.no_notifications}</Typography>
                     )}
                   </Stack>
                 </Box>

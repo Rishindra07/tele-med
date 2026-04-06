@@ -25,6 +25,7 @@ export const LAYOUT_TRANSLATIONS = {
     audit_log: "Audit log",
 
     // Pharmacy Sidebar
+    orders: "Orders",
     prescriptions: "Prescriptions",
     inventory: "Inventory",
     sales_reports: "Sales & Reports",
@@ -66,6 +67,7 @@ export const LAYOUT_TRANSLATIONS = {
     audit_log: "ऑडिट लॉग",
 
     // Pharmacy Sidebar
+    orders: "ऑर्डर",
     prescriptions: "नुस्खे",
     inventory: "इन्वेंटरी",
     sales_reports: "बिक्री और रिपोर्ट",
@@ -107,6 +109,7 @@ export const LAYOUT_TRANSLATIONS = {
     audit_log: "தணிக்கை பதிவு",
 
     // Pharmacy Sidebar
+    orders: "ஆர்டர்கள்",
     prescriptions: "மருந்துச்சீட்டுகள்",
     inventory: "சரக்கு இருப்பு",
     sales_reports: "விற்பனை மற்றும் அறிக்கைகள்",
@@ -148,6 +151,7 @@ export const LAYOUT_TRANSLATIONS = {
     audit_log: "ఆడిట్ లాగ్",
 
     // Pharmacy Sidebar
+    orders: "ఆదేశాలు",
     prescriptions: "ప్రిస్క్రిప్షన్లు",
     inventory: "ఇన్వెంటరీ",
     sales_reports: "అమ్మకాలు & నివేదికలు",
@@ -189,6 +193,7 @@ export const LAYOUT_TRANSLATIONS = {
     audit_log: "অডিট লগ",
 
     // Pharmacy Sidebar
+    orders: "অর্ডার",
     prescriptions: "প্রেসক্রিপশন",
     inventory: "মজুদ",
     sales_reports: "বিক্রয় ও রিপোর্ট",

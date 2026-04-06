@@ -21,6 +21,8 @@ import {
   MonitorRounded as SystemIcon,
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_SETTINGS_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
@@ -38,14 +40,14 @@ const colors = {
   graySoft: '#f1eee7'
 };
 
-const CATEGORIES = [
-  { id: 'general', label: 'General', icon: <SettingsIcon /> },
-  { id: 'platform', label: 'Platform Link', icon: <LinkIcon /> },
-  { id: 'inventory', label: 'Orders & Inventory', icon: <InventoryIcon /> },
-  { id: 'billing', label: 'Billing & GST', icon: <BillingIcon /> },
-  { id: 'staff', label: 'Staff & Roles', icon: <StaffIcon /> },
-  { id: 'security', label: 'Security', icon: <SecurityIcon /> },
-  { id: 'notifications', label: 'Notifications', icon: <BellIcon /> }
+const CATEGORIES = (t) => [
+  { id: 'general', label: t.cat_gen, icon: <SettingsIcon /> },
+  { id: 'platform', label: t.cat_plat, icon: <LinkIcon /> },
+  { id: 'inventory', label: t.cat_inv, icon: <InventoryIcon /> },
+  { id: 'billing', label: t.cat_bill, icon: <BillingIcon /> },
+  { id: 'staff', label: t.cat_staff, icon: <StaffIcon /> },
+  { id: 'security', label: t.cat_sec, icon: <SecurityIcon /> },
+  { id: 'notifications', label: t.cat_notif, icon: <BellIcon /> }
 ];
 
 const LANGUAGES = [
@@ -60,6 +62,9 @@ export default function PharmacySettings() {
   const [threshold, setThreshold] = useState(50);
   const [expiryWindow, setExpiryWindow] = useState(90);
 
+  const { language } = useLanguage();
+  const t = PHARMACY_SETTINGS_TRANSLATIONS[language] || PHARMACY_SETTINGS_TRANSLATIONS['en'];
+
   return (
     <PharmacyLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
@@ -67,12 +72,12 @@ export default function PharmacySettings() {
         {/* Header */}
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1.5 }}>Home › <Typography component="span" sx={{ color: colors.green }}>Settings</Typography></Typography>
+            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1.5 }}>{t.home} › <Typography component="span" sx={{ color: colors.green }}>{t.settings}</Typography></Typography>
             <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-              Settings
+              {t.settings}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5 }}>
-              Manage your pharmacy platform preferences and<br/>configurations
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+              {t.subtitle}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -82,7 +87,7 @@ export default function PharmacySettings() {
               </Badge>
             </IconButton>
             <Button sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2.5, px: 3, py: 1.2, textTransform: 'none', fontSize: 14.5, fontWeight: 600, '&:hover': { bgcolor: colors.greenDark } }}>
-              Save changes
+              {t.btn_save}
             </Button>
           </Stack>
         </Stack>
@@ -93,7 +98,7 @@ export default function PharmacySettings() {
           {/* Internal Navigation Sidebar */}
           <Box>
             <List sx={{ p: 0, bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, overflow: 'hidden' }}>
-              {CATEGORIES.map(cat => (
+              {CATEGORIES(t).map(cat => (
                 <ListItem key={cat.id} disablePadding>
                   <ListItemButton 
                     selected={activeCat === cat.id}
@@ -117,7 +122,7 @@ export default function PharmacySettings() {
               <ListItem disablePadding>
                 <ListItemButton sx={{ py: 2, px: 3, color: colors.red }}>
                   <ListItemIcon sx={{ minWidth: 40, color: colors.red }}><DeleteIcon /></ListItemIcon>
-                  <ListItemText primary="Delete account" primaryTypographyProps={{ fontSize: 14.5 }} />
+                  <ListItemText primary={t.del_acc} primaryTypographyProps={{ fontSize: 14.5 }} />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -127,10 +132,10 @@ export default function PharmacySettings() {
           <Stack spacing={4}>
             
             {/* General Section */}
-            <SettingsSection title="General Preferences" sub="Language and visual appearance of the portal">
+            <SettingsSection title={t.gen_title} sub={t.gen_sub}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
                 <Box>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>Primary Language</Typography>
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.lang}</Typography>
                   <Select fullWidth value="en" size="small" sx={{ borderRadius: 2 }}>
                     {LANGUAGES.map(l => (
                       <MenuItem key={l.code} value={l.code}>{l.flag} &nbsp; {l.name}</MenuItem>
@@ -138,22 +143,22 @@ export default function PharmacySettings() {
                   </Select>
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>Theme Mode</Typography>
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.theme}</Typography>
                   <Stack direction="row" spacing={1}>
-                    <ThemeButton selected icon={<LightIcon />} label="Light" />
-                    <ThemeButton icon={<DarkIcon />} label="Dark" />
-                    <ThemeButton icon={<SystemIcon />} label="System" />
+                    <ThemeButton selected icon={<LightIcon />} label={t.theme_light} />
+                    <ThemeButton icon={<DarkIcon />} label={t.theme_dark} />
+                    <ThemeButton icon={<SystemIcon />} label={t.theme_sys} />
                   </Stack>
                 </Box>
               </Box>
             </SettingsSection>
 
             {/* Orders & Inventory Section */}
-            <SettingsSection title="Orders & Inventory" sub="Automate and manage your stock thresholds">
+            <SettingsSection title={t.inv_title} sub={t.inv_sub}>
               <Stack spacing={4}>
                 <Box>
-                  <Typography sx={{ fontSize: 14.5, mb: 1 }}>Low stock threshold</Typography>
-                  <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>Visual warning when items fall below this count</Typography>
+                  <Typography sx={{ fontSize: 14.5, mb: 1 }}>{t.threshold}</Typography>
+                  <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>{t.threshold_sub}</Typography>
                   <Box sx={{ px: 2 }}>
                     <Slider 
                       value={threshold} 
@@ -162,16 +167,16 @@ export default function PharmacySettings() {
                       sx={{ color: colors.green }} 
                     />
                     <Stack direction="row" justifyContent="space-between">
-                      <Typography sx={{ fontSize: 11, color: colors.muted }}>10 units</Typography>
-                      <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600 }}>{threshold} units</Typography>
-                      <Typography sx={{ fontSize: 11, color: colors.muted }}>200 units</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>10 {t.units}</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600 }}>{threshold} {t.units}</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>200 {t.units}</Typography>
                     </Stack>
                   </Box>
                 </Box>
 
                 <Box>
-                  <Typography sx={{ fontSize: 14.5, mb: 1 }}>Expiry warning window</Typography>
-                  <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>Mark items as 'Expiring Soon' this many days before</Typography>
+                  <Typography sx={{ fontSize: 14.5, mb: 1 }}>{t.expiry}</Typography>
+                  <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>{t.expiry_sub}</Typography>
                   <Box sx={{ px: 2 }}>
                     <Slider 
                       value={expiryWindow} 
@@ -180,65 +185,65 @@ export default function PharmacySettings() {
                       sx={{ color: colors.blue }} 
                     />
                     <Stack direction="row" justifyContent="space-between">
-                      <Typography sx={{ fontSize: 11, color: colors.muted }}>30 days</Typography>
-                      <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600 }}>{expiryWindow} days</Typography>
-                      <Typography sx={{ fontSize: 11, color: colors.muted }}>180 days</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>30 {t.days}</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600 }}>{expiryWindow} {t.days}</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>180 {t.days}</Typography>
                     </Stack>
                   </Box>
                 </Box>
 
                 <Stack spacing={2}>
-                  <ToggleSetting title="Auto-hide out of stock items" sub="Remove items from patient view if stock is 0" active />
-                  <ToggleSetting title="Auto-generate Purchase Orders" sub="Suggest POs when items reach low threshold" />
-                  <ToggleSetting title="PO approval required" sub="Owner must approve POs before sending to supplier" active />
+                  <ToggleSetting title={t.t1_title} sub={t.t1_sub} active />
+                  <ToggleSetting title={t.t2_title} sub={t.t2_sub} />
+                  <ToggleSetting title={t.t3_title} sub={t.t3_sub} active />
                 </Stack>
               </Stack>
             </SettingsSection>
 
             {/* Billing & GST Section */}
-            <SettingsSection title="Billing & GST" sub="Tax configuration and localized invoice settings">
+            <SettingsSection title={t.bill_title} sub={t.bill_sub}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
                 <Box>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>GST Identification Number</Typography>
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.gstin}</Typography>
                   <TextField fullWidth placeholder="03AABCA1234Z1Z5" size="small" />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>Taxation Type</Typography>
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.tax_type}</Typography>
                   <Select fullWidth value="regular" size="small">
-                    <MenuItem value="regular">Regular Taxpayer</MenuItem>
-                    <MenuItem value="comp">Composition Scheme</MenuItem>
+                    <MenuItem value="regular">{t.rep_tax}</MenuItem>
+                    <MenuItem value="comp">{t.comp_scheme}</MenuItem>
                   </Select>
                 </Box>
                 <Box sx={{ gridColumn: 'span 2' }}>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>Invoice Footer Text</Typography>
-                  <TextField fullWidth multiline rows={2} placeholder="Thank you for your business. Please stay healthy!" />
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.inv_footer}</Typography>
+                  <TextField fullWidth multiline rows={2} placeholder={t.inv_placeholder} />
                 </Box>
               </Box>
             </SettingsSection>
 
             {/* Data & Security Section */}
-            <SettingsSection title="Data & Privacy" sub="Manage your data and security preferences">
+            <SettingsSection title={t.ds_title} sub={t.ds_sub}>
               <Stack spacing={3}>
                 <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.graySoft }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>Export Audit Logs</Typography>
-                      <Typography sx={{ fontSize: 12, color: colors.muted }}>Download all pharmacy activity logs in Excel format</Typography>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>{t.export_title}</Typography>
+                      <Typography sx={{ fontSize: 12, color: colors.muted }}>{t.export_sub}</Typography>
                     </Box>
                     <Button startIcon={<DownloadIcon />} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none', color: colors.text, borderColor: colors.line }}>
-                      Export
+                      {t.btn_export}
                     </Button>
                   </Stack>
                 </Box>
                 <Box>
-                  <ToggleSetting title="Two-factor Authentication" sub="Add extra security to owner login" active />
+                  <ToggleSetting title={t.t4_title} sub={t.t4_sub} active />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>Login Session Duration</Typography>
+                  <Typography sx={{ fontSize: 14, mb: 1.5 }}>{t.login_dur}</Typography>
                   <Select fullWidth value="8h" size="small" sx={{ maxWidth: 300 }}>
-                    <MenuItem value="1h">1 Hour</MenuItem>
-                    <MenuItem value="8h">8 Hours</MenuItem>
-                    <MenuItem value="24h">24 Hours</MenuItem>
+                    <MenuItem value="1h">{t.hr_1}</MenuItem>
+                    <MenuItem value="8h">{t.hr_8}</MenuItem>
+                    <MenuItem value="24h">{t.hr_24}</MenuItem>
                   </Select>
                 </Box>
               </Stack>

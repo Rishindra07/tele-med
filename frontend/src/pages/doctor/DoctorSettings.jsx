@@ -18,6 +18,8 @@ import {
 import DoctorLayout from '../../components/DoctorLayout';
 import { fetchDoctorProfile, updateDoctorProfile } from '../../api/doctorApi';
 import { Alert, CircularProgress, Snackbar } from '@mui/material';
+import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_SETTINGS_TRANSLATIONS } from '../../utils/translations/doctor';
 
 const colors = {
   paper: '#fffdf8',
@@ -32,13 +34,6 @@ const colors = {
   amberSoft: '#fbefdc',
   red: '#d9635b',
   redSoft: '#fdeaea'
-};
-
-const tabs = {
-  account: ['Account', 'Manage your profile, contact and clinic information'],
-  notification: ['Notifications', 'Control when and how patient alerts reach you'],
-  language: ['Language', 'Choose your preferred language and format settings'],
-  region: ['Region & Time', 'Set your timezone, session defaults and local format']
 };
 
 function Row({ name, desc, action, danger = false }) {
@@ -95,6 +90,9 @@ function Card({ children }) {
 }
 
 export default function DoctorSettings() {
+  const { language: currentLanguage } = useLanguage();
+  const t = DOCTOR_SETTINGS_TRANSLATIONS[currentLanguage] || DOCTOR_SETTINGS_TRANSLATIONS['en'];
+
   const [activeTab, setActiveTab] = useState('account');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -180,7 +178,7 @@ export default function DoctorSettings() {
   };
 
   const doctorName = profile.name || 'Doctor';
-  const pageHeader = tabs[activeTab];
+  const pageHeader = t.tabs[activeTab] || ['', ''];
 
   const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -208,45 +206,45 @@ export default function DoctorSettings() {
       return (
         <Card>
           <Row
-            name="Profile overview"
-            desc="Update the details patients see before booking with you"
-            action={actionButton(saving ? 'Saving...' : 'Save profile', 'filled', handleSave, saving)}
+            name={t.account.overview}
+            desc={t.account.overview_desc}
+            action={actionButton(saving ? t.saving : t.account.save_btn, 'filled', handleSave, saving)}
           />
           <Stack spacing={2.1} sx={{ mt: 2 }}>
             <TextField
-              label="Full name"
+              label={t.account.full_name}
               value={profile.name}
               onChange={(event) => setProfile((prev) => ({ ...prev, name: event.target.value }))}
               fullWidth
             />
             <TextField
-              label="Specialty"
+              label={t.account.specialty}
               value={profile.specialization}
               onChange={(event) => setProfile((prev) => ({ ...prev, specialization: event.target.value }))}
               fullWidth
             />
             <TextField
-              label="Clinic / Hospital"
+              label={t.account.clinic}
               value={profile.hospitalName}
               onChange={(event) => setProfile((prev) => ({ ...prev, hospitalName: event.target.value }))}
               fullWidth
             />
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <TextField
-                label="Email"
+                label={t.account.email}
                 value={profile.email}
                 onChange={(event) => setProfile((prev) => ({ ...prev, email: event.target.value }))}
                 fullWidth
               />
               <TextField
-                label="Phone"
+                label={t.account.phone}
                 value={profile.phone}
                 onChange={(event) => setProfile((prev) => ({ ...prev, phone: event.target.value }))}
                 fullWidth
               />
             </Stack>
             <TextField
-              label="Professional bio"
+              label={t.account.bio}
               multiline
               minRows={4}
               value={profile.bio}
@@ -256,11 +254,11 @@ export default function DoctorSettings() {
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2.4 }}>
             <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: '#f5f1e9', border: `1px solid ${colors.soft}` }}>
-              <Typography sx={{ fontSize: 14.5 }}>Verification status</Typography>
-              <Typography sx={{ mt: 0.4, color: colors.green, fontSize: 13.5 }}>Medical council verified</Typography>
+              <Typography sx={{ fontSize: 14.5 }}>{t.account.verification}</Typography>
+              <Typography sx={{ mt: 0.4, color: colors.green, fontSize: 13.5 }}>{t.account.verified}</Typography>
             </Box>
             <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: '#f5f1e9', border: `1px solid ${colors.soft}` }}>
-              <Typography sx={{ fontSize: 14.5 }}>Public display name</Typography>
+              <Typography sx={{ fontSize: 14.5 }}>{t.account.public_name}</Typography>
               <Typography sx={{ mt: 0.4, color: colors.muted, fontSize: 13.5 }}>{doctorName}</Typography>
             </Box>
           </Stack>
@@ -271,15 +269,15 @@ export default function DoctorSettings() {
     if (activeTab === 'notification') {
       return (
         <Card>
-          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1 }}>Appointments</Typography>
-          <Row name="Upcoming appointment alerts" desc="Remind you before each consultation starts" action={<Switch checked={toggles.appointmentAlerts} onChange={() => toggle('appointmentAlerts')} />} />
-          <Row name="New booking requests" desc="Alert when a patient requests a slot" action={<Switch checked={toggles.bookingRequests} onChange={() => toggle('bookingRequests')} />} />
-          <Row name="Cancellations and reschedules" desc="Stay informed when patients change plans" action={<Switch checked={toggles.cancellations} onChange={() => toggle('cancellations')} />} />
-          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>Channels</Typography>
-          <Row name="SMS alerts" desc="Quick reminders to your registered mobile number" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} />} />
-          <Row name="Push notifications" desc="In-app alerts on your current device" action={<Switch checked={toggles.push} onChange={() => toggle('push')} />} />
-          <Row name="Email summaries" desc={`Daily schedule summary to ${profile.email}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
-          <Row name="Do not disturb" desc="Silence non-urgent alerts outside clinic hours" action={<Stack direction="row" spacing={1}><Select size="small" value="10 PM"><MenuItem value="10 PM">10 PM</MenuItem></Select><Typography sx={{ alignSelf: 'center', color: colors.muted, fontSize: 12 }}>to</Typography><Select size="small" value="7 AM"><MenuItem value="7 AM">7 AM</MenuItem></Select></Stack>} />
+          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1 }}>{t.notification.appointments?.toUpperCase()}</Typography>
+          <Row name={t.notification.upcoming} desc={t.notification.upcoming_desc} action={<Switch checked={toggles.appointmentAlerts} onChange={() => toggle('appointmentAlerts')} />} />
+          <Row name={t.notification.booking} desc={t.notification.booking_desc} action={<Switch checked={toggles.bookingRequests} onChange={() => toggle('bookingRequests')} />} />
+          <Row name={t.notification.cancel} desc={t.notification.cancel_desc} action={<Switch checked={toggles.cancellations} onChange={() => toggle('cancellations')} />} />
+          <Typography sx={{ color: '#a7a198', fontSize: 11, letterSpacing: 1.1, mb: 1, mt: 2 }}>{t.notification.channels?.toUpperCase()}</Typography>
+          <Row name={t.notification.sms} desc={t.notification.sms_desc} action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} />} />
+          <Row name={t.notification.push} desc={t.notification.push_desc} action={<Switch checked={toggles.push} onChange={() => toggle('push')} />} />
+          <Row name={t.notification.email} desc={`${t.notification.email_desc} ${profile.email}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} />} />
+          <Row name={t.notification.dnd} desc={t.notification.dnd_desc} action={<Stack direction="row" spacing={1}><Select size="small" value="10 PM"><MenuItem value="10 PM">10 PM</MenuItem></Select><Typography sx={{ alignSelf: 'center', color: colors.muted, fontSize: 12 }}>{t.notification.to}</Typography><Select size="small" value="7 AM"><MenuItem value="7 AM">7 AM</MenuItem></Select></Stack>} />
         </Card>
       );
     }
@@ -288,23 +286,23 @@ export default function DoctorSettings() {
       return (
         <Card>
           <Row
-            name="Display language"
-            desc="Choose the language used across your dashboard"
-            action={<PillGroup options={['English', 'Hindi', 'Punjabi', 'Tamil']} selected={language} onSelect={setLanguage} />}
+            name={t.language.display}
+            desc={t.language.display_desc}
+            action={<PillGroup options={['English', 'Hindi', 'Tamil', 'Telugu', 'Bengali']} selected={language} onSelect={setLanguage} />}
           />
           <Row
-            name="Time format"
-            desc="Used in appointments, reminders and consultation summaries"
+            name={t.language.time}
+            desc={t.language.time_desc}
             action={<PillGroup options={['12h', '24h']} selected={timeFormat} onSelect={setTimeFormat} />}
           />
           <Row
-            name="Date format"
-            desc="How dates appear in schedules and patient records"
+            name={t.language.date}
+            desc={t.language.date_desc}
             action={<PillGroup options={['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']} selected={dateFormat} onSelect={setDateFormat} />}
           />
           <Row
-            name="Prescription language"
-            desc="Default language for prescription notes and patient handouts"
+            name={t.language.prescription}
+            desc={t.language.prescription_desc}
             action={<Select size="small" value="English"><MenuItem value="English">English</MenuItem><MenuItem value="Hindi">Hindi</MenuItem></Select>}
           />
         </Card>
@@ -317,7 +315,7 @@ export default function DoctorSettings() {
           <Card>
             <Box sx={{ mb: 2.2 }}>
               <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                <Typography sx={{ fontSize: 14.5 }}>Connectivity readiness</Typography>
+                <Typography sx={{ fontSize: 14.5 }}>{t.region.connectivity}</Typography>
                 <Typography sx={{ fontSize: 14.5, color: colors.green }}>72%</Typography>
               </Stack>
               <LinearProgress
@@ -326,21 +324,21 @@ export default function DoctorSettings() {
                 sx={{ height: 8, borderRadius: 999, bgcolor: '#f0efe8', '& .MuiLinearProgress-bar': { bgcolor: colors.green } }}
               />
               <Typography sx={{ mt: 0.8, color: colors.muted, fontSize: 12.5 }}>
-                Optimised for rural tele-consultations with moderate network quality.
+                {t.region.connectivity_desc}
               </Typography>
             </Box>
-            <Row name="Timezone" desc="Used for appointments and reminders" action={<Select size="small" value={timezone} onChange={(event) => setTimezone(event.target.value)}><MenuItem value="Asia/Kolkata">Asia/Kolkata</MenuItem><MenuItem value="Asia/Dhaka">Asia/Dhaka</MenuItem><MenuItem value="Asia/Dubai">Asia/Dubai</MenuItem></Select>} />
-            <Row name="Default consultation slot length" desc="Applied when new availability is created" action={<Select size="small" value="20 minutes"><MenuItem value="20 minutes">20 minutes</MenuItem><MenuItem value="30 minutes">30 minutes</MenuItem></Select>} />
-            <Row name="Auto-confirm patient bookings" desc="Immediately confirm without manual approval" action={<Switch checked={toggles.autoConfirm} onChange={() => toggle('autoConfirm')} />} />
-            <Row name="Low bandwidth mode" desc="Reduce video load and prioritize voice stability" action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} />} />
-            <Row name="Audio fallback" desc="Automatically switch to audio if video quality drops" action={<Switch checked={toggles.audioFallback} onChange={() => toggle('audioFallback')} />} />
+            <Row name={t.region.timezone} desc={t.region.timezone_desc} action={<Select size="small" value={timezone} onChange={(event) => setTimezone(event.target.value)}><MenuItem value="Asia/Kolkata">Asia/Kolkata</MenuItem><MenuItem value="Asia/Dhaka">Asia/Dhaka</MenuItem><MenuItem value="Asia/Dubai">Asia/Dubai</MenuItem></Select>} />
+            <Row name={t.region.slot_length} desc={t.region.slot_length_desc} action={<Select size="small" value="20 minutes"><MenuItem value="20 minutes">20 minutes</MenuItem><MenuItem value="30 minutes">30 minutes</MenuItem></Select>} />
+            <Row name={t.region.auto_confirm} desc={t.region.auto_confirm_desc} action={<Switch checked={toggles.autoConfirm} onChange={() => toggle('autoConfirm')} />} />
+            <Row name={t.region.low_bandwidth} desc={t.region.low_bandwidth_desc} action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} />} />
+            <Row name={t.region.audio_fallback} desc={t.region.audio_fallback_desc} action={<Switch checked={toggles.audioFallback} onChange={() => toggle('audioFallback')} />} />
           </Card>
 
           <Card>
-            <Row name="Password" desc="Last changed 2 months ago" action={actionButton('Change password')} />
-            <Row name="Biometric login" desc="Use device fingerprint or face unlock when supported" action={<Switch checked={toggles.biometric} onChange={() => toggle('biometric')} />} />
-            <Row name="Login alerts" desc="Get alerted when a new device signs in" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} />} />
-            <Row name="Clinic emergency contact" desc="+91 98765 43210" action={actionButton('Edit')} />
+            <Row name={t.region.password} desc={t.region.password_desc} action={actionButton(t.region.change_password)} />
+            <Row name={t.region.biometric} desc={t.region.biometric_desc} action={<Switch checked={toggles.biometric} onChange={() => toggle('biometric')} />} />
+            <Row name={t.region.login_alerts} desc={t.region.login_alerts_desc} action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} />} />
+            <Row name={t.region.contact} desc="+91 98765 43210" action={actionButton(t.region.edit)} />
           </Card>
 
           <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid #f0a2a2`, bgcolor: '#fff' }}>
@@ -348,17 +346,17 @@ export default function DoctorSettings() {
               <Box sx={{ width: 30, height: 30, borderRadius: 2, bgcolor: '#fcebeb', display: 'grid', placeItems: 'center', color: '#a32d2d' }}>
                 <WarningIcon sx={{ fontSize: 18 }} />
               </Box>
-              <Typography sx={{ fontSize: 16, color: '#a32d2d' }}>Practice controls</Typography>
+              <Typography sx={{ fontSize: 16, color: '#a32d2d' }}>{t.region.controls}</Typography>
             </Stack>
-            <Row danger name="Pause online bookings" desc="Temporarily hide your appointment slots from patients." action={actionButton('Pause bookings', 'danger')} />
-            <Row danger name="Disable tele-consultation availability" desc="Stop accepting video consultations until re-enabled." action={actionButton('Disable', 'danger')} />
+            <Row danger name={t.region.pause} desc={t.region.pause_desc} action={actionButton(t.region.btn_pause, 'danger')} />
+            <Row danger name={t.region.disable} desc={t.region.disable_desc} action={actionButton(t.region.btn_disable, 'danger')} />
             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ pt: 1.7 }}>
               <Box>
-                <Typography sx={{ fontSize: 15, color: '#892727' }}>Request account deactivation</Typography>
-                <Typography sx={{ mt: 0.35, color: '#a24a4a', fontSize: 13.5 }}>Your profile, slots and incoming consultations will be suspended.</Typography>
+                <Typography sx={{ fontSize: 15, color: '#892727' }}>{t.region.deactivate}</Typography>
+                <Typography sx={{ mt: 0.35, color: '#a24a4a', fontSize: 13.5 }}>{t.region.deactivate_desc}</Typography>
               </Box>
               <Button sx={{ px: 2.2, py: 0.8, borderRadius: 2.2, bgcolor: '#a32d2d', color: '#fff', textTransform: 'none', fontSize: 13.5 }}>
-                Deactivate
+                {t.region.btn_deactivate}
               </Button>
             </Stack>
           </Box>
@@ -375,10 +373,10 @@ export default function DoctorSettings() {
         <Box sx={{ px: { xs: 2, md: 4 }, py: 2.5, bgcolor: '#fff', borderBottom: `1px solid ${colors.soft}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
           <Box>
             <Typography sx={{ color: '#a7a198', fontSize: 14 }}>
-              Home {'›'} Settings {'›'} {pageHeader[0]}
+              {t.home} {'›'} {t.settings} {'›'} {pageHeader[0]}
             </Typography>
             <Typography sx={{ mt: 0.5, fontSize: { xs: 34, md: 42 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-              Settings
+              {t.settings}
             </Typography>
             <Typography sx={{ mt: 0.6, color: colors.muted, fontSize: 15.5 }}>
               {pageHeader[1]}
@@ -398,7 +396,7 @@ export default function DoctorSettings() {
                 startIcon={<SaveIcon />} 
                 sx={{ px: 2.2, py: 1.05, borderRadius: 2.2, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? t.saving : t.save}
             </Button>
           </Stack>
         </Box>
@@ -410,7 +408,7 @@ export default function DoctorSettings() {
         ) : (
           <Box sx={{ p: { xs: 2, md: 4 } }}>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
-              {Object.entries(tabs).map(([key, [label]]) => (
+              {Object.keys(t.tabs).map((key) => (
                 <Button
                   key={key}
                   onClick={() => setActiveTab(key)}
@@ -425,7 +423,7 @@ export default function DoctorSettings() {
                     fontSize: 14.5
                   }}
                 >
-                  {label}
+                  {t.tabs[key][0]}
                 </Button>
               ))}
             </Stack>

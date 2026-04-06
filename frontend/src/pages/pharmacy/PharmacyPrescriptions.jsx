@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import PharmacyLayout from '../../components/PharmacyLayout';
 import { fetchPharmacyPrescriptions } from '../../api/pharmacyApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_PRESCRIPTIONS_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
@@ -36,6 +38,9 @@ export default function PharmacyPrescriptions() {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [query, setQuery] = useState('');
+  
+  const { language } = useLanguage();
+  const t = PHARMACY_PRESCRIPTIONS_TRANSLATIONS[language] || PHARMACY_PRESCRIPTIONS_TRANSLATIONS['en'];
 
   useEffect(() => {
     const load = async () => {
@@ -72,15 +77,15 @@ export default function PharmacyPrescriptions() {
     <PharmacyLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
         <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-          Prescriptions
+          {t.title}
         </Typography>
         <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, mb: 4 }}>
-          Live fulfillment queue from the backend.
+          {t.subtitle}
         </Typography>
 
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mb: 3 }}>
           <TextField
-            placeholder="Search patient, doctor, medicine, prescription ID"
+            placeholder={t.search}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             fullWidth
@@ -92,11 +97,20 @@ export default function PharmacyPrescriptions() {
             onChange={(event) => setStatusFilter(event.target.value)}
             sx={{ minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: 2.5, bgcolor: colors.paper } }}
           >
-            {statusOptions.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status === 'all' ? 'All statuses' : status}
-              </MenuItem>
-            ))}
+            {statusOptions.map((status) => {
+              let displayStatus = status;
+              if (status === 'all') displayStatus = t.all_statuses;
+              else if (status === 'Pending') displayStatus = t.status_pending;
+              else if (status === 'Ready') displayStatus = t.status_ready;
+              else if (status === 'Partially Available') displayStatus = t.status_partially_available;
+              else if (status === 'Completed') displayStatus = t.status_completed;
+
+              return (
+                <MenuItem key={status} value={status}>
+                  {displayStatus}
+                </MenuItem>
+              );
+            })}
           </TextField>
         </Stack>
 
@@ -127,13 +141,13 @@ export default function PharmacyPrescriptions() {
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
                   <Box sx={{ minWidth: 0 }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
-                      {item.patient?.full_name || 'Patient'}
+                      {item.patient?.full_name || t.patient}
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
-                      Dr. {item.doctor?.full_name || 'Doctor'} • {item.prescriptionId}
+                      {t.doctor_prefix} {item.doctor?.full_name || 'Doctor'} • {item.prescriptionId}
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
-                      {(item.medications || []).map((med) => med.name).join(', ') || 'No medicines listed'}
+                      {(item.medications || []).map((med) => med.name).join(', ') || t.no_medicines}
                     </Typography>
                   </Box>
                   <Chip
@@ -155,7 +169,7 @@ export default function PharmacyPrescriptions() {
                 </Stack>
               </Box>
             )) : (
-              <Typography sx={{ color: colors.muted }}>No prescriptions match your filters.</Typography>
+              <Typography sx={{ color: colors.muted }}>{t.no_prescriptions}</Typography>
             )}
           </Stack>
         )}

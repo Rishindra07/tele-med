@@ -28,6 +28,8 @@ import {
   ArrowBackRounded as BackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
+import { ORDER_TRACKING_TRANSLATIONS } from '../../utils/translations/patient';
 import PatientShell from '../../components/patient/PatientShell';
 import { fetchMyOrders, cancelMyOrder } from '../../api/patientApi';
 
@@ -120,6 +122,8 @@ const getActiveStep = (status) => {
 };
 
 export default function OrderTracking() {
+  const { language } = useLanguage();
+  const t = ORDER_TRACKING_TRANSLATIONS[language] || ORDER_TRACKING_TRANSLATIONS['en'];
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -139,7 +143,7 @@ export default function OrderTracking() {
   };
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    if (!window.confirm(t.cancel_order + '?')) return;
     try {
       const res = await cancelMyOrder(orderId);
       if (res.success) {
@@ -168,10 +172,10 @@ export default function OrderTracking() {
           </Button>
           <Box>
             <Typography sx={{ fontSize: { xs: 24, md: 32 }, fontWeight: 700, color: colors.text }}>
-              Track Your Orders
+              {t.title}
             </Typography>
             <Typography sx={{ color: colors.muted, fontSize: 16 }}>
-              Follow the progress of your medicine fulfillment.
+              {t.subtitle}
             </Typography>
           </Box>
         </Stack>
@@ -179,23 +183,23 @@ export default function OrderTracking() {
         {loading ? (
           <Box sx={{ py: 10, textAlign: 'center' }}>
             <CircularProgress size={40} />
-            <Typography sx={{ mt: 2, color: colors.muted }}>Loading your orders...</Typography>
+            <Typography sx={{ mt: 2, color: colors.muted }}>{t.loading}</Typography>
           </Box>
         ) : orders.length === 0 ? (
           <Card sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: `1px dashed ${colors.line}`, bgcolor: 'transparent', boxShadow: 'none' }}>
             <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: colors.primarySoft, color: colors.primary, display: 'grid', placeItems: 'center', mx: 'auto', mb: 3 }}>
               <ShippingIcon sx={{ fontSize: 40 }} />
             </Box>
-            <Typography sx={{ fontSize: 20, fontWeight: 700, mb: 1 }}>No Orders Found</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, mb: 1 }}>{t.no_orders}</Typography>
             <Typography sx={{ color: colors.muted, mb: 3, maxWidth: 400, mx: 'auto' }}>
-              You haven't placed any medicine orders yet. Assign a prescription to a pharmacy to see it here.
+              {t.no_orders_desc}
             </Typography>
             <Button 
               variant="contained" 
               onClick={() => navigate('/patient/records')}
               sx={{ borderRadius: 2, px: 4, py: 1, bgcolor: colors.primary, textTransform: 'none', fontWeight: 600 }}
             >
-              Go to Prescriptions
+              {t.go_prescriptions}
             </Button>
           </Card>
         ) : (
@@ -232,7 +236,7 @@ export default function OrderTracking() {
                                onClick={() => handleCancelOrder(order._id)}
                                sx={{ borderRadius: 1.5, textTransform: 'none', height: 26, fontSize: 11, fontWeight: 700 }}
                              >
-                               Cancel Order
+                               {t.cancel_order}
                              </Button>
                            )}
                            <Chip 
@@ -274,9 +278,9 @@ export default function OrderTracking() {
                                 fontWeight: activeStep === index ? 700 : 500,
                                 color: activeStep >= index ? colors.text : colors.muted
                               }}>
-                                {label}
+                                {t.steps[label] || label}
                                 {activeStep === index && order.status !== 'Delivered' && (
-                                  <Box component="span" sx={{ display: 'block', fontSize: 10, color: colors.primary, mt: 0.5 }}>Current Status</Box>
+                                  <Box component="span" sx={{ display: 'block', fontSize: 10, color: colors.primary, mt: 0.5 }}>{t.current_status}</Box>
                                 )}
                               </Typography>
                             </StepLabel>
@@ -292,7 +296,7 @@ export default function OrderTracking() {
                        <Stack direction="row" spacing={1} alignItems="center">
                           <CheckIcon sx={{ color: colors.success, fontSize: 18 }} />
                           <Typography sx={{ fontSize: 13, color: colors.muted }}>
-                            Order contains {order.prescription?.medications?.length || 0} medications from 
+                            {t.order_contains} {order.prescription?.medications?.length || 0} {t.medications_from} 
                             <b> Dr. {order.prescription?.doctor?.full_name || 'Medical Specialist'}</b>
                           </Typography>
                        </Stack>
@@ -302,7 +306,7 @@ export default function OrderTracking() {
                         sx={{ textTransform: 'none', fontWeight: 600, color: colors.primary }}
                         onClick={() => navigate('/patient/records')}
                        >
-                         View Prescription Details
+                         {t.view_details}
                        </Button>
                     </Stack>
                   </Box>

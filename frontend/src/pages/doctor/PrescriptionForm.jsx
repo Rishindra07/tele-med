@@ -27,6 +27,7 @@ import {
 import DoctorLayout from '../../components/DoctorLayout';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_PRESCRIPTION_TRANSLATIONS } from '../../utils/translations/doctor';
 import { generatePrescription } from '../../api/doctorApi';
 
 const MEDICINE_OPTIONS = [
@@ -75,83 +76,13 @@ const premiumTextFieldSx = {
   '& .MuiAutocomplete-clearIndicator': { color: colors.muted },
 };
 
-const TRANSLATIONS = {
-  en: {
-    writePrescription: "Write Prescription",
-    diagnosis: "Diagnosis / Symptoms",
-    medications: "Medications",
-    labTests: "Lab Tests",
-    followUp: "Follow Up",
-    notes: "Notes",
-    submit: "Send to Patient",
-    preview: "Preview",
-    allergies: "Allergies",
-    addMedicine: "+ Add Medicine",
-    voice: "Voice Typing"
-  },
-  hi: {
-    writePrescription: "नुस्खा लिखें",
-    diagnosis: "रोग का निदान",
-    medications: "दवाएं",
-    labTests: "लैब टेस्ट",
-    followUp: "अगली मुलाकात",
-    notes: "टिप्पणियाँ",
-    submit: "रोगी को भेजें",
-    preview: "पूर्वावलोकन",
-    allergies: "एलर्जी",
-    addMedicine: "+ दवा जोड़ें",
-    voice: "बोलकर लिखें"
-  },
-  ta: {
-    writePrescription: "மருந்துச் சீட்டு எழுதவும்",
-    diagnosis: "நோய் கண்டறிதல்",
-    medications: "மருந்துகள்",
-    labTests: "ஆய்வக சோதனைகள்",
-    followUp: "தொடர் சிகிச்சை",
-    notes: "குறிப்புகள்",
-    submit: "நோயாளிக்கு அனுப்பவும்",
-    preview: "மருந்துச் சீட்டு முன்னோட்டம்",
-    allergies: "ஒவ்வாமை",
-    addMedicine: "+ மருந்து சேர்க்கவும்",
-    voice: "குரல் தட்டச்சு"
-  },
-  te: {
-    writePrescription: "మందుల చీటి వ్రాయండి",
-    diagnosis: "వ్యాధి నిర్ధారణ",
-    medications: "మందులు",
-    labTests: "ల్యాబ్ పరీక్షలు",
-    followUp: "తదుపరి చికిత్స",
-    notes: "గమనికలు",
-    submit: "రోగికి పంపండి",
-    preview: "ప్రిస్క్రిప్షన్ ప్రివ్యూ",
-    allergies: "అలెర్జీలు",
-    addMedicine: "+ మందును జోడించండి",
-    voice: "వాయిస్ టైపింగ్"
-  },
-  bn: {
-    writePrescription: "প্রেসক্রিপশন লিখুন",
-    diagnosis: "নিদান",
-    medications: "ওষুধ",
-    labTests: "ল্যাব পরীক্ষা",
-    followUp: "ফলো আপ",
-    notes: "নোট",
-    submit: "রোগীকে পাঠান",
-    preview: "প্রেসক্রিপশন প্রিভিউ",
-    allergies: "অ্যালার্জি",
-    addMedicine: "+ ওষুধ যোগ করুন",
-    voice: "ভয়েস টাইপিং"
-  }
-};
-
 export default function PrescriptionForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const appointment = location.state?.appointment;
   const { language } = useLanguage();
 
-  // Language state
-  const [lang, setLang] = useState(language || 'en');
-  const t = TRANSLATIONS[lang];
+  const t = DOCTOR_PRESCRIPTION_TRANSLATIONS[language] || DOCTOR_PRESCRIPTION_TRANSLATIONS['en'];
 
   // States
   const [patientInfo, setPatientInfo] = useState({
@@ -183,10 +114,6 @@ export default function PrescriptionForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
-
-  useEffect(() => {
-    setLang(language);
-  }, [language]);
 
   useEffect(() => {
     if (!appointment) navigate('/doctor/appointments');
@@ -226,7 +153,7 @@ export default function PrescriptionForm() {
   const handleSpeak = () => {
     const text = notes || "Please take your medications as prescribed. Follow the timing and instructions carefully.";
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === 'en' ? 'en-US' : 'hi-IN';
+    utterance.lang = language === 'en' ? 'en-US' : 'hi-IN';
     window.speechSynthesis.speak(utterance);
   };
 
@@ -323,7 +250,7 @@ export default function PrescriptionForm() {
               onClick={() => navigate(-1)} 
               sx={{ color: colors.muted, textTransform: 'none', fontWeight: '500', fontSize: 16 }}
             >
-              Back
+              {t.back}
             </Button>
             <Typography sx={{ fontSize: 42, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
               {t.writePrescription}
@@ -333,23 +260,6 @@ export default function PrescriptionForm() {
             <Box sx={{ px: 2, py: 1, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 15, fontWeight: 500 }}>
                {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
             </Box>
-            <Button 
-              variant="outlined" 
-              startIcon={<TranslateIcon sx={{ fontSize: 20 }} />} 
-              onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-              sx={{ 
-                borderRadius: 99, 
-                bgcolor: '#fff', 
-                color: colors.text, 
-                borderColor: colors.line,
-                textTransform: 'none',
-                fontWeight: '600',
-                px: 2,
-                '&:hover': { bgcolor: colors.bg, borderColor: colors.line }
-              }}
-            >
-              {lang === 'en' ? 'HI' : 'EN'}
-            </Button>
           </Stack>
         </Stack>
 
@@ -380,20 +290,20 @@ export default function PrescriptionForm() {
                   </Typography>
                   
                   <TextField 
-                    placeholder="Patient Phone (for WhatsApp)"
+                    placeholder={t.patient_phone_placeholder}
                     value={patientInfo.phone}
                     onChange={(e) => setPatientInfo({...patientInfo, phone: e.target.value})}
                     size="small"
                     sx={{ ...premiumTextFieldSx, maxWidth: 280 }}
                   />
                   <Typography variant="caption" sx={{ display: 'block', mt: 0.8, color: colors.red, fontSize: 12 }}>
-                    Phone required for digital prescription sharing
+                    {t.phone_required_warning}
                   </Typography>
                 </Box>
               </Stack>
               <TextField 
                 fullWidth 
-                placeholder="Initial Diagnosis / Observed Symptoms..."
+                placeholder={t.diagnosis_placeholder}
                 multiline
                 rows={2}
                 value={patientInfo.diagnosis}
@@ -415,13 +325,13 @@ export default function PrescriptionForm() {
                   <span style={{ fontSize: '1.2rem' }}>⚠️</span> {t.allergies.toUpperCase()}
                 </Typography>
                 <Typography variant="body2" sx={{ color: colors.red, opacity: 0.9, mb: 2, fontSize: 15 }}>
-                  {patientInfo.allergies || "None reported"}
+                  {patientInfo.allergies || t.none_reported}
                 </Typography>
                 <Box sx={{ mt: 'auto' }}>
                    <TextField 
                     fullWidth 
                     size="small"
-                    placeholder="Add documented allergy..."
+                    placeholder={t.add_allergy_placeholder}
                     sx={premiumTextFieldSx}
                   />
                 </Box>
@@ -453,7 +363,7 @@ export default function PrescriptionForm() {
           >
             <Grid container spacing={2}>
               <Grid item xs={12} md={5}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Medicine Name</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.medicine_name}</Typography>
                 <Autocomplete
                   freeSolo
                   options={MEDICINE_OPTIONS}
@@ -463,7 +373,7 @@ export default function PrescriptionForm() {
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Dosage</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.dosage}</Typography>
                 <TextField 
                   fullWidth 
                   placeholder="e.g. 500mg"
@@ -475,7 +385,7 @@ export default function PrescriptionForm() {
               <Grid item xs={12} md={4}>
                 <Stack direction="row" spacing={1} alignItems="flex-end">
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Form</Typography>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.form}</Typography>
                     <FormControl fullWidth sx={premiumTextFieldSx}>
                       <Select
                         value={med.form}
@@ -501,7 +411,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={4}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Timing</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.timing}</Typography>
                 <Stack direction="row" spacing={1.5}>
                   {[
                     { key: 'morning', icon: '🌅', color: '#fbbf24', bg: '#fffbeb' },
@@ -531,7 +441,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={2}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Duration (Days)</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.duration}</Typography>
                 <TextField 
                   fullWidth 
                   value={med.duration}
@@ -541,7 +451,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Frequency</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.frequency}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
                     value={med.frequency}
@@ -556,7 +466,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>Food</Typography>
+                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.food}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
                     value={med.food}
@@ -603,7 +513,7 @@ export default function PrescriptionForm() {
                 options={LAB_TEST_OPTIONS}
                 value={labTests}
                 onChange={(e, val) => setLabTests(val)}
-                renderInput={(params) => <TextField {...params} placeholder="Search recommended tests..." sx={premiumTextFieldSx} />}
+                renderInput={(params) => <TextField {...params} placeholder={t.search_tests} sx={premiumTextFieldSx} />}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip key={index} label={option} {...getTagProps({ index })} sx={{ bgcolor: colors.green, color: colors.white, borderRadius: 2, fontWeight: '600' }} />
@@ -676,7 +586,7 @@ export default function PrescriptionForm() {
             fullWidth 
             multiline 
             rows={4} 
-            placeholder="Additional advice (e.g. Diet restrictions, physical rest, hydration)..."
+            placeholder={t.notes_placeholder}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             sx={premiumTextFieldSx}
@@ -707,19 +617,19 @@ export default function PrescriptionForm() {
               onClick={() => setShowPreview(true)} 
               sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
             >
-              Preview
+              {t.preview}
             </Button>
             <Button 
               variant="text" 
               startIcon={<SaveIcon />} 
               sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
             >
-              Save Draft
+              {t.save_draft}
             </Button>
           </Stack>
           
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Tooltip title="Send via SMS">
+            <Tooltip title={t.send_sms}>
               <IconButton sx={{ color: colors.blue, bgcolor: colors.blueSoft, borderRadius: 2.5, '&:hover': { bgcolor: '#dbeafe' } }}>
                 <SmsIcon sx={{ fontSize: 20 }} />
               </IconButton>
@@ -743,7 +653,7 @@ export default function PrescriptionForm() {
                 '&.Mui-disabled': { bgcolor: colors.line }
               }}
             >
-              {loading ? 'Processing...' : t.submit}
+              {loading ? t.processing : t.submit}
             </Button>
           </Stack>
         </Box>
@@ -791,18 +701,18 @@ export default function PrescriptionForm() {
                 </Grid>
              </Grid>
 
-             <Box sx={{ mb: 3, p: 2, bgcolor: colors.redSoft, borderRadius: 2, border: `1px solid ${colors.redBorder}` }}>
-                <Typography variant="caption" fontWeight="700" sx={{ color: colors.redText, display: 'block', mb: 0.5 }}>⚠️ ALLERGIES</Typography>
-                <Typography variant="body2" sx={{ color: colors.redText }}>{patientInfo.allergies || 'NONE REPORTED'}</Typography>
+             <Box sx={{ mb: 3, p: 2, bgcolor: colors.redSoft, borderRadius: 2, border: `1px solid ${colors.redSoft}` }}>
+                <Typography variant="caption" fontWeight="700" sx={{ color: colors.red, display: 'block', mb: 0.5 }}>⚠️ {t.allergies.toUpperCase()}</Typography>
+                <Typography variant="body2" sx={{ color: colors.red }}>{patientInfo.allergies || t.none_reported.toUpperCase()}</Typography>
              </Box>
 
              <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>DIAGNOSIS / SYMPTOMS</Typography>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.diagnosis.toUpperCase()}</Typography>
                 <Typography variant="body2" sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>{patientInfo.diagnosis || '--'}</Typography>
              </Box>
 
              <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>MEDICATIONS (Rx)</Typography>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.medications.toUpperCase()} (Rx)</Typography>
                 {medicines.map((m, i) => (
                   <Box key={i} sx={{ mb: 1, p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -823,36 +733,36 @@ export default function PrescriptionForm() {
 
              <Grid container spacing={2}>
                 <Grid item xs={6}>
-                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>LAB TESTS</Typography>
+                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.labTests.toUpperCase()}</Typography>
                    <Stack direction="row" flexWrap="wrap" gap={0.5}>
                       {labTests.map((t, index) => <Chip key={index} label={t} size="small" variant="outlined" sx={{ borderRadius: 1 }} />)}
-                      {labTests.length === 0 && <Typography variant="caption">None prescribed</Typography>}
+                      {labTests.length === 0 && <Typography variant="caption">--</Typography>}
                    </Stack>
                 </Grid>
                 <Grid item xs={6}>
-                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>FOLLOW UP</Typography>
-                   <Typography variant="body2" fontWeight="600">{followUp ? new Date(followUp).toLocaleDateString() : 'Not scheduled'}</Typography>
+                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.followUp.toUpperCase()}</Typography>
+                   <Typography variant="body2" fontWeight="600">{followUp ? new Date(followUp).toLocaleDateString() : '--'}</Typography>
                 </Grid>
              </Grid>
 
              <Box sx={{ mt: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>NOTES / ADVICE</Typography>
-                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>{notes || 'No additional instructions.'}</Typography>
+                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.notes.toUpperCase()}</Typography>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>{notes || '--'}</Typography>
              </Box>
              
              <Box sx={{ mt: 6, textAlign: 'right' }}>
                 <Box sx={{ display: 'inline-block', textAlign: 'center' }}>
                   <Divider sx={{ mb: 1, width: '150px' }} />
-                  <Typography variant="caption" color="text.secondary">Digital Signature</Typography>
+                  <Typography variant="caption" color="text.secondary">{t.digital_signature}</Typography>
                   <Typography variant="subtitle2" fontWeight="700">Dr. Sharma</Typography>
                 </Box>
              </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: '#F8FAFC' }}>
-          <Button onClick={() => setShowPreview(false)} sx={{ fontWeight: 'bold' }}>Close</Button>
+          <Button onClick={() => setShowPreview(false)} sx={{ fontWeight: 'bold' }}>{t.close}</Button>
           <Button variant="contained" color="primary" startIcon={<PrintIcon />} onClick={() => window.print()} sx={{ borderRadius: 4, px: 4, fontWeight: 'bold' }}>
-            Download/Print PDF
+            {t.download_print}
           </Button>
         </DialogActions>
       </Dialog>

@@ -4,6 +4,8 @@ import {
   Grid, Paper, Avatar, Switch, TextField, MenuItem, Select,
   FormControl, InputLabel, Chip, Alert,
 } from '@mui/material';
+import { useLanguage } from '../../context/LanguageContext';
+import { ADMIN_SETTINGS_TRANSLATIONS } from '../../utils/translations/admin';
 import {
   SettingsRounded as SettingsIcon,
   SecurityRounded as SecurityIcon,
@@ -61,6 +63,8 @@ const SettingRow = ({ label, desc, action, subLabel }) => (
 );
 
 export default function AdminSettings() {
+  const { language } = useLanguage();
+  const t = ADMIN_SETTINGS_TRANSLATIONS[language] || ADMIN_SETTINGS_TRANSLATIONS['en'];
   const [activeTab, setActiveTab] = useState('General');
 
   return (
@@ -70,9 +74,9 @@ export default function AdminSettings() {
         {/* Main Header */}
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Platform Settings</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>{t.title}</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
-              Configure technical, business and visual parameters
+              {t.subtitle}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -93,7 +97,7 @@ export default function AdminSettings() {
                 '&:hover': { bgcolor: colors.blue }
               }}
             >
-              Save Changes
+              {t.save_changes}
             </Button>
           </Box>
         </Stack>
@@ -101,8 +105,8 @@ export default function AdminSettings() {
         <Grid container spacing={4}>
           {/* Sidebar Nav */}
           <Grid item xs={12} md={3}>
-             <Box sx={{ p: 1.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                {['General', 'Security', 'Notifications', 'Platform', 'Data', 'Branding'].map((tab) => (
+            <Box sx={{ p: 1.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                {Object.keys(t.tabs).map((tab) => (
                   <Button
                     key={tab}
                     fullWidth
@@ -121,7 +125,7 @@ export default function AdminSettings() {
                       '&:last-child': { mb: 0 }
                     }}
                   >
-                    {tab}
+                    {t.tabs[tab]}
                   </Button>
                 ))}
              </Box>
@@ -133,7 +137,7 @@ export default function AdminSettings() {
                 
                 {activeTab === 'General' && (
                   <Box>
-                    <SectionHeader icon={<SettingsIcon />} title="General Settings" desc="Basic account and interface configurations." />
+                    <SectionHeader icon={<SettingsIcon />} title={t.general.title} desc={t.general.desc} />
                     <Stack>
                        <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 4, p: 3, borderRadius: 3, bgcolor: colors.soft }}>
                           <Avatar sx={{ width: 72, height: 72, bgcolor: colors.blue, fontSize: 24, fontWeight: 700 }}>SA</Avatar>
@@ -141,74 +145,74 @@ export default function AdminSettings() {
                              <Typography sx={{ fontSize: 18, fontWeight: 800 }}>Super Admin</Typography>
                              <Typography sx={{ fontSize: 14, color: colors.muted }}>seva.admin@seva.health</Typography>
                           </Box>
-                          <Button variant="outlined" size="small" sx={{ ml: 'auto', borderRadius: 2, fontWeight: 700, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.text, bgcolor: 'transparent' } }}>Change Photo</Button>
+                          <Button variant="outlined" size="small" sx={{ ml: 'auto', borderRadius: 2, fontWeight: 700, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.text, bgcolor: 'transparent' } }}>{t.general.change_photo}</Button>
                        </Stack>
-                       <SettingRow label="Language" desc="Platform display language" action={<Button endIcon={<LangIcon sx={{ fontSize: 16 }} />} sx={{ textTransform: 'none', fontWeight: 700 }}>English</Button>} />
-                       <SettingRow label="Timezone" desc="System-wide timestamp reference" action={<Button endIcon={<TimeIcon sx={{ fontSize: 16 }} />} sx={{ textTransform: 'none', fontWeight: 700 }}>(GMT+05:30) IST</Button>} />
+                       <SettingRow label={t.general.language} desc="Platform display language" action={<Button endIcon={<LangIcon sx={{ fontSize: 16 }} />} sx={{ textTransform: 'none', fontWeight: 700 }}>English</Button>} />
+                       <SettingRow label={t.general.timezone} desc="System-wide timestamp reference" action={<Button endIcon={<TimeIcon sx={{ fontSize: 16 }} />} sx={{ textTransform: 'none', fontWeight: 700 }}>(GMT+05:30) IST</Button>} />
                     </Stack>
                   </Box>
                 )}
 
                 {activeTab === 'Security' && (
                   <Box>
-                    <SectionHeader icon={<SecurityIcon />} title="Security & Access" desc="Manage authentication and session policies." />
+                    <SectionHeader icon={<SecurityIcon />} title={t.security.title} desc={t.security.desc} />
                     <Stack>
-                       <SettingRow label="Two-factor Authentication" desc="Require OTP via Mobile for admin login" action={<Switch defaultChecked sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: colors.green }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: colors.green } }} />} />
-                       <SettingRow label="Password Management" desc="Last updated 3 months ago" action={<Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>Update Password</Button>} />
-                       <SettingRow label="Session Timeout" desc="Auto-logout duration for inactive sessions" action={<Button sx={{ textTransform: 'none', fontWeight: 800, color: colors.blue }}>24 Hours</Button>} />
+                       <SettingRow label={t.security.two_factor} desc={t.security.two_factor_desc} action={<Switch defaultChecked sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: colors.green }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: colors.green } }} />} />
+                       <SettingRow label={t.security.password_mgmt} desc={t.security.password_desc} action={<Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>{t.security.update_password}</Button>} />
+                       <SettingRow label={t.security.session_timeout} desc="Auto-logout duration for inactive sessions" action={<Button sx={{ textTransform: 'none', fontWeight: 800, color: colors.blue }}>{t.security.hours_24}</Button>} />
                     </Stack>
                   </Box>
                 )}
 
                 {activeTab === 'Notifications' && (
                   <Box>
-                    <SectionHeader icon={<NotifyIcon />} title="Notification Policies" desc="Configure alert thresholds for different channels." />
+                    <SectionHeader icon={<NotifyIcon />} title={t.notifications.title} desc={t.notifications.desc} />
                     <Stack>
-                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 1, mb: 1 }}>EMAIL ALERTS</Typography>
-                       <SettingRow label="Platform Promotions" action={<Switch size="small" />} />
-                       <SettingRow label="Service Updates" action={<Switch defaultChecked size="small" />} />
-                       <SettingRow label="Security Alerts" action={<Switch defaultChecked size="small" />} />
+                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 1, mb: 1 }}>{t.notifications.email_alerts}</Typography>
+                       <SettingRow label={t.notifications.promotions} action={<Switch size="small" />} />
+                       <SettingRow label={t.notifications.service_updates} action={<Switch defaultChecked size="small" />} />
+                       <SettingRow label={t.notifications.security_alerts} action={<Switch defaultChecked size="small" />} />
                        
-                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 3, mb: 1 }}>PUSH NOTIFICATIONS</Typography>
-                       <SettingRow label="Ongoing Consultations" action={<Switch defaultChecked size="small" />} />
-                       <SettingRow label="System Health Alerts" action={<Switch defaultChecked size="small" />} />
-
-                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 3, mb: 1 }}>SMS ALERTS</Typography>
-                       <SettingRow label="Critical Infrastructure Error" action={<Switch defaultChecked size="small" sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: colors.red }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: colors.red } }} />} />
+                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 3, mb: 1 }}>{t.notifications.push_notifications}</Typography>
+                       <SettingRow label={t.notifications.ongoing_consultations} action={<Switch defaultChecked size="small" />} />
+                       <SettingRow label={t.notifications.system_health} action={<Switch defaultChecked size="small" />} />
+ 
+                       <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mt: 3, mb: 1 }}>{t.notifications.sms_alerts}</Typography>
+                       <SettingRow label={t.notifications.infra_error} action={<Switch defaultChecked size="small" sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: colors.red }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: colors.red } }} />} />
                     </Stack>
                   </Box>
                 )}
 
                 {activeTab === 'Platform' && (
                   <Box>
-                    <SectionHeader icon={<ConfigIcon />} title="Platform Configuration" desc="Global toggles for platform operations." />
+                    <SectionHeader icon={<ConfigIcon />} title={t.platform.title} desc={t.platform.desc} />
                     <Stack>
-                       <SettingRow label="New Enrollment" desc="Allow new doctor/pharmacy partners" action={<Switch defaultChecked />} />
-                       <SettingRow label="Doctor Verification" desc="Always require manual admin approval" action={<Switch defaultChecked />} />
-                       <SettingRow label="Patient Registration" desc="Public registration for new patients" action={<Switch defaultChecked />} />
-                       <SettingRow label="Min Consultation Fee" desc="Global minimum for all practitioners" subLabel="₹100" />
+                       <SettingRow label={t.platform.new_enrollment} desc={t.platform.new_enrollment_desc} action={<Switch defaultChecked />} />
+                       <SettingRow label={t.platform.doctor_verification} desc={t.platform.doctor_verification_desc} action={<Switch defaultChecked />} />
+                       <SettingRow label={t.platform.patient_reg} desc={t.platform.patient_reg_desc} action={<Switch defaultChecked />} />
+                       <SettingRow label={t.platform.min_fee} desc={t.platform.min_fee_desc} subLabel="₹100" />
                     </Stack>
                   </Box>
                 )}
 
                 {activeTab === 'Data' && (
                   <Box>
-                    <SectionHeader icon={<DataIcon />} title="Data Management" desc="Policies for data retention and backups." />
+                    <SectionHeader icon={<DataIcon />} title={t.data.title} desc={t.data.desc} />
                     <Stack>
-                       <SettingRow label="Export Platform Data" desc="Full record dump in JSON/CSV format" action={<Button variant="contained" sx={{ bgcolor: colors.text, borderRadius: 2 }}>Export</Button>} />
-                       <SettingRow label="Auto-Delete Inactive" desc="Remove accounts inactive for >2 years" action={<Switch />} />
-                       <SettingRow label="Database Backup" desc="Auto-backup interval" action={<Button sx={{ textTransform: 'none', fontWeight: 700 }}>Every 6 Hours</Button>} />
+                       <SettingRow label={t.data.export_data} desc={t.data.export_desc} action={<Button variant="contained" sx={{ bgcolor: colors.text, borderRadius: 2 }}>{t.data.export_btn}</Button>} />
+                       <SettingRow label={t.data.auto_delete} desc={t.data.auto_delete_desc} action={<Switch />} />
+                       <SettingRow label={t.data.db_backup} desc={t.data.db_backup_desc} action={<Button sx={{ textTransform: 'none', fontWeight: 700 }}>{t.data.backup_interval}</Button>} />
                     </Stack>
                   </Box>
                 )}
 
                 {activeTab === 'Branding' && (
                   <Box>
-                    <SectionHeader icon={<BrandIcon />} title="Visual Identity" desc="Customize the platform look and feel." />
+                    <SectionHeader icon={<BrandIcon />} title={t.branding.title} desc={t.branding.desc} />
                     <Stack>
-                       <SettingRow label="Platform Logo" desc="SVG or PNG format" action={<Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>Upload SVG</Button>} />
-                       <SettingRow label="Primary Color" subLabel="#2563eb" action={<Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: colors.blue, border: `1px solid ${colors.line}` }} />} />
-                       <SettingRow label="Secondary Color" subLabel="#16a34a" action={<Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: colors.green, border: `1px solid ${colors.line}` }} />} />
+                       <SettingRow label={t.branding.logo} desc={t.branding.logo_desc} action={<Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>{t.branding.upload_svg}</Button>} />
+                       <SettingRow label={t.branding.primary_color} subLabel="#2563eb" action={<Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: colors.blue, border: `1px solid ${colors.line}` }} />} />
+                       <SettingRow label={t.branding.secondary_color} subLabel="#16a34a" action={<Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: colors.green, border: `1px solid ${colors.line}` }} />} />
                     </Stack>
                   </Box>
                 )}
@@ -219,11 +223,11 @@ export default function AdminSettings() {
              <Box sx={{ mt: 4, p: 4, borderRadius: 3.5, border: `1px solid ${colors.red}40`, bgcolor: colors.redSoft }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                    <Box>
-                      <Typography sx={{ fontSize: 18, fontWeight: 800, color: colors.red }}>Danger Zone</Typography>
-                      <Typography sx={{ fontSize: 14, color: colors.red, mt: 0.5, opacity: 0.8 }}>Irreversible system actions with platform-wide impact.</Typography>
+                      <Typography sx={{ fontSize: 18, fontWeight: 800, color: colors.red }}>{t.danger_zone.title}</Typography>
+                      <Typography sx={{ fontSize: 14, color: colors.red, mt: 0.5, opacity: 0.8 }}>{t.danger_zone.desc}</Typography>
                    </Box>
                    <Button startIcon={<DangerIcon />} variant="contained" color="error" sx={{ borderRadius: 2.5, textTransform: 'none', fontWeight: 800, px: 3, py: 1.25, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}>
-                      Reset Platform
+                      {t.danger_zone.reset_btn}
                    </Button>
                 </Stack>
              </Box>

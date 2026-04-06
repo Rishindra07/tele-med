@@ -30,6 +30,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import PatientShell from '../../components/patient/PatientShell';
 import { addMedicalRecord, deleteMedicalRecord, fetchMyRecords, uploadFile } from '../../api/patientApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_HEALTH_RECORDS_TRANSLATIONS } from '../../utils/translations/patient';
 import {
   applyPendingHealthRecordOps,
   getCachedHealthRecords,
@@ -61,14 +63,7 @@ const colors = {
   gray: '#9aa0a6'
 };
 
-const filterChips = [
-  ['all', 'All'],
-  ['prescription', 'Prescriptions'],
-  ['lab_report', 'Lab Reports'],
-  ['note', 'Doctor Notes'],
-  ['imaging', 'Imaging'],
-  ['vaccine', 'Vaccination']
-];
+// filterChips are now built dynamically from translation inside the component
 
 const createDraftRecord = (record) => ({
   _id: `local-${Date.now()}`,
@@ -80,6 +75,18 @@ const createDraftRecord = (record) => ({
 });
 
 function PatientHealthRecords() {
+  const { language } = useLanguage();
+  const t = PATIENT_HEALTH_RECORDS_TRANSLATIONS[language] || PATIENT_HEALTH_RECORDS_TRANSLATIONS['en'];
+
+  const filterChips = [
+    ['all', t.filter_chips.all],
+    ['prescription', t.filter_chips.prescription],
+    ['lab_report', t.filter_chips.lab_report],
+    ['note', t.filter_chips.note],
+    ['imaging', t.filter_chips.imaging],
+    ['vaccine', t.filter_chips.vaccine]
+  ];
+
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -161,7 +168,7 @@ function PatientHealthRecords() {
       if (result.syncedCount > 0) {
         setSnackbar({
           open: true,
-          message: `Synced ${result.syncedCount} pending update${result.syncedCount > 1 ? 's' : ''}.`,
+          message: `${t.messages.synced} ${result.syncedCount} ${result.syncedCount > 1 ? t.messages.pending_updates_plural : t.messages.pending_update}.`,
           severity: 'success'
         });
       }
@@ -208,7 +215,7 @@ function PatientHealthRecords() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setSnackbar({ open: true, message: 'File size too large (max 5MB)', severity: 'warning' });
+        setSnackbar({ open: true, message: t.messages.file_too_large, severity: 'warning' });
         return;
       }
       setSelectedFile(file);
@@ -231,7 +238,7 @@ function PatientHealthRecords() {
 
       if (!isOnline) {
         if (selectedFile) {
-          setSnackbar({ open: true, message: 'File upload requires internet. Saving as draft.', severity: 'warning' });
+          setSnackbar({ open: true, message: t.messages.file_offline, severity: 'warning' });
         }
         const draftRecord = createDraftRecord(recordToSave);
         await upsertCachedHealthRecord(draftRecord);
@@ -243,7 +250,7 @@ function PatientHealthRecords() {
           record: draftRecord
         });
         setRecords((prev) => [draftRecord, ...prev]);
-        setSnackbar({ open: true, message: 'Record saved offline and queued for sync', severity: 'info' });
+        setSnackbar({ open: true, message: t.messages.saved_offline, severity: 'info' });
       } else {
         const res = await addMedicalRecord(recordToSave);
         if (res.success) {
@@ -251,7 +258,7 @@ function PatientHealthRecords() {
             await upsertCachedHealthRecord(res.record);
             await setHealthRecordMeta('lastSyncAt', new Date().toISOString());
           }
-          setSnackbar({ open: true, message: 'Record added successfully', severity: 'success' });
+          setSnackbar({ open: true, message: t.messages.record_added, severity: 'success' });
           await loadRecords();
         }
       }
@@ -267,7 +274,7 @@ function PatientHealthRecords() {
       await refreshSyncMeta();
     } catch (error) {
       console.error(error);
-      setSnackbar({ open: true, message: error.message || 'Failed to add record', severity: 'error' });
+      setSnackbar({ open: true, message: error.message || t.messages.add_failed, severity: 'error' });
     } finally {
       setSaving(false);
     }
@@ -350,7 +357,7 @@ function PatientHealthRecords() {
       doc.text('Verification: Scan QR code on original digital portal.', 105, 286, { align: 'center' });
       
       doc.save(`Seva_Record_${record.title.replace(/\s+/g, '_')}.pdf`);
-      setSnackbar({ open: true, message: 'PDF generated successfully!', severity: 'success' });
+      setSnackbar({ open: true, message: t.messages.pdf_success, severity: 'success' });
     } catch (err) {
       console.error('PDF Generate Error:', err);
       setSnackbar({ open: true, message: `PDF Error: ${err.message}`, severity: 'error' });
@@ -358,7 +365,7 @@ function PatientHealthRecords() {
   };
 
   const handleDelete = async (record) => {
-    if (!window.confirm('Delete this record?')) return;
+    if (!window.confirm(t.messages.delete_confirm)) return;
 
     try {
       const isLocalOnlyRecord = String(record._id).startsWith('local-');
@@ -375,26 +382,26 @@ function PatientHealthRecords() {
           });
         }
         setRecords((prev) => prev.filter((entry) => entry._id !== record._id));
-        setSnackbar({ open: true, message: 'Delete queued and will sync after reconnect', severity: 'info' });
+        setSnackbar({ open: true, message: t.messages.delete_queued, severity: 'info' });
       } else {
         if (!isLocalOnlyRecord) {
           const res = await deleteMedicalRecord(record._id);
           if (res.success) {
             await removeCachedHealthRecord(record._id);
             await setHealthRecordMeta('lastSyncAt', new Date().toISOString());
-            setSnackbar({ open: true, message: 'Record deleted', severity: 'success' });
+            setSnackbar({ open: true, message: t.messages.record_deleted, severity: 'success' });
           }
         } else {
           await removeCachedHealthRecord(record._id);
           await removePendingHealthRecordOp(`add-${record._id}`);
-          setSnackbar({ open: true, message: 'Offline draft removed', severity: 'success' });
+          setSnackbar({ open: true, message: t.messages.draft_removed, severity: 'success' });
         }
         await loadRecords();
       }
 
       await refreshSyncMeta();
     } catch (error) {
-      setSnackbar({ open: true, message: 'Failed to delete', severity: 'error' });
+      setSnackbar({ open: true, message: t.messages.delete_failed, severity: 'error' });
     }
   };
 
@@ -449,17 +456,17 @@ function PatientHealthRecords() {
         >
           <Box>
             <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              Health Records
+              {t.title}
             </Typography>
             <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
-              Your complete medical history, prescriptions and reports.
+              {t.subtitle}
             </Typography>
           </Box>
 
           <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
             <Chip
               icon={isOnline ? <SyncIcon sx={{ fontSize: 16 }} /> : <OfflineIcon sx={{ fontSize: 16 }} />}
-              label={isOnline ? (syncing ? 'Syncing EHR' : 'Online sync active') : 'Offline cache active'}
+              label={isOnline ? (syncing ? t.sync_chip_syncing : t.sync_chip_online) : t.sync_chip_offline}
               sx={{
                 borderRadius: 1.5,
                 bgcolor: isOnline ? colors.primarySoft : '#fff4e5',
@@ -483,7 +490,7 @@ function PatientHealthRecords() {
                 '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' }
               }}
             >
-              Upload Record
+              {t.upload_btn}
             </Button>
           </Stack>
         </Stack>
@@ -503,12 +510,12 @@ function PatientHealthRecords() {
           }}
         >
           <Box>
-            <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.text }}>EHR cache status</Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{t.ehr_status_title}</Typography>
             <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
-              {isOnline ? 'Records are cached locally for offline access.' : 'You are offline. Cached EHR data remains accessible and pending updates will sync on reconnect.'}
+              {isOnline ? t.ehr_online : t.ehr_offline}
             </Typography>
             <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
-              Last sync: {lastSyncAt ? new Date(lastSyncAt).toLocaleString() : 'Not synced yet'} - Pending updates: {pendingSyncCount}
+              {t.last_sync}: {lastSyncAt ? new Date(lastSyncAt).toLocaleString() : t.not_synced} - {t.pending_updates}: {pendingSyncCount}
             </Typography>
           </Box>
           <Button
@@ -524,20 +531,20 @@ function PatientHealthRecords() {
               fontWeight: 600
             }}
           >
-            {syncing ? 'Syncing...' : 'Sync Pending Updates'}
+            {syncing ? t.syncing : t.sync_btn}
           </Button>
         </Box>
 
         <Dialog open={openAdd} onClose={() => setOpenAdd(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
-          <DialogTitle sx={{ fontWeight: 600 }}>Add New Health Record</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 600 }}>{t.dialog.title}</DialogTitle>
           <DialogContent>
             <Stack spacing={2.5} sx={{ mt: 1 }}>
-              <TextField select label="Record Type" value={newRecord.type} onChange={(event) => setNewRecord({ ...newRecord, type: event.target.value })} fullWidth>
+              <TextField select label={t.dialog.record_type} value={newRecord.type} onChange={(event) => setNewRecord({ ...newRecord, type: event.target.value })} fullWidth>
                 {filterChips.filter((chip) => chip[0] !== 'all').map((chip) => <MenuItem key={chip[0]} value={chip[0]}>{chip[1]}</MenuItem>)}
               </TextField>
-              <TextField label="Title" placeholder="e.g. Blood Test Oct 2023" value={newRecord.title} onChange={(event) => setNewRecord({ ...newRecord, title: event.target.value })} fullWidth />
-              <TextField label="Short Description (Optional)" multiline rows={2} value={newRecord.description} onChange={(event) => setNewRecord({ ...newRecord, description: event.target.value })} fullWidth />
-              <TextField type="date" label="Record Date" value={newRecord.date} onChange={(event) => setNewRecord({ ...newRecord, date: event.target.value })} fullWidth InputLabelProps={{ shrink: true }} />
+              <TextField label={t.dialog.title_label} placeholder={t.dialog.title_placeholder} value={newRecord.title} onChange={(event) => setNewRecord({ ...newRecord, title: event.target.value })} fullWidth />
+              <TextField label={t.dialog.description_label} multiline rows={2} value={newRecord.description} onChange={(event) => setNewRecord({ ...newRecord, description: event.target.value })} fullWidth />
+              <TextField type="date" label={t.dialog.date_label} value={newRecord.date} onChange={(event) => setNewRecord({ ...newRecord, date: event.target.value })} fullWidth InputLabelProps={{ shrink: true }} />
               
               <Box sx={{ p: 2, border: '1px dashed #ccc', borderRadius: 1.5, textAlign: 'center' }}>
                 <input
@@ -549,26 +556,26 @@ function PatientHealthRecords() {
                 />
                 <label htmlFor="raised-button-file">
                   <Button variant="outlined" component="span" startIcon={<UploadIcon />} sx={{ textTransform: 'none' }}>
-                    {selectedFile ? 'Change File' : 'Select File (JPG, PDF, DOC)'}
+                    {selectedFile ? t.dialog.change_file : t.dialog.select_file}
                   </Button>
                 </label>
                 {selectedFile && (
                   <Typography sx={{ fontSize: 13, mt: 1, color: colors.success }}>
-                    Selected: {selectedFile.name}
+                    {t.dialog.selected}: {selectedFile.name}
                   </Typography>
                 )}
                 {!selectedFile && (
                   <Typography sx={{ fontSize: 12, mt: 1, color: colors.muted }}>
-                    Max size: 5MB
+                    {t.dialog.max_size}
                   </Typography>
                 )}
               </Box>
             </Stack>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenAdd(false)} sx={{ color: colors.muted, textTransform: 'none' }}>Cancel</Button>
+            <Button onClick={() => setOpenAdd(false)} sx={{ color: colors.muted, textTransform: 'none' }}>{t.dialog.cancel}</Button>
             <Button variant="contained" onClick={handleAdd} disabled={saving || !newRecord.title} sx={{ bgcolor: colors.primary, px: 3, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}>
-              {saving ? 'Saving...' : 'Save Record'}
+              {saving ? t.dialog.saving : t.dialog.save}
             </Button>
           </DialogActions>
         </Dialog>
@@ -582,10 +589,10 @@ function PatientHealthRecords() {
           }}
         >
           {[
-            ['Prescriptions', counts.prescription, 'Total records'],
-            ['Lab Reports', counts.lab, 'Blood, urine, lipid'],
-            ['Doctor Notes', counts.notes, 'Consultation summaries'],
-            ['Imaging', counts.imaging, 'X-Rays, Scans']
+            [t.stat_cards.prescriptions, counts.prescription, t.stat_cards.prescriptions_sub],
+            [t.stat_cards.lab, counts.lab, t.stat_cards.lab_sub],
+            [t.stat_cards.notes, counts.notes, t.stat_cards.notes_sub],
+            [t.stat_cards.imaging, counts.imaging, t.stat_cards.imaging_sub]
           ].map(([title, value, subtitle]) => (
             <Box
               key={title}
@@ -632,7 +639,7 @@ function PatientHealthRecords() {
 
             <Stack direction="row" spacing={1.5} sx={{ mb: 4 }}>
               <TextField
-                placeholder="Search records, doctor, diagnosis"
+                placeholder={t.search_placeholder}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 size="small"
@@ -653,9 +660,9 @@ function PatientHealthRecords() {
                 size="small"
                 sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
               >
-                <MenuItem value="newest">Newest first</MenuItem>
-                <MenuItem value="oldest">Oldest first</MenuItem>
-                <MenuItem value="doctor">Date & Doctor</MenuItem>
+                <MenuItem value="newest">{t.sort.newest}</MenuItem>
+                <MenuItem value="oldest">{t.sort.oldest}</MenuItem>
+                <MenuItem value="doctor">{t.sort.doctor}</MenuItem>
               </TextField>
             </Stack>
 
@@ -673,21 +680,21 @@ function PatientHealthRecords() {
                           {record.type.replace('_', ' ')} - {new Date(record.date || record.createdAt).toLocaleDateString()}
                         </Typography>
                         {formatDoctorLine(record) && <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>{formatDoctorLine(record)}</Typography>}
-                        {record.consultationSummary && <Typography sx={{ fontSize: 13, color: colors.text, mt: 0.75 }}>Summary: {record.consultationSummary}</Typography>}
-                        {record.diagnosis && <Typography sx={{ fontSize: 13, color: colors.text, mt: 0.5 }}>Diagnosis: {record.diagnosis}</Typography>}
+                        {record.consultationSummary && <Typography sx={{ fontSize: 13, color: colors.text, mt: 0.75 }}>{t.record.summary}: {record.consultationSummary}</Typography>}
+                        {record.diagnosis && <Typography sx={{ fontSize: 13, color: colors.text, mt: 0.5 }}>{t.record.diagnosis}: {record.diagnosis}</Typography>}
                         {record.description && <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>{record.description}</Typography>}
                         {Array.isArray(record.prescriptionDetails) && record.prescriptionDetails.length > 0 && (
                           <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.75 }}>
-                            Medicines: {record.prescriptionDetails.map((item) => item.name).join(', ')}
+                            {t.record.medicines}: {record.prescriptionDetails.map((item) => item.name).join(', ')}
                           </Typography>
                         )}
                         {Array.isArray(record.labTests) && record.labTests.length > 0 && (
                           <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
-                            Lab tests: {record.labTests.join(', ')}
+                            {t.record.lab_tests}: {record.labTests.join(', ')}
                           </Typography>
                         )}
                         {String(record._id).startsWith('local-') && (
-                          <Chip size="small" label="Pending sync" sx={{ mt: 1, bgcolor: '#fff4e5', color: '#8a4b00', borderRadius: 1 }} />
+                          <Chip size="small" label={t.record.pending_sync} sx={{ mt: 1, bgcolor: '#fff4e5', color: '#8a4b00', borderRadius: 1 }} />
                         )}
                       </Box>
                     </Stack>
@@ -710,13 +717,13 @@ function PatientHealthRecords() {
             ) : (
               <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
                 <FileIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
-                <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>No health records found</Typography>
+                <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>{t.empty.title}</Typography>
                 <Typography sx={{ color: colors.muted, fontSize: 14, mt: 1 }}>
-                  {search || activeFilter !== 'all' ? 'Try adjusting your search or filters.' : 'You have not uploaded or received any records yet.'}
+                  {search || activeFilter !== 'all' ? t.empty.filter_desc : t.empty.no_records_desc}
                 </Typography>
                 {!(search || activeFilter !== 'all') && (
                   <Button onClick={() => setOpenAdd(true)} startIcon={<UploadIcon />} variant="outlined" sx={{ mt: 3, borderRadius: 1.5, borderColor: colors.primary, color: colors.primary, textTransform: 'none', fontWeight: 600 }}>
-                    Upload Record
+                    {t.empty.upload_btn}
                   </Button>
                 )}
               </Box>
@@ -750,9 +757,9 @@ function PatientHealthRecords() {
               >
                 <UploadIcon />
               </Box>
-              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark }}>Offline-ready EHR</Typography>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark }}>{t.offline_ready_title}</Typography>
               <Typography sx={{ mt: 1, color: colors.primaryDark, fontSize: 13, lineHeight: 1.5 }}>
-                Recent health records are cached in IndexedDB for offline viewing. Pending changes sync automatically when the network returns.
+                {t.offline_ready_desc}
               </Typography>
               <Button
                 onClick={syncPendingRecords}
@@ -771,7 +778,7 @@ function PatientHealthRecords() {
                   '&:hover': { bgcolor: '#f0f0f0' }
                 }}
               >
-                {syncing ? 'Syncing...' : 'Run Sync'}
+                {syncing ? t.syncing : t.run_sync}
               </Button>
             </Box>
           </Stack>

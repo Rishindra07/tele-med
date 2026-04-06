@@ -28,6 +28,8 @@ import {
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
 import { fetchIncomingOrders, updateOrderStatus } from '../../api/pharmacyApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_ORDERS_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   bg: '#f5f1e8',
@@ -55,6 +57,9 @@ export default function PharmacyOrders() {
   // Filters
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { language } = useLanguage();
+  const t = PHARMACY_ORDERS_TRANSLATIONS[language] || PHARMACY_ORDERS_TRANSLATIONS['en'];
 
   const loadOrders = async () => {
     try {
@@ -130,10 +135,10 @@ export default function PharmacyOrders() {
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: 32, fontWeight: 700, color: colors.text, fontFamily: 'Georgia, serif' }}>
-              Incoming Orders
+              {t.title}
             </Typography>
             <Typography sx={{ color: colors.muted, fontSize: 16 }}>
-              Review and update prescription fulfillment requests.
+              {t.subtitle}
             </Typography>
           </Box>
           <Button 
@@ -141,7 +146,7 @@ export default function PharmacyOrders() {
             onClick={loadOrders}
             sx={{ color: colors.greenDark, fontWeight: 600, textTransform: 'none' }}
           >
-            Refresh
+            {t.refresh}
           </Button>
         </Stack>
 
@@ -150,36 +155,36 @@ export default function PharmacyOrders() {
             <TextField
                 select
                 size="small"
-                label="Status Filter"
+                label={t.status_filter}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             >
-                <MenuItem value="All">All Statuses</MenuItem>
+                <MenuItem value="All">{t.all_statuses}</MenuItem>
                 {statuses.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
             <TextField
                 size="small"
-                placeholder="Search patient or ID..."
+                placeholder={t.search_placeholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 sx={{ minWidth: 250, flex: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
             <Typography sx={{ color: colors.muted, fontSize: 13, ml: 'auto' }}>
-                Found {filteredOrders.length} orders
+                {t.found} {filteredOrders.length} {t.orders_lc}
             </Typography>
         </Box>
 
         {loading ? (
              <Box sx={{ py: 10, textAlign: 'center' }}>
                 <CircularProgress sx={{ color: colors.green }} />
-                <Typography sx={{ mt: 2, color: colors.muted }}>Fetching new orders...</Typography>
+                <Typography sx={{ mt: 2, color: colors.muted }}>{t.fetching}</Typography>
              </Box>
         ) : filteredOrders.length === 0 ? (
             <Card sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: `1px dashed ${colors.line}`, bgcolor: 'transparent', boxShadow: 'none' }}>
                 <OrderIcon sx={{ fontSize: 48, color: colors.line, mb: 2 }} />
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.muted }}>No orders found.</Typography>
-                <Typography sx={{ fontSize: 14, color: colors.muted }}>Adjust your filters or wait for new assignments.</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.muted }}>{t.no_orders}</Typography>
+                <Typography sx={{ fontSize: 14, color: colors.muted }}>{t.adjust_filters}</Typography>
             </Card>
         ) : (
             <Stack spacing={3}>
@@ -193,7 +198,7 @@ export default function PharmacyOrders() {
                                             <PatientIcon />
                                         </Avatar>
                                         <Box>
-                                            <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{order.patient?.full_name || 'Patient'}</Typography>
+                                            <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{order.patient?.full_name || t.patient}</Typography>
                                             <Typography sx={{ fontSize: 12, color: colors.muted }}>{order.patient?.phone || order.patient?.email}</Typography>
                                         </Box>
                                     </Stack>
@@ -204,7 +209,7 @@ export default function PharmacyOrders() {
                                             <OrderIcon fontSize="small" /> ID: #{order._id.slice(-8).toUpperCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.muted, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <ShippingIcon fontSize="small" /> {order.deliveryType} • {order.deliveryAddress || 'Pickup'}
+                                            <ShippingIcon fontSize="small" /> {order.deliveryType} • {order.deliveryAddress || t.pickup}
                                         </Typography>
                                     </Stack>
                                 </Grid>
@@ -221,7 +226,7 @@ export default function PharmacyOrders() {
                                         }} 
                                     />
                                     <Typography sx={{ mt: 1, fontSize: 12, color: colors.muted }}>
-                                        Received: {new Date(order.createdAt).toLocaleString()}
+                                        {t.received} {new Date(order.createdAt).toLocaleString()}
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -231,24 +236,24 @@ export default function PharmacyOrders() {
                             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ md: 'center' }} spacing={2}>
                                 <Stack direction="row" spacing={4}>
                                     <Box>
-                                        <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, mb: 1 }}>Prescription Details</Typography>
+                                        <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, mb: 1 }}>{t.prescription_details}</Typography>
                                         <Stack direction="row" spacing={1} alignItems="center">
                                             <PrescriptionIcon sx={{ color: colors.green, fontSize: 18 }} />
                                             <Typography sx={{ fontSize: 14 }}>
-                                               {order.prescription?.medications?.length || 0} items prescribed
+                                               {order.prescription?.medications?.length || 0} {t.items_prescribed}
                                             </Typography>
                                         </Stack>
                                     </Box>
                                     {order.deliveryType === 'HOME' && (
                                          <Box>
-                                            <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, mb: 1 }}>Delivery Details</Typography>
+                                            <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, mb: 1 }}>{t.delivery_details}</Typography>
                                             <Typography sx={{ fontSize: 14 }}>{order.deliveryAddress}</Typography>
                                          </Box>
                                     )}
                                 </Stack>
 
                                 <Box sx={{ minWidth: 200 }}>
-                                    <Typography sx={{ fontSize: 12, color: colors.muted, mb: 1 }}>Update Order Status</Typography>
+                                    <Typography sx={{ fontSize: 12, color: colors.muted, mb: 1 }}>{t.update_status}</Typography>
                                     <Stack direction="row" spacing={1}>
                                         <TextField
                                             select
@@ -283,7 +288,7 @@ export default function PharmacyOrders() {
                                   handleStatusUpdate(order._id, nextStatus);
                                 }}
                              >
-                                Quick {order.status === 'Pending' ? 'Accept Order' : order.status === 'Accepted' ? 'Mark Ready' : 'Mark Delivered'}
+                                {t.quick} {order.status === 'Pending' ? t.accept_order : order.status === 'Accepted' ? t.mark_ready : t.mark_delivered}
                              </Button>
                         </Box>
                     </Card>

@@ -13,6 +13,8 @@ import {
 import { fetchInventory, addInventoryItem, deleteInventoryItem } from '../../api/pharmacyApi';
 import PharmacyLayout from '../../components/PharmacyLayout';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
+import { PHARMACY_INVENTORY_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
@@ -114,6 +116,9 @@ export default function PharmacyInventory() {
     strength: '', formValue: '', lowStockThreshold: '10' 
   });
   const [isSaving, setIsSaving] = useState(false);
+  
+  const { language } = useLanguage();
+  const t = PHARMACY_INVENTORY_TRANSLATIONS[language] || PHARMACY_INVENTORY_TRANSLATIONS['en'];
 
   const load = async () => {
     try {
@@ -187,17 +192,17 @@ export default function PharmacyInventory() {
   const displayedCategories = Object.entries(categoriesCount).map(([label, count]) => ({ label, count }));
 
   const STATS = [
-    { title: 'Total SKUs', value: totalSkus, sub: 'All registered items', color: colors.green, textColor: colors.green },
-    { title: 'In stock', value: inStock, sub: `${Math.round(totalSkus > 0 ? inStock/totalSkus*100 : 0)}%\navailability`, color: colors.green, textColor: colors.green },
-    { title: 'Low stock', value: lowStock, sub: 'Below reorder\npoint', color: colors.amber, textColor: colors.amber },
-    { title: 'Out of stock', value: outOfStock, sub: 'Action needed', color: colors.red, textColor: colors.red }
+    { title: t.stats_all_skus, value: totalSkus, sub: t.stats_all_skus_sub, color: colors.green, textColor: colors.green },
+    { title: t.filter_in_stock, value: inStock, sub: `${Math.round(totalSkus > 0 ? inStock/totalSkus*100 : 0)}${t.stats_in_stock_sub1}`, color: colors.green, textColor: colors.green },
+    { title: t.filter_low_stock, value: lowStock, sub: t.stats_low_stock_sub, color: colors.amber, textColor: colors.amber },
+    { title: t.filter_out, value: outOfStock, sub: t.stats_out_sub, color: colors.red, textColor: colors.red }
   ];
 
   const FILTERS = [
-    { label: 'All', count: totalSkus, active: filter === 'All' },
-    { label: 'In stock', count: inStock, active: filter === 'In stock' },
-    { label: 'Low stock', count: lowStock, active: filter === 'Low stock' },
-    { label: 'Out of stock', count: outOfStock, active: filter === 'Out of stock', color: colors.red },
+    { label: t.filter_all, count: totalSkus, active: filter === 'All' || filter === t.filter_all },
+    { label: t.filter_in_stock, count: inStock, active: filter === 'In stock' || filter === t.filter_in_stock },
+    { label: t.filter_low_stock, count: lowStock, active: filter === 'Low stock' || filter === t.filter_low_stock },
+    { label: t.filter_out, count: outOfStock, active: filter === 'Out of stock' || filter === t.filter_out, color: colors.red },
     { label: 'Jan Aushadhi', active: filter === 'Jan Aushadhi' }
   ];
 
@@ -209,10 +214,10 @@ export default function PharmacyInventory() {
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
-              Inventory
+              {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5 }}>
-              Manage your complete medicines<br/>stock
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+              {t.subtitle}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -236,7 +241,7 @@ export default function PharmacyInventory() {
         <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4 }}>
           <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
             <TextField 
-              placeholder="Search medicines..." 
+              placeholder={t.search} 
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -245,7 +250,7 @@ export default function PharmacyInventory() {
             />
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <Select value="all" sx={{ borderRadius: 2.5, bgcolor: colors.paper, fontSize: 14, '& fieldset': { borderColor: colors.line } }}>
-                <MenuItem value="all">All categories</MenuItem>
+                <MenuItem value="all">{t.all_categories}</MenuItem>
               </Select>
             </FormControl>
           </Stack>
@@ -264,19 +269,19 @@ export default function PharmacyInventory() {
           {/* Left Col: Stock List */}
           <Box sx={{ borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: 16 }}>Stock list</Typography>
-              <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>Export CSV →</Typography>
+              <Typography sx={{ fontSize: 16 }}>{t.stock_list}</Typography>
+              <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{t.export_csv}</Typography>
             </Box>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: colors.soft }}>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>Medicine</TableCell>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>Category</TableCell>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>Stock</TableCell>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>Level</TableCell>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>MRP</TableCell>
-                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>Expiry</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_medicine}</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_category}</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_stock}</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_level}</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_mrp}</TableCell>
+                    <TableCell sx={{ color: colors.muted, fontSize: 12.5, borderBottom: `1px solid ${colors.line}`, py: 1.5 }}>{t.th_expiry}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -292,15 +297,15 @@ export default function PharmacyInventory() {
                       <TableRow key={item._id} sx={{ '& td': { borderBottom: `1px solid ${colors.line}`, py: 2 } }}>
                         <TableCell>
                           <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{item.medicineName}</Typography>
-                          <Typography sx={{ fontSize: 12, color: colors.muted }}>{item.genericName || 'No generic name'}</Typography>
+                          <Typography sx={{ fontSize: 12, color: colors.muted }}>{item.genericName || t.generic_name}</Typography>
                         </TableCell>
                         <TableCell>
                           <Box sx={{ display: 'inline-flex', px: 1.2, py: 0.4, borderRadius: 99, bgcolor: catStyle.bg, color: catStyle.col, fontSize: 11 }}>
-                            {item.category || 'General'}
+                            {item.category || t.general}
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, color: statusColor, fontWeight: 600 }}>{item.quantity} units</Typography>
+                          <Typography sx={{ fontSize: 13, color: statusColor, fontWeight: 600 }}>{item.quantity} {t.units}</Typography>
                         </TableCell>
                         <TableCell>
                           <Box sx={{ width: 32, height: 6, borderRadius: 3, bgcolor: colors.line, position: 'relative' }}>
@@ -321,7 +326,7 @@ export default function PharmacyInventory() {
                     );
                   })}
                   {!loading && !filteredItems.length && (
-                    <TableRow><TableCell colSpan={6} sx={{ py: 6, textAlign: 'center', color: colors.muted }}>No items found match your criteria.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} sx={{ py: 6, textAlign: 'center', color: colors.muted }}>{t.no_items}</TableCell></TableRow>
                   )}
                   {loading && <TableRow><TableCell colSpan={6} sx={{ py: 6, textAlign: 'center' }}><CircularProgress size={24} /></TableCell></TableRow>}
                 </TableBody>
@@ -334,56 +339,56 @@ export default function PharmacyInventory() {
             
             {/* Quick add medicine */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>Quick add medicine</Typography>
+              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.quick_add}</Typography>
               <Stack spacing={1.5}>
                 <TextField 
-                  placeholder="Medicine name" size="small" fullWidth
+                  placeholder={t.placeholder_name} size="small" fullWidth
                   value={form.medicineName} onChange={e => setForm({...form, medicineName: e.target.value})}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
                 />
                 <TextField 
-                  placeholder="Generic name" size="small" fullWidth
+                  placeholder={t.generic_name} size="small" fullWidth
                   value={form.genericName} onChange={e => setForm({...form, genericName: e.target.value})}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
                 />
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                   <TextField 
-                    placeholder="Strength (e.g. 500mg)" size="small"
+                    placeholder={t.strength} size="small"
                     value={form.strength} onChange={e => setForm({...form, strength: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                   <TextField 
-                    placeholder="Form (e.g. Tablet)" size="small"
+                    placeholder={t.form_type} size="small"
                     value={form.formValue} onChange={e => setForm({...form, formValue: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                   <TextField 
-                    placeholder="Batch n" size="small"
+                    placeholder={t.batch} size="small"
                     value={form.batchNumber} onChange={e => setForm({...form, batchNumber: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                   <TextField 
-                    placeholder="Qty" size="small" type="number"
+                    placeholder={t.qty} size="small" type="number"
                     value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                 </Box>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                   <TextField 
-                    placeholder="MRP (₹)" size="small" type="number"
+                    placeholder={t.mrp_placeholder} size="small" type="number"
                     value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                   <TextField 
-                    placeholder="Alert threshold" size="small" type="number"
+                    placeholder={t.threshold} size="small" type="number"
                     value={form.lowStockThreshold} onChange={e => setForm({...form, lowStockThreshold: e.target.value})}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} 
                   />
                 </Box>
                 <TextField 
-                  placeholder="Expiry Date" size="small" type="date"
+                  placeholder={t.expiry_date} size="small" type="date"
                   value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
@@ -404,7 +409,7 @@ export default function PharmacyInventory() {
                   </Select>
                 </FormControl>
                 <TextField 
-                  placeholder="Rack / shelf location" size="small" fullWidth
+                  placeholder={t.rack} size="small" fullWidth
                   value={form.rackLocation} onChange={e => setForm({...form, rackLocation: e.target.value})}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: colors.paper } }} 
                 />
@@ -412,15 +417,15 @@ export default function PharmacyInventory() {
                   <Button 
                     disabled={isSaving}
                     onClick={handleSave}
-                    sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}
+                    sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark }, whiteSpace: 'pre-line', lineHeight: 1.2 }}
                   >
-                    {isSaving ? 'Saving...' : 'Save\nmedicine'}
+                    {isSaving ? t.saving : t.save}
                   </Button>
                   <Button 
                     startIcon={<ScanIcon />}
-                    sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1 }}
+                    sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1, whiteSpace: 'pre-line', lineHeight: 1.2 }}
                   >
-                    Scan<br/>barcode
+                    {t.scan}
                   </Button>
                 </Box>
               </Stack>
@@ -428,7 +433,7 @@ export default function PharmacyInventory() {
 
             {/* Stock by category */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>Stock by category</Typography>
+              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.stock_category}</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                 {displayedCategories.map(c => (
                   <Box key={c.label} sx={{ p: 1.5, borderRadius: 2, bgcolor: colors.soft }}>
@@ -436,33 +441,33 @@ export default function PharmacyInventory() {
                     <Typography sx={{ fontSize: 11, color: colors.muted, whiteSpace: 'pre-line', lineHeight: 1.2, mt: 0.5 }}>{c.label}</Typography>
                   </Box>
                 ))}
-                {!displayedCategories.length && <Typography sx={{ color: colors.muted, fontSize: 12 }}>No categories recorded</Typography>}
+                {!displayedCategories.length && <Typography sx={{ color: colors.muted, fontSize: 12 }}>{t.no_categories}</Typography>}
               </Box>
             </Box>
 
             {/* Reorder alerts */}
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>Reorder alerts</Typography>
+              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.reorder_alerts}</Typography>
               <Stack spacing={2.5}>
                 {items.filter(i => i.quantity <= i.lowStockThreshold).map((item, i) => (
                   <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                     <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: item.quantity <= 0 ? colors.red : colors.amber, mt: 0.8, flexShrink: 0 }} />
                     <Box>
                       <Typography sx={{ fontSize: 13.5, lineHeight: 1.25, mb: 0.3, whiteSpace: 'pre-line' }}>
-                        {item.medicineName} — {item.quantity <= 0 ? 'out of stock' : 'low stock'}
+                        {item.medicineName} — {item.quantity <= 0 ? t.out_of_stock_alert : t.low_stock_alert}
                       </Typography>
                       <Typography sx={{ fontSize: 12.5, color: colors.muted, lineHeight: 1.2, whiteSpace: 'pre-line' }}>
-                        {item.quantity} units • reorder point: {item.lowStockThreshold}
+                        {item.quantity} {t.units} • {t.reorder_point} {item.lowStockThreshold}
                       </Typography>
                     </Box>
                   </Box>
                 ))}
                 {!items.some(i => i.quantity <= i.lowStockThreshold) && (
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>All stock levels are optimal.</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.optimal}</Typography>
                 )}
               </Stack>
               <Button fullWidth sx={{ mt: 3, bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}>
-                Create reorder list
+                {t.create_reorder}
               </Button>
             </Box>
 
