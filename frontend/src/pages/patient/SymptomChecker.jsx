@@ -1,4 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_SYMPTOM_CHECKER_TRANSLATIONS } from '../../utils/translations/patient';
 import {
   Box,
   Button,
@@ -37,44 +39,23 @@ const colors = {
   gray: '#9aa0a6'
 };
 
-const symptomGroups = {
-  General: ['Fever', 'Fatigue', 'Weakness', 'Weight loss', 'Night sweats', 'Loss of appetite'],
-  'Head & Neurological': ['Headache', 'Chills', 'Dizziness', 'Blurred vision', 'Confusion', 'Stiff neck'],
-  Respiratory: ['Cough', 'Shortness of breath', 'Sore throat', 'Runny nose', 'Chest pain'],
-  Digestive: ['Nausea', 'Vomiting', 'Diarrhoea', 'Abdominal pain', 'Bloating']
-};
 
-const bodyAreas = [
-  'Head & Face',
-  'Neck & Throat',
-  'Chest & Lungs',
-  'Heart & Blood',
-  'Stomach & Digestion',
-  'Back & Spine',
-  'Arms & Hands',
-  'Legs & Feet',
-  'Skin',
-  'Whole body / General'
-];
-
-const commonIllnesses = [
-  ['Common Cold', 'Runny nose, cough, sore throat'],
-  ['Typhoid', 'High fever, stomach pain'],
-  ['Malaria', 'Chills, fever, sweating'],
-  ['Dengue', 'High fever, joint rash'],
-  ['Hypertension', 'Headache, dizziness, BP high'],
-  ['Diabetes', 'Thirst, fatigue, frequent urination']
-];
-
-const durationOptions = ['Today', '2–3 days', '1 week', '2+ weeks'];
-const severityOptions = ['Mild', 'Moderate', 'Severe'];
 
 export default function SymptomChecker() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = PATIENT_SYMPTOM_CHECKER_TRANSLATIONS[language] || PATIENT_SYMPTOM_CHECKER_TRANSLATIONS['en'];
+
+  const symptomGroups = t.symptom_groups;
+  const bodyAreas = t.body_areas;
+  const commonIllnesses = t.illnesses;
+  const durationOptions = t.duration_options;
+  const severityOptions = t.severity_options;
+
   const [selected, setSelected] = useState([]);
-  const [bodyArea, setBodyArea] = useState('Chest & Lungs');
-  const [duration, setDuration] = useState('Today');
-  const [severity, setSeverity] = useState('Mild');
+  const [bodyArea, setBodyArea] = useState(bodyAreas[2]);
+  const [duration, setDuration] = useState(durationOptions[0]);
+  const [severity, setSeverity] = useState(severityOptions[0]);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
@@ -116,7 +97,7 @@ export default function SymptomChecker() {
       setResult(res);
       loadHistory();
     } catch (error) {
-      alert(error.response?.data?.message || 'AI service error');
+      alert(error.response?.data?.message || t.ai_service_error);
     } finally {
       setLoading(false);
     }
@@ -143,14 +124,14 @@ export default function SymptomChecker() {
         >
           <Box>
             <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              Symptom Checker
+              {t.title}
             </Typography>
             <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16, maxWidth: 470 }}>
-              Describe your symptoms to get AI-powered health guidance.
+              {t.subtitle}
             </Typography>
           </Box>
           <Button startIcon={<HistoryIcon />} onClick={() => setShowHistory(!showHistory)} sx={{ color: colors.primary, textTransform: 'none', fontWeight: 600 }}>
-             {showHistory ? 'Back to Checker' : 'View Past Checks'}
+             {showHistory ? t.back_to_checker : t.view_past}
           </Button>
         </Stack>
 
@@ -181,10 +162,10 @@ export default function SymptomChecker() {
             </Box>
             <Box>
               <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark }}>
-                For guidance only — not a medical diagnosis
+                {t.disclaimer_title}
               </Typography>
               <Typography sx={{ mt: 0.5, color: colors.primaryDark, fontSize: 14, lineHeight: 1.5 }}>
-                This AI tool provides preliminary suggestions based on your symptoms. Always consult a qualified doctor before taking any medication or making health decisions.
+                {t.disclaimer_body}
               </Typography>
             </Box>
           </Stack>
@@ -192,10 +173,10 @@ export default function SymptomChecker() {
 
         <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 4 }}>
           {[
-            ['1', 'Select Body Area', true],
-            ['2', 'Choose Symptoms', true],
-            ['3', 'Duration & Severity', false],
-            ['4', 'View Results', false]
+            ['1', t.step_1, true],
+            ['2', t.step_2, true],
+            ['3', t.step_3, false],
+            ['4', t.step_4, false]
           ].map(([step, label, active], index) => (
             <Box
               key={label}
@@ -248,9 +229,9 @@ export default function SymptomChecker() {
                   }}
                 >
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                  <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Describe your symptoms</Typography>
+                  <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>{t.describe_title}</Typography>
                   <Button onClick={clearAll} sx={{ color: colors.primary, textTransform: 'none', fontSize: 14 }}>
-                    Clear all
+                    {t.clear_all}
                   </Button>
                 </Stack>
 
@@ -260,7 +241,7 @@ export default function SymptomChecker() {
                   maxRows={4}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder="Type your symptoms here... e.g. 'I have a headache and fever since yesterday'"
+                  placeholder={t.input_placeholder}
                   sx={{
                     mt: 1,
                     width: '100%',
@@ -271,7 +252,7 @@ export default function SymptomChecker() {
                   }}
                 />
 
-                <Typography sx={{ mt: 3, color: colors.text, fontSize: 15, fontWeight: 500 }}>Selected symptoms</Typography>
+                <Typography sx={{ mt: 3, color: colors.text, fontSize: 15, fontWeight: 500 }}>{t.selected_symptoms}</Typography>
                 <Box sx={{ mt: 1.5, p: 2, borderRadius: 1.5, bgcolor: colors.soft }}>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                     {selected.length ? (
@@ -291,7 +272,7 @@ export default function SymptomChecker() {
                         />
                       ))
                     ) : (
-                      <Typography sx={{ color: colors.muted, fontSize: 14 }}>No symptoms selected clinically.</Typography>
+                      <Typography sx={{ color: colors.muted, fontSize: 14 }}>{t.no_symptoms}</Typography>
                     )}
                   </Stack>
                 </Box>
@@ -342,7 +323,7 @@ export default function SymptomChecker() {
                   }}
                 >
                   <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
-                    How long have you had these symptoms?
+                    {t.how_long}
                   </Typography>
                   <Stack spacing={1.5} sx={{ mt: 2 }}>
                     {durationOptions.map((item) => (
@@ -379,7 +360,7 @@ export default function SymptomChecker() {
                   }}
                 >
                   <Typography sx={{ color: colors.text, fontSize: 15, fontWeight: 600, lineHeight: 1.3 }}>
-                    How severe are your symptoms?
+                    {t.how_severe}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ mt: 3, mb: 2 }}>
                     {[0, 1, 2].map((index) => (
@@ -407,7 +388,7 @@ export default function SymptomChecker() {
                     ))}
                   </Stack>
                   <Typography sx={{ mt: 2, color: colors.warning, fontSize: 14, fontWeight: 600, textAlign: 'center' }}>
-                    {severity} selected
+                    {severity} {t.severity_selected}
                   </Typography>
                 </Box>
               </Stack>
@@ -433,7 +414,7 @@ export default function SymptomChecker() {
                   '&:disabled': { bgcolor: colors.line, color: colors.muted }
                 }}
               >
-                {loading ? 'Analysing...' : 'Analyse Symptoms with AI'}
+                {loading ? t.analysing : t.analyse_btn}
               </Button>
 
               {result && (
@@ -446,24 +427,24 @@ export default function SymptomChecker() {
                     boxShadow: '0 4px 12px rgba(26,115,232,0.1)'
                   }}
                 >
-                  <Typography sx={{ fontSize: 20, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>AI Analysis Result</Typography>
+                  <Typography sx={{ fontSize: 20, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>{t.ai_result_title}</Typography>
                   <Typography sx={{ color: colors.primaryDark, fontSize: 14, mb: 3 }}>
-                    Source: {result.aiUsed || result.source}
+                    {t.source_label} {result.aiUsed || result.source}
                   </Typography>
                   
                   <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 1.5, mb: 3, border: `1px solid ${colors.line}` }}>
                     <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
-                      Possible Conditions:
+                      {t.possible_conditions}
                     </Typography>
                     <Typography sx={{ fontSize: 15, color: colors.muted, mb: 2 }}>
                       {result.prediction.conditions.join(', ')}
                     </Typography>
 
                     <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
-                      Recommended Specialization:
+                      {t.recommended_specialization}
                     </Typography>
                     <Chip 
-                      label={result.prediction.suggestedSpecialization || 'General Physician'} 
+                      label={result.prediction.suggestedSpecialization || t.general_physician} 
                       sx={{ 
                         bgcolor: colors.primarySoft,
                         color: colors.primaryDark,
@@ -474,7 +455,7 @@ export default function SymptomChecker() {
                     />
 
                     <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 1 }}>
-                      Severity Level:
+                      {t.severity_level}
                     </Typography>
                     <Chip 
                       label={result.prediction.severity.toUpperCase()} 
@@ -488,14 +469,14 @@ export default function SymptomChecker() {
                     />
                   </Box>
 
-                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>Advice:</Typography>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>{t.advice_label}</Typography>
                   <Typography sx={{ color: colors.text, fontSize: 15, lineHeight: 1.6, mb: 3 }}>
                     {result.prediction.advice}
                   </Typography>
 
                   <Stack direction="row" spacing={2}>
                     <Button
-                      onClick={() => navigate(`/patient?specialization=${encodeURIComponent(result.prediction.suggestedSpecialization || 'General Physician')}`)}
+                      onClick={() => navigate(`/patient?specialization=${encodeURIComponent(result.prediction.suggestedSpecialization || t.general_physician)}`)}
                       sx={{
                         px: 4,
                         py: 1.25,
@@ -509,7 +490,7 @@ export default function SymptomChecker() {
                         '&:hover': { bgcolor: colors.primaryDark }
                       }}
                     >
-                      Book Appointment with {result.prediction.suggestedSpecialization || 'General Physician'}
+                      {t.book_appointment} {result.prediction.suggestedSpecialization || t.general_physician}
                     </Button>
                     <Button
                       variant="outlined"
@@ -525,7 +506,7 @@ export default function SymptomChecker() {
                         fontWeight: 600,
                       }}
                     >
-                      View All Doctors
+                      {t.view_all_doctors}
                     </Button>
                   </Stack>
                 </Box>
@@ -542,7 +523,7 @@ export default function SymptomChecker() {
                     boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                   }}
                 >
-                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>Affected body area</Typography>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>{t.affected_body_area}</Typography>
                   <Stack spacing={1}>
                     {bodyAreas.map((area, index) => {
                       const active = area === bodyArea;
@@ -580,7 +561,7 @@ export default function SymptomChecker() {
                     boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
                   }}
                 >
-                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>Common illnesses</Typography>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>{t.common_illnesses}</Typography>
                   <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 1.5 }}>
                     {commonIllnesses.map(([title, desc]) => (
                       <Box
@@ -612,7 +593,7 @@ export default function SymptomChecker() {
 
         {showHistory && (
            <Box sx={{ mt: 4, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: '#fff' }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 600, mb: 3 }}>Your Past Reports</Typography>
+              <Typography sx={{ fontSize: 18, fontWeight: 600, mb: 3 }}>{t.past_reports}</Typography>
               {history.length > 0 ? (
                  <Stack spacing={2}>
                     {history.map(log => (
@@ -625,8 +606,8 @@ export default function SymptomChecker() {
                                 fontWeight: 700, fontSize: 10
                              }} />
                           </Stack>
-                          <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 0.5 }}>Symptoms: {log.symptoms.join(', ')}</Typography>
-                          <Typography sx={{ fontSize: 14, color: colors.text, mb: 1 }}>Predicted: {log.predictedConditions.join(', ')}</Typography>
+                          <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 0.5 }}>{t.symptoms_label} {log.symptoms.join(', ')}</Typography>
+                          <Typography sx={{ fontSize: 14, color: colors.text, mb: 1 }}>{t.predicted_label} {log.predictedConditions.join(', ')}</Typography>
                           <Typography sx={{ fontSize: 13, color: colors.muted, fontStyle: 'italic' }}>{log.advice}</Typography>
                        </Box>
                     ))}
@@ -634,7 +615,7 @@ export default function SymptomChecker() {
               ) : (
                  <Box sx={{ py: 4, textAlign: 'center' }}>
                     <TimelineIcon sx={{ fontSize: 40, color: colors.gray, mb: 1.5 }} />
-                    <Typography sx={{ color: colors.muted }}>No past reports found.</Typography>
+                    <Typography sx={{ color: colors.muted }}>{t.no_past_reports}</Typography>
                  </Box>
               )}
            </Box>
