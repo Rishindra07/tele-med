@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_PHARMACIES_TRANSLATIONS } from '../../utils/translations/patient';
 import {
   Box,
   Button,
@@ -83,13 +85,18 @@ const colors = {
   gray: '#9aa0a6'
 };
 
-const helpfulTips = [
-  ['Always carry your prescription code - pharmacies can access it in the app.', colors.primaryDark],
-  ['If a medicine is unavailable, ask the doctor to modify the brand.', colors.warning],
-  ['Never buy prescription medicines without a valid doctor note.', colors.danger]
-];
+
 
 export default function PatientPharmacies() {
+  const { language } = useLanguage();
+  const t = PATIENT_PHARMACIES_TRANSLATIONS[language] || PATIENT_PHARMACIES_TRANSLATIONS['en'];
+
+  const helpfulTips = [
+    [t.tip_1, colors.primaryDark],
+    [t.tip_2, colors.warning],
+    [t.tip_3, colors.danger]
+  ];
+
   const [pharmacies, setPharmacies] = useState([]);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -237,7 +244,7 @@ export default function PatientPharmacies() {
       }
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: 'Failed to fetch stock', severity: 'error' });
+      setSnackbar({ open: true, message: t.snack_stock_error, severity: 'error' });
     } finally {
       setFetchingStock(false);
     }
@@ -275,14 +282,14 @@ export default function PatientPharmacies() {
         deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null
       });
       if (res.success) {
-        setSnackbar({ open: true, message: 'Prescription sent successfully!', severity: 'success' });
+        setSnackbar({ open: true, message: t.snack_sent, severity: 'success' });
         setSendOpen(false);
       } else {
-        setSnackbar({ open: true, message: res.message || 'Error occurred', severity: 'error' });
+        setSnackbar({ open: true, message: res.message || t.snack_error, severity: 'error' });
       }
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: 'Error occurred', severity: 'error' });
+      setSnackbar({ open: true, message: t.snack_error, severity: 'error' });
     } finally {
       setSending(false);
     }
@@ -291,7 +298,7 @@ export default function PatientPharmacies() {
   const handleMapClick = (e) => {
     const { lat, lng } = e.latlng;
     setUserLocation([lat, lng]);
-    setSnackbar({ open: true, message: 'Search location updated!', severity: 'success' });
+    setSnackbar({ open: true, message: t.snack_location, severity: 'success' });
   };
 
   // Summary logic
@@ -303,10 +310,10 @@ export default function PatientPharmacies() {
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              Pharmacies
+              {t.title}
             </Typography>
             <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
-              Find nearby pharmacies, check stock and send prescriptions.
+              {t.subtitle}
             </Typography>
           </Box>
 
@@ -318,7 +325,7 @@ export default function PatientPharmacies() {
                  startIcon={<ListIcon />}
                  sx={{ borderRadius: 1.5, textTransform: 'none', px: 2, bgcolor: viewMode === 'list' ? '#fff' : 'transparent', color: viewMode === 'list' ? colors.primary : colors.muted, boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', '&:hover': { bgcolor: viewMode === 'list' ? '#fff' : colors.line } }}
                >
-                 List
+                 {t.btn_list}
                </Button>
                <Button 
                  onClick={() => setViewMode('map')}
@@ -326,7 +333,7 @@ export default function PatientPharmacies() {
                  startIcon={<MapIcon />}
                  sx={{ borderRadius: 1.5, textTransform: 'none', px: 2, bgcolor: viewMode === 'map' ? '#fff' : 'transparent', color: viewMode === 'map' ? colors.primary : colors.muted, boxShadow: viewMode === 'map' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', '&:hover': { bgcolor: viewMode === 'map' ? '#fff' : colors.line } }}
                >
-                 Map
+                 {t.btn_map}
                </Button>
             </Stack>
             <Button 
@@ -336,17 +343,17 @@ export default function PatientPharmacies() {
               disabled={activePrescriptions.length === 0}
               sx={{ px: 3, py: 1.25, borderRadius: 1.5, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: colors.primaryDark } }}
             >
-              Send Prescription
+              {t.btn_send_prescription}
             </Button>
           </Stack>
         </Stack>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
           {[
-            ['Nearby Pharmacies', pharmacies.length.toString(), 'Within your area'],
-            ['Active Prescriptions', activePrescriptions.length.toString(), 'Awaiting fulfilment'],
-            ['Medicines Available', latestRx ? 'Full match' : 'None', 'From your prescription'],
-            ['Pickup Pending', '0', 'Ready for pickup']
+            [t.stat_nearby, pharmacies.length.toString(), t.stat_nearby_sub],
+            [t.stat_active_rx, activePrescriptions.length.toString(), t.stat_active_rx_sub],
+            [t.stat_medicines, latestRx ? t.stat_medicines_val_full : t.stat_medicines_val_none, t.stat_medicines_sub],
+            [t.stat_pickup, '0', t.stat_pickup_sub]
           ].map(([title, value, subtitle]) => (
             <Box key={title} sx={{ p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</Typography>
@@ -360,10 +367,10 @@ export default function PatientPharmacies() {
           <Box sx={{ flex: 1, minWidth: 0, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
               {[
-                ['all', 'All'],
-                ['open', 'Open Now'],
-                ['jan', 'Jan Aushadhi'],
-                ['24h', '24-Hour']
+                ['all', t.filter_all],
+                ['open', t.filter_open],
+                ['jan', t.filter_jan],
+                ['24h', t.filter_24h]
               ].map(([value, label]) => (
                 <Chip
                   key={value}
@@ -388,7 +395,7 @@ export default function PatientPharmacies() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 4 }}>
               <TextField
                 fullWidth
-                placeholder="Search pharmacy or medicine"
+                placeholder={t.search_placeholder}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 size="small"
@@ -408,8 +415,8 @@ export default function PatientPharmacies() {
                 size="small"
                 sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
               >
-                <MenuItem value="nearest">Nearest first</MenuItem>
-                <MenuItem value="open">Open now</MenuItem>
+                <MenuItem value="nearest">{t.sort_nearest}</MenuItem>
+                <MenuItem value="open">{t.sort_open}</MenuItem>
               </TextField>
             </Stack>
 
@@ -429,19 +436,19 @@ export default function PatientPharmacies() {
                               <Box>
                                  <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{p.pharmacyName || p.user?.full_name || 'Pharmacy'}</Typography>
                                  <Typography sx={{ fontSize: 13, color: colors.muted, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                   {p.address || 'Address not listed'}
+                                   {p.address || t.address_not_listed}
                                  </Typography>
                                  <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
                                    <Typography sx={{ fontSize: 12, color: isOpen ? colors.success : colors.danger, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                     <TimeIcon sx={{ fontSize: 14 }} /> {isOpen ? 'Open Now' : 'Closed'} {p.openTime ? `(${p.openTime} - ${p.closeTime})` : ''}
+                                     <TimeIcon sx={{ fontSize: 14 }} /> {isOpen ? t.open_now : t.closed} {p.openTime ? `(${p.openTime} - ${p.closeTime})` : ''}
                                    </Typography>
                                     <Typography sx={{ fontSize: 12, color: colors.muted, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                      <DistanceIcon sx={{ fontSize: 14 }} /> {p.distanceKm ? `${p.distanceKm} km` : 'Near you'}
+                                      <DistanceIcon sx={{ fontSize: 14 }} /> {p.distanceKm ? `${p.distanceKm} km` : t.near_you}
                                     </Typography>
                                     {p.deliveryAvailable && (
                                       <Chip 
                                         size="small" 
-                                        label="Delivery Available" 
+                                        label={t.delivery_available} 
                                         icon={<SendIcon sx={{ fontSize: '12px !important' }} />}
                                         sx={{ height: 20, fontSize: 10, bgcolor: colors.primarySoft, color: colors.primary, fontWeight: 600 }} 
                                       />
@@ -459,8 +466,8 @@ export default function PatientPharmacies() {
                                    <CallIcon sx={{ fontSize: 18 }} />
                                  </Button>
                                )}
-                               <Button variant="outlined" onClick={() => handleViewStock(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.primary, bgcolor: colors.primarySoft } }}>View Stock</Button>
-                               <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, color: '#fff', '&:hover': { bgcolor: colors.primaryDark } }}>Send Prescription</Button>
+                               <Button variant="outlined" onClick={() => handleViewStock(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.primary, bgcolor: colors.primarySoft } }}>{t.view_stock}</Button>
+                               <Button variant="contained" onClick={() => handleOpenSend(p)} sx={{ borderRadius: 1.5, textTransform: 'none', fontSize: 13, bgcolor: colors.primary, color: '#fff', '&:hover': { bgcolor: colors.primaryDark } }}>{t.send_prescription}</Button>
                             </Stack>
                          </Box>
                       );
@@ -469,9 +476,9 @@ export default function PatientPharmacies() {
                ) : (
                  <Box sx={{ py: 8, textAlign: 'center', bgcolor: colors.soft, borderRadius: 2, border: `1px dashed ${colors.line}` }}>
                     <PharmacyIcon sx={{ fontSize: 48, color: colors.gray, mb: 2 }} />
-                    <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>No pharmacies found</Typography>
+                    <Typography sx={{ color: colors.text, fontSize: 16, fontWeight: 500 }}>{t.no_pharmacies}</Typography>
                     <Typography sx={{ color: colors.muted, fontSize: 14, mt: 1 }}>
-                      {query || filter !== 'all' ? 'Try adjusting your search or filters.' : 'There are no active pharmacies in your area right now.'}
+                      {query || filter !== 'all' ? t.no_pharmacies_filter : t.no_pharmacies_area}
                     </Typography>
                  </Box>
                )
@@ -489,7 +496,7 @@ export default function PatientPharmacies() {
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                   })}>
-                    <Popup>Your current location (Click map to move)</Popup>
+                    <Popup>{t.your_location_popup}</Popup>
                   </Marker>
 
                   {/* Pharmacy Markers */}
@@ -504,7 +511,7 @@ export default function PatientPharmacies() {
                           <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>{p.pharmacyName}</Typography>
                           {p.deliveryAvailable && (
                             <Typography sx={{ fontSize: 11, color: colors.success, fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              🚚 Delivery Available
+                              🚚 {t.delivery_available}
                             </Typography>
                           )}
                           <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>{p.address}</Typography>
@@ -519,8 +526,8 @@ export default function PatientPharmacies() {
                                 📞
                               </Button>
                             )}
-                            <Button size="small" variant="outlined" onClick={() => handleViewStock(p)} sx={{ fontSize: 11, py: 0.5 }}>Stock</Button>
-                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary, color: '#fff' }}>Send Rx</Button>
+                            <Button size="small" variant="outlined" onClick={() => handleViewStock(p)} sx={{ fontSize: 11, py: 0.5 }}>{t.view_stock}</Button>
+                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary, color: '#fff' }}>{t.stock_send_rx}</Button>
                           </Stack>
                         </Box>
                       </Popup>
@@ -538,7 +545,7 @@ export default function PatientPharmacies() {
                     startIcon={<LocationIcon />}
                     sx={{ bgcolor: '#fff', color: colors.text, '&:hover': { bgcolor: colors.soft } }}
                   >
-                    Recenter
+                    {t.recenter}
                   </Button>
                 </Box>
               </Box>
@@ -548,7 +555,7 @@ export default function PatientPharmacies() {
 
           <Stack spacing={3} sx={{ width: { xs: '100%', xl: 320 }, flexShrink: 0 }}>
             <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${colors.primary}`, bgcolor: colors.primarySoft }}>
-              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>Active Prescriptions</Typography>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primaryDark, mb: 1 }}>{t.active_prescriptions}</Typography>
               {activePrescriptions.length > 0 ? (
                 <Stack spacing={1} sx={{ mt: 2 }}>
                   {activePrescriptions.slice(0, 5).map((item) => (
@@ -561,16 +568,16 @@ export default function PatientPharmacies() {
                     onClick={() => handleOpenSend(null)}
                     sx={{ mt: 2, width: '100%', py: 1, borderRadius: 1.5, bgcolor: '#fff', color: colors.primaryDark, textTransform: 'none', fontSize: 14, fontWeight: 600, border: `1px solid ${colors.primary}`, '&:hover': { bgcolor: colors.primarySoft } }}
                   >
-                    Send to pharmacy
+                    {t.send_to_pharmacy}
                   </Button>
                 </Stack>
               ) : (
-                <Typography sx={{ color: colors.primaryDark, fontSize: 14, mt: 1 }}>No active prescriptions available.</Typography>
+                <Typography sx={{ color: colors.primaryDark, fontSize: 14, mt: 1 }}>{t.no_active_rx}</Typography>
               )}
             </Box>
 
             <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>Helpful tips</Typography>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.text, mb: 2 }}>{t.helpful_tips}</Typography>
               <Stack spacing={1.5}>
                 {helpfulTips.map(([text, dotColor]) => (
                   <Stack key={text} direction="row" spacing={1.5} alignItems="flex-start" sx={{ pt: 1, borderTop: `1px solid ${colors.soft}`, '&:first-of-type': { pt: 0, borderTop: 'none' } }}>
@@ -588,10 +595,10 @@ export default function PatientPharmacies() {
       <Dialog open={stockOpen} onClose={() => setStockOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 700, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Medicine Inventory</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t.medicine_inventory}</Typography>
             <Typography sx={{ fontSize: 13, color: colors.muted, fontWeight: 400 }}>{viewingPharmacy?.pharmacyName}</Typography>
           </Box>
-          <Chip label={isPharmacyOpen(viewingPharmacy || {}) ? "Open" : "Closed"} color={isPharmacyOpen(viewingPharmacy || {}) ? "success" : "error"} size="small" />
+          <Chip label={isPharmacyOpen(viewingPharmacy || {}) ? t.open_label : t.closed_label} color={isPharmacyOpen(viewingPharmacy || {}) ? "success" : "error"} size="small" />
         </DialogTitle>
         <DialogContent dividers sx={{ pt: 2 }}>
           {fetchingStock ? (
@@ -601,7 +608,7 @@ export default function PatientPharmacies() {
               {latestRx && (
                 <Box sx={{ mb: 3, p: 2, bgcolor: colors.primarySoft, borderRadius: 2, border: `1px solid ${colors.primary}` }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.primaryDark, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CheckIcon sx={{ fontSize: 16 }} /> CHECKING AGAINST YOUR PRESCRIPTION
+                    <CheckIcon sx={{ fontSize: 16 }} /> {t.checking_rx}
                   </Typography>
                   <Stack spacing={1}>
                     {latestRx.medications.map(med => {
@@ -610,9 +617,9 @@ export default function PatientPharmacies() {
                          <Box key={med.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <Typography sx={{ fontSize: 14, color: colors.text }}>{med.name} ({med.dosage})</Typography>
                            {inStock ? (
-                             <Chip label="In Stock" size="small" sx={{ height: 20, fontSize: 11, bgcolor: colors.success, color: '#fff' }} icon={<CheckIcon sx={{ fontSize: '12px !important', color: '#fff !important' }} />} />
+                             <Chip label={t.in_stock} size="small" sx={{ height: 20, fontSize: 11, bgcolor: colors.success, color: '#fff' }} icon={<CheckIcon sx={{ fontSize: '12px !important', color: '#fff !important' }} />} />
                            ) : (
-                             <Chip label="Not Available" size="small" sx={{ height: 20, fontSize: 11, bgcolor: colors.danger, color: '#fff' }} icon={<ErrorIcon sx={{ fontSize: '12px !important', color: '#fff !important' }} />} />
+                             <Chip label={t.not_available} size="small" sx={{ height: 20, fontSize: 11, bgcolor: colors.danger, color: '#fff' }} icon={<ErrorIcon sx={{ fontSize: '12px !important', color: '#fff !important' }} />} />
                            )}
                          </Box>
                        );
@@ -621,7 +628,7 @@ export default function PatientPharmacies() {
                 </Box>
               )}
 
-              <Typography sx={{ fontSize: 14, fontWeight: 700, mb: 2, color: colors.muted }}>ALL AVAILABLE MEDICINES</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, mb: 2, color: colors.muted }}>{t.all_medicines}</Typography>
               <List disablePadding>
                 {pharmacyStock.map((item, idx) => (
                   <React.Fragment key={item._id}>
@@ -637,9 +644,9 @@ export default function PatientPharmacies() {
                       />
                       <Box sx={{ textAlign: 'right' }}>
                         <Typography sx={{ fontWeight: 600, fontSize: 14, color: item.quantity > 10 ? colors.success : colors.warning }}>
-                          {item.quantity} units
+                          {item.quantity} {t.units}
                         </Typography>
-                        <Typography sx={{ fontSize: 11, color: colors.muted }}>Available</Typography>
+                        <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.available}</Typography>
                       </Box>
                     </ListItem>
                     {idx < pharmacyStock.length - 1 && <Divider component="li" />}
@@ -650,30 +657,30 @@ export default function PatientPharmacies() {
           ) : (
             <Box sx={{ py: 6, textAlign: 'center' }}>
                <InfoIcon sx={{ fontSize: 40, color: colors.gray, mb: 1 }} />
-               <Typography color="textSecondary">No inventory data available for this pharmacy.</Typography>
+               <Typography color="textSecondary">{t.no_inventory}</Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setStockOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>Close</Button>
-          <Button variant="contained" onClick={() => { setStockOpen(false); handleOpenSend(viewingPharmacy); }} sx={{ textTransform: 'none', fontWeight: 600, bgcolor: colors.primary, color: '#fff' }}>Send Prescription</Button>
+          <Button onClick={() => setStockOpen(false)} sx={{ textTransform: 'none', fontWeight: 600 }}>{t.close}</Button>
+          <Button variant="contained" onClick={() => { setStockOpen(false); handleOpenSend(viewingPharmacy); }} sx={{ textTransform: 'none', fontWeight: 600, bgcolor: colors.primary, color: '#fff' }}>{t.send_prescription}</Button>
         </DialogActions>
       </Dialog>
 
       {/* Send Dialog */}
       <Dialog open={sendOpen} onClose={() => setSendOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
-        <DialogTitle sx={{ fontWeight: 600 }}>Send to Pharmacy</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>{t.send_dialog_title}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2, color: colors.muted }}>
-            Choose which prescription you want to send to <strong>{selectedPharmacy?.pharmacyName || selectedPharmacy?.user?.full_name || 'this pharmacy'}</strong>.
+            {t.send_dialog_desc} <strong>{selectedPharmacy?.pharmacyName || selectedPharmacy?.user?.full_name || t.this_pharmacy}</strong>.
           </Typography>
           {activePrescriptions.length > 0 ? (
             <>
               <FormControl fullWidth sx={{ mt: 1, mb: 3 }}>
-                <InputLabel>Select Prescription</InputLabel>
+                <InputLabel>{t.select_prescription}</InputLabel>
                 <Select
                   value={selectedRx}
-                  label="Select Prescription"
+                  label={t.select_prescription}
                   onChange={(e) => setSelectedRx(e.target.value)}
                 >
                   {activePrescriptions.map((rx) => (
@@ -684,7 +691,7 @@ export default function PatientPharmacies() {
                 </Select>
               </FormControl>
 
-              <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>Fulfillment Method</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>{t.fulfillment_method}</Typography>
               <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
                 <Box 
                   onClick={() => setDeliveryType('PICKUP')}
@@ -694,7 +701,7 @@ export default function PatientPharmacies() {
                   }}
                 >
                   <Typography sx={{ fontSize: 24 }}>🏬</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Store Pickup</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t.store_pickup}</Typography>
                 </Box>
                 
                 {selectedPharmacy?.deliveryAvailable && (
@@ -706,7 +713,7 @@ export default function PatientPharmacies() {
                     }}
                   >
                     <Typography sx={{ fontSize: 24 }}>🚚</Typography>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Home Delivery</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t.home_delivery}</Typography>
                   </Box>
                 )}
               </Stack>
@@ -714,18 +721,18 @@ export default function PatientPharmacies() {
               {deliveryType === 'HOME' ? (
                 <TextField
                   fullWidth
-                  label="Delivery Address"
+                  label={t.delivery_address}
                   multiline
                   rows={3}
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  placeholder="Enter your full address for delivery"
+                  placeholder={t.delivery_address_placeholder}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
                           size="small"
-                          title="Use current location"
+                          title={t.snack_location_use}
                           onClick={() => {
                             if (navigator.geolocation) {
                               navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -746,23 +753,23 @@ export default function PatientPharmacies() {
               ) : (
                 <Box sx={{ p: 2, bgcolor: colors.soft, borderRadius: 2, mb: 2 }}>
                   <Typography sx={{ fontSize: 13, color: colors.muted }}>
-                    <strong>Pharmacy Address:</strong><br />
-                    {selectedPharmacy?.address || 'Address not listed'}
+                    <strong>{t.pharmacy_address_label}</strong><br />
+                    {selectedPharmacy?.address || t.address_not_listed}
                   </Typography>
                   <Typography sx={{ fontSize: 12, color: colors.muted, mt: 1 }}>
-                    Please bring your digital prescription ID when you visit the store.
+                    {t.bring_rx_id}
                   </Typography>
                 </Box>
               )}
             </>
           ) : (
-             <Alert severity="warning">You have no active prescriptions to send.</Alert>
+             <Alert severity="warning">{t.no_rx_warning}</Alert>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted }}>Cancel</Button>
+          <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted }}>{t.cancel}</Button>
           <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim())} sx={{ bgcolor: colors.primary, color: '#fff', px: 3, borderRadius: 1.5 }}>
-            {sending ? 'Sending...' : 'Confirm & Place Order'}
+            {sending ? t.sending : t.confirm_order}
           </Button>
         </DialogActions>
       </Dialog>
