@@ -3,6 +3,8 @@ import { Avatar, Box, Button, CircularProgress, Stack, TextField, Typography } f
 import { PhotoCameraRounded as CameraIcon, EditRounded as EditIcon, SaveRounded as SaveIcon, CloseRounded as CloseIcon } from '@mui/icons-material';
 import PatientShell from '../../components/patient/PatientShell';
 import { fetchPatientProfile, updatePatientProfile } from '../../api/patientApi';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_PROFILE_TRANSLATIONS } from '../../utils/translations/patient';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -44,6 +46,8 @@ const initials = (name) =>
     .join('') || 'U';
 
 export default function PatientProfile() {
+  const { language } = useLanguage();
+  const t = PATIENT_PROFILE_TRANSLATIONS[language] || PATIENT_PROFILE_TRANSLATIONS['en'];
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -267,7 +271,7 @@ export default function PatientProfile() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert('File size must be less than 2MB');
+        alert(t.file_size_error);
         return;
       }
       const reader = new FileReader();
@@ -294,27 +298,27 @@ export default function PatientProfile() {
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              My Profile
+              {t.title}
             </Typography>
             <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
-              {isEditing ? 'Edit your personal, health and account information' : 'Manage your personal, health and account information'}
+              {isEditing ? t.subtitle_edit : t.subtitle_view}
             </Typography>
           </Box>
 
           {!isEditing && (
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Button onClick={handleEditClick} startIcon={<EditIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.primary}`, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.primaryDark } }}>
-                Edit Profile
+                {t.edit_profile}
               </Button>
             </Stack>
           )}
           {isEditing && (
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Button onClick={handleCancelEdit} startIcon={<CloseIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>
-                Cancel
+                {t.cancel}
               </Button>
               <Button onClick={handleSave} disabled={saving} startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.primary}`, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.primaryDark } }}>
-                Save Changes
+                {t.save_changes}
               </Button>
             </Stack>
           )}
@@ -353,7 +357,7 @@ export default function PatientProfile() {
                     onChange={handleChange} 
                     variant="standard" 
                     InputProps={{ style: { fontSize: 24, fontWeight: 600, color: colors.text } }} 
-                    placeholder="Full Name" 
+                    placeholder={t.full_name_placeholder} 
                   />
                 ) : (
                   <Typography sx={{ fontSize: 28, fontWeight: 600, color: colors.text }}>
@@ -361,16 +365,16 @@ export default function PatientProfile() {
                   </Typography>
                 )}
                 <Stack direction="row" spacing={1} justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mt: 1 }}>
-                  <Typography sx={{ color: colors.muted, fontSize: 15 }}>Role: {profileData.role}</Typography>
+                  <Typography sx={{ color: colors.muted, fontSize: 15 }}>{t.role_label} {profileData.role}</Typography>
                 </Stack>
               </Box>
             </Stack>
 
             <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" justifyContent={{ xs: 'center', lg: 'flex-end' }} sx={{ width: { xs: '100%', lg: 'auto' } }}>
               {[
-                [counts.consultations, 'Consultations'],
-                [counts.prescriptions, 'Prescriptions'],
-                [counts.records, 'Records']
+                [counts.consultations, t.stats.consultations],
+                [counts.prescriptions, t.stats.prescriptions],
+                [counts.records, t.stats.records]
               ].map(([value, label]) => (
                 <Box key={label} sx={{ width: 100, p: 2, borderRadius: 1.5, bgcolor: colors.soft, textAlign: 'center' }}>
                   <Typography sx={{ fontSize: 24, fontWeight: 600, color: colors.text }}>{value}</Typography>
@@ -384,14 +388,14 @@ export default function PatientProfile() {
         <Stack spacing={4}>
           <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-              <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Basic Information</Typography>
+              <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>{t.basic_info.title}</Typography>
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
               {[
-                { label: 'Date of birth', key: 'dob', placeholder: 'e.g. 15 Aug 1990' },
-                { label: 'Age', key: 'age', placeholder: 'e.g. 34' },
-                { label: 'Gender', key: 'gender', placeholder: 'Select Gender', options: ['Male', 'Female', 'Other', 'Prefer not to say'] },
-                { label: 'Blood group', key: 'bloodGroup', placeholder: 'Select Blood Group', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
+                { label: t.basic_info.dob, key: 'dob', placeholder: t.basic_info.dob_placeholder },
+                { label: t.basic_info.age, key: 'age', placeholder: t.basic_info.age_placeholder },
+                { label: t.basic_info.gender, key: 'gender', placeholder: t.basic_info.gender_placeholder, options: t.basic_info.gender_options || ['Male', 'Female', 'Other', 'Prefer not to say'] },
+                { label: t.basic_info.blood_group, key: 'bloodGroup', placeholder: t.basic_info.blood_group_placeholder, options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
               ].map(({ label, key, placeholder, options }) => (
                 <Box key={key}>
                   <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
@@ -425,7 +429,7 @@ export default function PatientProfile() {
                     )
                   ) : (
                     <Typography sx={{ mt: 0.5, color: profileData[key] ? colors.text : colors.gray, fontSize: 15, fontWeight: profileData[key] ? 500 : 400 }}>
-                      {profileData[key] || 'Not set'}
+                      {profileData[key] || t.not_set}
                     </Typography>
                   )}
                 </Box>
@@ -434,12 +438,12 @@ export default function PatientProfile() {
           </Box>
 
           <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Contact Information</Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>{t.contact_info.title}</Typography>
             <Stack spacing={0}>
               {[
-                ['Mobile number', 'phone', 'e.g. 9014062013'],
-                ['Email address', 'email', 'e.g. user@example.com'],
-                ['Address', 'address', 'e.g. 123 Health Ave, Mumbai']
+                [t.contact_info.mobile, 'phone', t.contact_info.mobile_placeholder],
+                [t.contact_info.email, 'email', t.contact_info.email_placeholder],
+                [t.contact_info.address, 'address', t.contact_info.address_placeholder]
               ].map(([label, key, placeholder]) => (
                 <Stack key={label} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ py: 2, borderBottom: `1px solid ${colors.soft}`, '&:last-child': { borderBottom: 'none', pb: 0 } }}>
                   <Box sx={{ flex: 1, pr: 2 }}>
@@ -480,11 +484,11 @@ export default function PatientProfile() {
                     ) : (
                       <Box>
                         <Typography sx={{ mt: 0.5, fontSize: 15, color: profileData[key] ? colors.text : colors.gray, fontWeight: profileData[key] ? 500 : 400 }}>
-                          {profileData[key] || 'Not provided'}
+                          {profileData[key] || t.not_provided}
                         </Typography>
                         {key === 'address' && profileData.location?.lat && (
                           <Typography sx={{ mt: 0.5, fontSize: 11, color: colors.muted, bgcolor: colors.soft, display: 'inline-block', px: 1, py: 0.25, borderRadius: 1 }}>
-                            Coordinates: {profileData.location.lat.toFixed(6)}, {profileData.location.lng.toFixed(6)}
+                            {t.coordinates} {profileData.location.lat.toFixed(6)}, {profileData.location.lng.toFixed(6)}
                           </Typography>
                         )}
                       </Box>
@@ -526,7 +530,7 @@ export default function PatientProfile() {
                           fontWeight: 500
                         }}
                       >
-                        {profileData[key] ? 'Verified' : 'Add'}
+                        {profileData[key] ? t.verified : t.add}
                       </Button>
                     </Stack>
                   )}
@@ -536,12 +540,12 @@ export default function PatientProfile() {
           </Box>
 
           <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>Emergency Contact</Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text, mb: 3 }}>{t.emergency.title}</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
               {[
-                { label: 'Contact Name', key: 'emergencyContactName', placeholder: 'e.g. John Doe' },
-                { label: 'Relation', key: 'emergencyContactRelation', placeholder: 'e.g. Father' },
-                { label: 'Phone Number', key: 'emergencyContactPhone', placeholder: 'e.g. 9876543210' }
+                { label: t.emergency.name, key: 'emergencyContactName', placeholder: t.emergency.name_placeholder },
+                { label: t.emergency.relation, key: 'emergencyContactRelation', placeholder: t.emergency.relation_placeholder },
+                { label: t.emergency.phone, key: 'emergencyContactPhone', placeholder: t.emergency.phone_placeholder }
               ].map(({ label, key, placeholder }) => (
                 <Box key={key}>
                   <Typography sx={{ color: colors.muted, fontSize: 14 }}>{label}</Typography>
@@ -557,7 +561,7 @@ export default function PatientProfile() {
                     />
                   ) : (
                     <Typography sx={{ mt: 0.5, color: profileData[key] ? colors.text : colors.gray, fontSize: 15, fontWeight: profileData[key] ? 500 : 400 }}>
-                      {profileData[key] || 'Not set'}
+                      {profileData[key] || t.not_set}
                     </Typography>
                   )}
                 </Box>
@@ -568,8 +572,8 @@ export default function PatientProfile() {
           <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
               <Box>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>Geo-Location</Typography>
-                <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>Used for faster home delivery and mapping</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.text }}>{t.geo.title}</Typography>
+                <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>{t.geo.subtitle}</Typography>
               </Box>
               {isEditing && (
                 <Button 
@@ -584,7 +588,7 @@ export default function PatientProfile() {
                   }}
                   sx={{ textTransform: 'none', borderRadius: 1.5 }}
                 >
-                  Detect My Location
+                  {t.geo.detect}
                 </Button>
               )}
             </Stack>
@@ -605,7 +609,7 @@ export default function PatientProfile() {
               )}
             </Box>
             <Typography sx={{ mt: 2, fontSize: 12, color: colors.muted, textAlign: 'center' }}>
-              Coordinates: {isEditing ? editForm.location.lat.toFixed(4) : profileData.location.lat.toFixed(4)}, {isEditing ? editForm.location.lng.toFixed(4) : profileData.location.lng.toFixed(4)}
+              {t.coordinates} {isEditing ? editForm.location.lat.toFixed(4) : profileData.location.lat.toFixed(4)}, {isEditing ? editForm.location.lng.toFixed(4) : profileData.location.lng.toFixed(4)}
             </Typography>
           </Box>
         </Stack>

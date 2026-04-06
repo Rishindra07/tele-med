@@ -47,6 +47,8 @@ import {
   cancelMyOrder
 } from '../../api/patientApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_DASHBOARD_TRANSLATIONS } from '../../utils/translations/patient';
 
 const c = {
   bg: '#f8f9fa',
@@ -82,6 +84,8 @@ const initials = (name) =>
     .join('') || 'DR';
 
 function PatientDashboard() {
+  const { language } = useLanguage();
+  const t = PATIENT_DASHBOARD_TRANSLATIONS[language] || PATIENT_DASHBOARD_TRANSLATIONS['en'];
   const navigate = useNavigate();
   const location = useLocation();
   const bookingRef = useRef(null);
@@ -293,9 +297,9 @@ function PatientDashboard() {
   const nextAppt = upcomingAppts[0];
 
   const statCards = [
-    ['Total Consultations', appointments.length.toString(), 'All-time consultations', `+${appointments.filter(a => new Date(a.createdAt).getMonth() === new Date().getMonth()).length} this month`, c.primary],
-    ['Health Records', records.length.toString(), 'Stored medical files', `${records.filter(r => r.type === 'prescription').length} prescriptions`, c.success],
-    ['Next Appointment', nextAppt ? fmtDate(nextAppt.appointmentDate.split('T')[0]) : '--', nextAppt ? `${nextAppt.timeSlot} • ${getConsultationStatus(nextAppt).label}` : 'No upcoming dates', nextAppt ? 'Upcoming' : 'N/A', c.warning]
+    [t.stats.consultations, appointments.length.toString(), t.stats.all_time, `+${appointments.filter(a => new Date(a.createdAt).getMonth() === new Date().getMonth()).length} ${t.stats.this_month}`, c.primary],
+    [t.stats.records, records.length.toString(), t.stats.stored_files, `${records.filter(r => r.type === 'prescription').length} ${t.stats.prescriptions}`, c.success],
+    [t.stats.next_appt, nextAppt ? fmtDate(nextAppt.appointmentDate.split('T')[0]) : '--', nextAppt ? `${nextAppt.timeSlot} • ${getConsultationStatus(nextAppt).label}` : t.stats.no_upcoming_dates, nextAppt ? t.stats.upcoming : t.stats.na, c.warning]
   ];
 
   return (
@@ -306,10 +310,10 @@ function PatientDashboard() {
         <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', lg: 'center' }, justifyContent: 'space-between', gap: 3, flexDirection: { xs: 'column', lg: 'row' }, mb: 4 }}>
           <Box>
             <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: c.text, fontFamily: 'Inter, sans-serif' }}>
-              Welcome back, {greetingName}
+              {t.welcome_back}, {greetingName}
             </Typography>
             <Typography sx={{ mt: 0.5, color: c.muted, fontSize: 16 }}>
-              Here is your central health overview for today.
+              {t.health_overview}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
@@ -320,7 +324,7 @@ function PatientDashboard() {
               <NotificationIcon fontSize="small" />
             </Button>
             <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} sx={{ px: 3, py: 1.25, borderRadius: 2, bgcolor: c.primary, color: '#fff', fontSize: 15, fontWeight: 600, textTransform: 'none', boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: c.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' } }}>
-              + Book Appointment
+              {t.book_appointment_btn}
             </Button>
           </Stack>
         </Box>
@@ -343,8 +347,8 @@ function PatientDashboard() {
           <Grid size={{ xs: 12, xl: 8 }}>
             <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>Upcoming Appointments</Typography>
-                <Button onClick={() => navigate('/patient/appointments')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>View All</Button>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>{t.appts.upcoming}</Typography>
+                <Button onClick={() => navigate('/patient/appointments')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>{t.appts.view_all}</Button>
               </Stack>
               
               {appointments.length > 0 ? (
@@ -376,37 +380,37 @@ function PatientDashboard() {
                                 {dashStatus === 'upcoming' && (
                                   <>
                                     {isJoinNear ? (
-                                      <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Join Consultation</Button>
+                                      <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.join_consultation}</Button>
                                     ) : (
                                       <Box sx={{ px: 1.5, py: 0.8, borderRadius: 1.5, bgcolor: c.primarySoft, border: `1px solid ${c.primary}30` }}>
                                          <Typography sx={{ color: c.primaryDark, fontSize: 11, fontWeight: 700 }}>{getConsultationStatus(appt).label}</Typography>
                                       </Box>
                                     )}
-                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Reschedule</Button>
-                                    <Button onClick={() => setSnackbar({ open: true, severity: 'info', message: 'Cancellation request sent to doctor.' })} size="small" variant="text" sx={{ color: c.danger, fontSize: 11, textTransform: 'none' }}>Cancel Appointment</Button>
+                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.reschedule}</Button>
+                                    <Button onClick={() => setSnackbar({ open: true, severity: 'info', message: 'Cancellation request sent to doctor.' })} size="small" variant="text" sx={{ color: c.danger, fontSize: 11, textTransform: 'none' }}>{t.appts.cancel}</Button>
                                   </>
                                 )}
                                 {dashStatus === 'ongoing' && (
                                   <>
-                                    <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: c.success, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: c.success } }}>Join Now</Button>
-                                    <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Chat with Doctor</Button>
-                                    <Button onClick={() => navigate('/patient/records?tab=upload')} size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Upload Reports</Button>
+                                    <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: c.success, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: c.success } }}>{t.appts.join_now}</Button>
+                                    <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.chat}</Button>
+                                    <Button onClick={() => navigate('/patient/records?tab=upload')} size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.upload}</Button>
                                   </>
                                 )}
                                 {dashStatus === 'completed' && (
                                   <>
-                                    <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>View Prescription</Button>
-                                    <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>View Medical Record</Button>
-                                    <Button onClick={() => setSnackbar({ open: true, severity: 'success', message: 'Feedback form will open shortly.' })} size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Give Feedback</Button>
+                                    <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.view_prescription}</Button>
+                                    <Button onClick={() => navigate('/patient/records')} size="small" variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.view_record}</Button>
+                                    <Button onClick={() => setSnackbar({ open: true, severity: 'success', message: 'Feedback form will open shortly.' })} size="small" variant="outlined" startIcon={<StarIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.feedback}</Button>
                                   </>
                                 )}
                                 {dashStatus === 'cancelled' && (
-                                  <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Rebook Appointment</Button>
+                                  <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.rebook}</Button>
                                 )}
                                 {dashStatus === 'missed' && (
                                   <>
-                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Reschedule</Button>
-                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>Book Again</Button>
+                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.reschedule}</Button>
+                                    <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.book_again}</Button>
                                   </>
                                 )}
                              </Box>
@@ -417,8 +421,8 @@ function PatientDashboard() {
               ) : (
                 <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `1px dashed ${c.line}`, borderRadius: 2, bgcolor: c.soft }}>
                   <EventAvailableIcon sx={{ fontSize: 40, color: c.muted, mb: 2 }} />
-                  <Typography sx={{ fontSize: 15, color: c.muted, mb: 2 }}>You don't have any upcoming appointments.</Typography>
-                  <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600, border: `1px solid ${c.primary}`, borderRadius: 1.5, px: 3, py: 1 }}>Book Now</Button>
+                  <Typography sx={{ fontSize: 15, color: c.muted, mb: 2 }}>{t.appts.no_appts}</Typography>
+                  <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600, border: `1px solid ${c.primary}`, borderRadius: 1.5, px: 3, py: 1 }}>{t.appts.book_now}</Button>
                 </Box>
               )}
             </Box>
@@ -428,12 +432,12 @@ function PatientDashboard() {
           <Grid size={{ xs: 12, xl: 4 }}>
             <Box sx={{ p: 4, borderRadius: 2, bgcolor: c.text, color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', height: '100%' }}>
               <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.05)' }} />
-              <Typography sx={{ fontSize: 20, fontWeight: 600, mb: 1.5, fontFamily: 'Inter, sans-serif' }}>AI Symptom Checker</Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 600, mb: 1.5, fontFamily: 'Inter, sans-serif' }}>{t.ai.title}</Typography>
               <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', mb: 1.5, lineHeight: 1.5 }}>
-                Not sure which specialist to see? Describe your symptoms and get instant guidance.
+                {t.ai.desc}
               </Typography>
               <Button onClick={() => navigate('/symptom-checker')} sx={{ width: '100%', py: 1.25, borderRadius: 1.5, bgcolor: '#ffffff', color: c.text, textTransform: 'none', fontSize: 15, fontWeight: 600, '&:hover': { bgcolor: '#f0f0f0' } }}>
-                Start Check
+                {t.ai.start}
               </Button>
             </Box>
           </Grid>
@@ -445,10 +449,10 @@ function PatientDashboard() {
           <Grid size={{ xs: 12, lg: 6 }}>
             <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', height: '100%' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>Recent Health Records</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>{t.records.recent}</Typography>
                 <Stack direction="row" spacing={1}>
-                  <Button onClick={() => navigate('/patient/records?action=add')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>Upload</Button>
-                  <Button onClick={() => navigate('/patient/records')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>View All</Button>
+                  <Button onClick={() => navigate('/patient/records?action=add')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>{t.records.upload}</Button>
+                  <Button onClick={() => navigate('/patient/records')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>{t.records.view_all}</Button>
                 </Stack>
               </Stack>
               <Divider sx={{ mb: 2, borderColor: c.soft }} />
@@ -467,7 +471,7 @@ function PatientDashboard() {
               ) : (
                 <Box sx={{ py: 4, textAlign: 'center' }}>
                   <NotesIcon sx={{ fontSize: 40, color: '#d0d0d0', mb: 1.5 }} />
-                  <Typography sx={{ color: c.muted, fontSize: 15 }}>No health records found.</Typography>
+                  <Typography sx={{ color: c.muted, fontSize: 15 }}>{t.records.no_records}</Typography>
                 </Box>
               )}
             </Box>
@@ -477,8 +481,8 @@ function PatientDashboard() {
           <Grid size={{ xs: 12, lg: 6 }}>
             <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', height: '100%' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>Nearby Pharmacies</Typography>
-                <Button onClick={() => navigate('/patient/pharmacies')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>Explore Map</Button>
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>{t.pharmacies.nearby}</Typography>
+                <Button onClick={() => navigate('/patient/pharmacies')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14 }}>{t.pharmacies.explore}</Button>
               </Stack>
               <Divider sx={{ mb: 2, borderColor: c.soft }} />
               {pharmacies.length > 0 ? (
@@ -493,7 +497,7 @@ function PatientDashboard() {
               ) : (
                 <Box sx={{ py: 4, textAlign: 'center' }}>
                   <PlaceIcon sx={{ fontSize: 40, color: '#d0d0d0', mb: 1.5 }} />
-                  <Typography sx={{ color: c.muted, fontSize: 15 }}>No nearby pharmacies available in your area.</Typography>
+                  <Typography sx={{ color: c.muted, fontSize: 15 }}>{t.pharmacies.no_pharmacies}</Typography>
                 </Box>
               )}
             </Box>
@@ -503,8 +507,8 @@ function PatientDashboard() {
         {/* Prescription Orders Tracking */}
         <Box sx={{ mb: 4, p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-            <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>Active Prescription Orders</Typography>
-            <Button onClick={() => navigate('/patient/orders')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>Track Orders</Button>
+            <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>{t.orders.active}</Typography>
+            <Button onClick={() => navigate('/patient/orders')} sx={{ color: c.primary, textTransform: 'none', fontSize: 14, fontWeight: 600 }}>{t.orders.track}</Button>
           </Stack>
           
           {orders.length > 0 ? (
@@ -538,7 +542,7 @@ function PatientDashboard() {
                               onClick={() => handleCancelOrder(order._id)}
                               sx={{ p: 0, minWidth: 0, color: c.danger, fontSize: 10, fontWeight: 700, textTransform: 'none' }}
                             >
-                              Cancel
+                              {t.orders.cancel}
                             </Button>
                           )}
                         </Stack>
@@ -551,7 +555,7 @@ function PatientDashboard() {
           ) : (
             <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', bgcolor: c.soft, borderRadius: 2, border: `1px dashed ${c.line}`, textAlign: 'center' }}>
                <OrderIcon sx={{ fontSize: 32, color: '#d0d0d0', mb: 1.5 }} />
-               <Typography sx={{ fontSize: 14, color: c.muted, maxWidth: 300 }}>You haven't sent any prescriptions to pharmacies yet. Your active orders will appear here.</Typography>
+               <Typography sx={{ fontSize: 14, color: c.muted, maxWidth: 300 }}>{t.orders.no_orders}</Typography>
             </Box>
           )}
         </Box>
@@ -559,13 +563,13 @@ function PatientDashboard() {
         {/* Booking Section */}
         <Box ref={bookingRef} sx={{ p: { xs: 3, md: 4 }, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Box sx={{ mb: 4 }}>
-            <Typography sx={{ fontSize: 20, fontWeight: 600, color: c.text }}>Book a Consultation</Typography>
-            <Typography sx={{ mt: 0.5, color: c.muted, fontSize: 15 }}>Find the right doctor, choose a date, and select an available time.</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 600, color: c.text }}>{t.booking.title}</Typography>
+            <Typography sx={{ mt: 0.5, color: c.muted, fontSize: 15 }}>{t.booking.desc}</Typography>
           </Box>
 
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 4 }}>
-            <TextField label="Search Specialization" placeholder="e.g., Cardiologist, Dermatologist" value={specialization} onChange={(e) => setSpecialization(e.target.value)} fullWidth size="medium" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
-            <Button variant="contained" onClick={handleApplyFilter} disabled={doctorsLoading} sx={{ minWidth: 160, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}>{doctorsLoading ? 'Searching...' : 'Search'}</Button>
+            <TextField placeholder={t.booking.search_placeholder} value={specialization} onChange={(e) => setSpecialization(e.target.value)} fullWidth size="medium" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }} />
+            <Button variant="contained" onClick={handleApplyFilter} disabled={doctorsLoading} sx={{ minWidth: 160, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}>{doctorsLoading ? t.booking.searching : t.booking.search}</Button>
           </Stack>
 
           {doctorsError && <Typography sx={{ mb: 3, color: c.danger, fontSize: 15 }}>{doctorsError}</Typography>}
@@ -573,19 +577,19 @@ function PatientDashboard() {
           <Grid container spacing={4}>
             {/* Doctors List */}
             <Grid size={{ xs: 12, lg: 7, xl: 8 }}>
-              <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 2.5, color: c.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Step 1: Select a Doctor</Typography>
+              <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 2.5, color: c.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.booking.step_1}</Typography>
               {doctorsLoading ? (
                 <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}><CircularProgress size={28} sx={{ color: c.primary }} /></Box>
               ) : doctors.length === 0 ? (
                 <Box sx={{ py: 4, px: 3, borderRadius: 1.5, bgcolor: c.soft, border: `1px dashed ${c.line}`, textAlign: 'center' }}>
-                  <Typography sx={{ color: c.muted, fontSize: 15 }}>No doctors match your search. Try another specialization.</Typography>
+                  <Typography sx={{ color: c.muted, fontSize: 15 }}>{t.booking.no_match}</Typography>
                 </Box>
               ) : (
                 <Stack spacing={2}>
                   {doctors.map((doctor) => {
                     const name = doctor.user?.full_name || doctor.user?.name || 'Doctor';
-                    const rating = doctor.rating && Number(doctor.rating) > 0 ? Number(doctor.rating).toFixed(1) : 'Not rated';
-                    const availability = doctor.availability?.length ? doctor.availability.slice(0, 2).map((entry) => `${entry?.day || 'Day'}: ${Array.isArray(entry?.slots) && entry.slots.length ? entry.slots.join(', ') : 'No slots'}`).join(' | ') : 'Check slots when selecting date';
+                    const rating = doctor.rating && Number(doctor.rating) > 0 ? Number(doctor.rating).toFixed(1) : t.booking.not_rated;
+                    const availability = doctor.availability?.length ? doctor.availability.slice(0, 2).map((entry) => `${entry?.day || 'Day'}: ${Array.isArray(entry?.slots) && entry.slots.length ? entry.slots.join(', ') : 'No slots'}`).join(' | ') : t.booking.check_slots;
                     const selected = selectedDoctor?._id === doctor._id;
                     return (
                       <Box key={doctor._id} sx={{ p: 2, borderRadius: 1.5, border: `1px solid ${selected ? c.primary : c.line}`, bgcolor: selected ? c.primarySoft : '#fff', transition: 'all 0.2s', cursor: 'pointer', '&:hover': { borderColor: c.primary, bgcolor: selected ? c.primarySoft : '#fafafa' } }} onClick={() => {
@@ -613,7 +617,7 @@ function PatientDashboard() {
                             }} 
                             sx={{ minWidth: 100, borderRadius: 1.5, py: 0.75, textTransform: 'none', fontSize: 14, fontWeight: 600, borderColor: selected ? 'transparent' : c.line, color: selected ? '#fff' : c.text, bgcolor: selected ? c.primary : 'transparent', boxShadow: 'none', '&:hover': { boxShadow: 'none', bgcolor: selected ? c.primaryDark : c.soft, borderColor: selected ? 'transparent' : c.line } }}
                            >
-                            {selected ? 'Selected' : 'Select'}
+                            {selected ? t.booking.selected : t.booking.select}
                           </Button>
                         </Stack>
                       </Box>
@@ -626,25 +630,25 @@ function PatientDashboard() {
             {/* Date and Slot Selection */}
             <Grid size={{ xs: 12, lg: 5, xl: 4 }}>
                <Box sx={{ p: 3, borderRadius: 1.5, border: `1px solid ${c.line}`, bgcolor: c.bg, alignSelf: 'start' }}>
-                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 2.5, color: c.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Step 2: Choose Slot</Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 2.5, color: c.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.booking.step_2}</Typography>
                   
                   {selectedDoctor ? (
                     <>
                       <Box sx={{ mb: 3, p: 2, bgcolor: '#fff', borderRadius: 1.5, border: `1px solid ${c.soft}` }}>
                         <Typography sx={{ fontSize: 16, fontWeight: 600, color: c.text }}>{doctorName}</Typography>
                         <Typography sx={{ color: c.muted, fontSize: 14 }}>{selectedDoctor.specialization || 'Specialist'}</Typography>
-                        {selectedDoctor.consultationFee && <Typography sx={{ mt: 1, color: c.text, fontSize: 14, fontWeight: 500 }}>Fee: Rs. {selectedDoctor.consultationFee}</Typography>}
+                        {selectedDoctor.consultationFee && <Typography sx={{ mt: 1, color: c.text, fontSize: 14, fontWeight: 500 }}>{t.booking.fee} {selectedDoctor.consultationFee}</Typography>}
                       </Box>
   
                       <TextField label="Select Date" type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} InputLabelProps={{ shrink: true }} inputProps={{ min: new Date().toISOString().split('T')[0] }} fullWidth size="medium" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.5, bgcolor: '#fff' } }} />
                       
                       <Box sx={{ mt: 3 }}>
-                        <Typography sx={{ mb: 1.5, fontSize: 14, fontWeight: 600, color: c.muted }}>Available Times</Typography>
+                        <Typography sx={{ mb: 1.5, fontSize: 14, fontWeight: 600, color: c.muted }}>{t.booking.available}</Typography>
                         {slotsLoading ? (
                           <CircularProgress size={24} sx={{ color: c.primary }} />
                         ) : slots.length === 0 ? (
                           <Typography sx={{ color: c.danger, fontSize: 14, bgcolor: c.dangerSoft, p: 1.5, borderRadius: 1.5 }}>
-                            {selectedDate ? 'No slots available for this date.' : 'Pick a date to view available time slots.'}
+                            {selectedDate ? t.booking.no_slots : t.booking.pick_date}
                           </Typography>
                         ) : (
                           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -669,12 +673,12 @@ function PatientDashboard() {
                       </Box>
                       
                       <Button variant="contained" onClick={handleBookAppointment} disabled={bookingLoading || !selectedDate || !selectedSlot} sx={{ mt: 4, width: '100%', py: 1.5, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}>
-                        {bookingLoading ? 'Confirming...' : 'Confirm Appointment'}
+                        {bookingLoading ? t.booking.confirming : t.booking.confirm}
                       </Button>
                     </>
                   ) : (
                     <Box sx={{ py: 4, px: 3, borderRadius: 1.5, bgcolor: c.soft, border: `1px dashed ${c.line}`, textAlign: 'center' }}>
-                       <Typography sx={{ color: c.muted, fontSize: 14, lineHeight: 1.6 }}>Please select a doctor from the list first to view available dates and times.</Typography>
+                       <Typography sx={{ color: c.muted, fontSize: 14, lineHeight: 1.6 }}>{t.booking.select_first}</Typography>
                     </Box>
                   )}
                </Box>

@@ -15,8 +15,13 @@ import {
   markNotificationRead
 } from '../../api/notificationApi';
 import { getDoctorNavItems } from './doctorNavigation.jsx';
+import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_NOTIFICATIONS_TRANSLATIONS } from '../../utils/translations/doctor';
 
 function DoctorNotifications() {
+  const { language } = useLanguage();
+  const t = DOCTOR_NOTIFICATIONS_TRANSLATIONS[language] || DOCTOR_NOTIFICATIONS_TRANSLATIONS['en'];
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -55,37 +60,37 @@ function DoctorNotifications() {
 
   return (
     <DashboardShell
-      title="Doctor Notifications"
-      subtitle="Operational inbox for appointment events, reminders, and upcoming consultation alerts."
-      brand="Doctor Console"
+      title={t.title}
+      subtitle={t.subtitle}
+      brand={t.doctor_console}
       navItems={getDoctorNavItems(unreadCount)}
       actions={(
         <Stack direction="row" spacing={1.5}>
           <Button variant="outlined" onClick={loadNotifications} disabled={loading}>
-            Refresh
+            {t.refresh}
           </Button>
           <Button
             variant="contained"
             onClick={handleMarkAllRead}
             disabled={notifications.length === 0 || unreadCount === 0}
           >
-            Mark All Read
+            {t.mark_all_read}
           </Button>
         </Stack>
       )}
     >
       <Paper sx={{ p: 3, borderRadius: 4 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Notification Queue
+          {t.notification_queue}
         </Typography>
         <Typography variant="body2" sx={{ color: '#64748b', mt: 0.75, mb: 3 }}>
-          Unread items stay visually elevated so the next action is easy to spot.
+          {t.queue_subtitle}
         </Typography>
 
         {loading ? (
           <CircularProgress size={24} />
         ) : notifications.length === 0 ? (
-          <Typography color="text.secondary">No notifications yet.</Typography>
+          <Typography color="text.secondary">{t.no_notifications}</Typography>
         ) : (
           <Stack spacing={2}>
             {notifications.map((notification) => (
@@ -112,10 +117,10 @@ function DoctorNotifications() {
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1} alignItems="flex-start">
-                    {!notification.read ? <Chip label="Unread" color="primary" size="small" /> : null}
+                    {!notification.read ? <Chip label={t.unread_chip} color="primary" size="small" /> : null}
                     {!notification.read ? (
                       <Button size="small" variant="outlined" onClick={() => handleMarkRead(notification._id)}>
-                        Mark Read
+                        {t.mark_read}
                       </Button>
                     ) : null}
                   </Stack>

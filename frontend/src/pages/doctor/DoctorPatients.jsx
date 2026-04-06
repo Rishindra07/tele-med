@@ -18,6 +18,8 @@ import {
 } from '@mui/icons-material';
 import { Dialog, DialogContent, DialogTitle, IconButton, Divider } from '@mui/material';
 import PatientHistoryDialog from '../../components/doctor/PatientHistoryDialog';
+import { useLanguage } from '../../context/LanguageContext';
+import { DOCTOR_PATIENTS_TRANSLATIONS } from '../../utils/translations/doctor';
 
 const colors = {
   paper: '#fffdf8', line: '#d8d0c4', soft: '#e9e2d8',
@@ -41,6 +43,9 @@ const formatDate = (value) => {
 };
 
 export default function DoctorPatients() {
+  const { language } = useLanguage();
+  const t = DOCTOR_PATIENTS_TRANSLATIONS[language] || DOCTOR_PATIENTS_TRANSLATIONS['en'];
+
   const [patients, setPatients] = useState([]);
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState('');
@@ -93,16 +98,16 @@ export default function DoctorPatients() {
     <DoctorLayout>
       <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
         <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
-          Patients
+          {t.title}
         </Typography>
         <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, mb: 3 }}>
-          All patients who have consulted with you.
+          {t.subtitle}
         </Typography>
 
         {patients.length === 0 ? (
           <Box sx={{ py: 10, textAlign: 'center', border: `1px dashed ${colors.line}`, borderRadius: 4, bgcolor: colors.paper }}>
             <HeartIcon sx={{ fontSize: 52, color: colors.muted, mb: 2 }} />
-            <Typography sx={{ color: colors.muted, fontSize: 16 }}>No patients yet. Your patients will appear here after consultations.</Typography>
+            <Typography sx={{ color: colors.muted, fontSize: 16 }}>{t.no_patients}</Typography>
           </Box>
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '300px 1fr' }, gap: 3, alignItems: 'start' }}>
@@ -110,14 +115,14 @@ export default function DoctorPatients() {
             <Stack spacing={2}>
               <TextField
                 size="small"
-                placeholder="Search patient"
+                placeholder={t.search_patient}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
                 InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: colors.muted }} /></InputAdornment> }}
               />
               <Box sx={{ p: 2.2, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 1.5 }}>All Patients ({filtered.length})</Typography>
+                <Typography sx={{ fontSize: 18, mb: 1.5 }}>{t.all_patients} ({filtered.length})</Typography>
                 <Stack spacing={1}>
                   {filtered.map(patient => {
                     const isSelected = selected?._id === patient._id;
@@ -132,7 +137,7 @@ export default function DoctorPatients() {
                         </Avatar>
                         <Box sx={{ textAlign: 'left', minWidth: 0 }}>
                           <Typography sx={{ fontSize: 14.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{patient.full_name}</Typography>
-                          <Typography sx={{ color: colors.muted, fontSize: 13.2 }}>{patient.lastDiagnosis || 'General'}</Typography>
+                          <Typography sx={{ color: colors.muted, fontSize: 13.2 }}>{patient.lastDiagnosis || t.general}</Typography>
                         </Box>
                       </Button>
                     );
@@ -145,7 +150,7 @@ export default function DoctorPatients() {
             {selected && (
               <Stack spacing={3}>
                 <Typography sx={{ color: '#a7a198', fontSize: 14.5 }}>
-                  Patients › Details › {selected.full_name}
+                  {t.patients_nav} › {t.details_nav} › {selected.full_name}
                 </Typography>
 
                 <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
@@ -158,16 +163,16 @@ export default function DoctorPatients() {
                         <Typography sx={{ fontSize: { xs: 28, md: 34 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>{selected.full_name}</Typography>
                         <Typography sx={{ mt: 0.6, color: colors.muted, fontSize: 15.5 }}>{selected.email}</Typography>
                         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.5 }}>
-                          {[selected.phone, selected.lastDiagnosis, `${selected.totalVisits} visit${selected.totalVisits !== 1 ? 's' : ''}`, selected.lastStatus].filter(Boolean).map(item => (
+                          {[selected.phone, selected.lastDiagnosis, `${selected.totalVisits} ${selected.totalVisits !== 1 ? t.visits : t.visit}`, selected.lastStatus].filter(Boolean).map(item => (
                             <Chip key={item} label={item} sx={{ bgcolor: '#f6f3ec', color: '#66615a', fontSize: 13.5 }} />
                           ))}
                         </Stack>
                         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.8 }}>
                           <Button startIcon={<NoteIcon />} onClick={() => navigate(`/doctor/prescribe`, { state: { appointment: { patientName: selected.full_name, patient: { _id: selected._id } } } })} sx={{ px: 2.2, py: 0.9, borderRadius: 2.4, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 14.5 }}>
-                            Write Prescription
+                            {t.write_presc}
                           </Button>
                           <Button startIcon={<FileIcon />} onClick={() => handleFetchHistory(selected._id)} sx={{ px: 2.2, py: 0.9, borderRadius: 2.4, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 14.5 }}>
-                            View Records
+                            {t.view_records}
                           </Button>
                         </Stack>
                       </Box>
@@ -175,10 +180,10 @@ export default function DoctorPatients() {
 
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5, minWidth: { lg: 280 } }}>
                       {[
-                        ['Total Visits', selected.totalVisits],
-                        ['Last Visit', formatDate(selected.lastVisit)],
-                        ['Last Diagnosis', selected.lastDiagnosis || 'General'],
-                        ['Status', selected.lastStatus || 'Scheduled']
+                        [t.total_visits, selected.totalVisits],
+                        [t.last_visit, formatDate(selected.lastVisit)],
+                        [t.last_diag, selected.lastDiagnosis || t.general],
+                        [t.status, selected.lastStatus || t.scheduled]
                       ].map(([label, value]) => (
                         <Box key={label} sx={{ p: 1.5, borderRadius: 2.5, bgcolor: '#f5f1e9' }}>
                           <Typography sx={{ color: colors.muted, fontSize: 13 }}>{label}</Typography>
@@ -190,8 +195,8 @@ export default function DoctorPatients() {
                 </Box>
 
                 <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 18, mb: 1 }}>Contact Information</Typography>
-                  {[['Email', selected.email], ['Phone', selected.phone || 'Not provided']].map(([label, value]) => (
+                  <Typography sx={{ fontSize: 18, mb: 1 }}>{t.contact_info}</Typography>
+                  {[[t.email, selected.email], [t.phone, selected.phone || t.not_provided]].map(([label, value]) => (
                     <Box key={label} sx={{ py: 1.5, borderBottom: `1px solid ${colors.soft}` }}>
                       <Typography sx={{ fontSize: 12.5, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</Typography>
                       <Typography sx={{ mt: 0.4, fontSize: 15.5 }}>{value}</Typography>

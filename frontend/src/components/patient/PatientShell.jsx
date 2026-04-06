@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Avatar, Box, Button, CssBaseline, Stack, Typography } from '@mui/material';
+import { useLanguage } from '../../context/LanguageContext';
+import { PATIENT_SHELL_TRANSLATIONS } from '../../utils/translations/patient';
 import {
   ChevronRightRounded as ChevronRightIcon,
   HomeRounded as HomeIcon,
@@ -23,27 +25,19 @@ const colors = {
   greenDark: '#1557b0'
 };
 
-const navItems = [
-  { label: 'Home', icon: HomeIcon, action: 'dashboard' },
-  { label: 'Appointments', icon: EventIcon, action: 'appointments' },
-  { label: 'Health Records', icon: HealthRecordsIcon, action: 'records' },
-  { label: 'Symptom Checker', icon: SearchIcon, action: 'symptoms' },
-  { label: 'Pharmacies', icon: HospitalIcon, action: 'pharmacies' },
-  { label: 'Orders', icon: OrderIcon, action: 'orders' }
+const navItemDefs = [
+  { navKey: 'home', icon: HomeIcon, action: 'dashboard' },
+  { navKey: 'appointments', icon: EventIcon, action: 'appointments' },
+  { navKey: 'records', icon: HealthRecordsIcon, action: 'records' },
+  { navKey: 'symptoms', icon: SearchIcon, action: 'symptoms' },
+  { navKey: 'pharmacies', icon: HospitalIcon, action: 'pharmacies' },
+  { navKey: 'orders', icon: OrderIcon, action: 'orders' }
 ];
 
-const settingsSections = [
-  ['appearance', 'Appearance'],
-  ['language', 'Language'],
-  ['notifications', 'Notifications'],
-  ['connectivity', 'Connectivity'],
-  ['privacy', 'Privacy'],
-  ['security', 'Security'],
-  ['storage', 'Storage & Sync'],
-  ['accessibility', 'Accessibility'],
-  ['account', 'Account'],
-  ['devices', 'Devices'],
-  ['danger', 'Danger Zone']
+const settingsSectionKeys = [
+  'appearance', 'language', 'notifications', 'connectivity',
+  'privacy', 'security', 'storage', 'accessibility',
+  'account', 'devices', 'danger'
 ];
 
 const initials = (name) =>
@@ -56,6 +50,8 @@ const initials = (name) =>
 
 function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSettingSection = '', children }) {
   const navigate = useNavigate();
+  const { language, setLanguage } = useLanguage();
+  const st = PATIENT_SHELL_TRANSLATIONS[language] || PATIENT_SHELL_TRANSLATIONS['en'];
   const user = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || '{}');
@@ -65,7 +61,6 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
   }, []);
   const patientName = user?.full_name || user?.name || 'Patient';
   const profileImage = user?.profileImage || user?.avatar || user?.image || '';
-  const [language, setLanguage] = useState('EN');
   const settingsOpenDefault = activeSetting === 'settings';
   const [settingsOpen, setSettingsOpen] = useState(settingsOpenDefault);
 
@@ -116,21 +111,21 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
       >
         <Box sx={{ px: 4, py: 5, borderBottom: `1px solid ${colors.line}` }}>
           <Typography sx={{ fontSize: 26, fontWeight: 700, color: colors.green, fontFamily: 'Georgia, serif' }}>
-            Seva TeleHealth
+            {st.brand}
           </Typography>
           <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 17 }}>
-            Rural Healthcare Platform
+            {st.tagline}
           </Typography>
         </Box>
 
         <Box sx={{ px: 2.5, py: 3, flex: 1 }}>
           <Stack spacing={1.25}>
-            {navItems.map((item) => {
+            {navItemDefs.map((item) => {
               const Icon = item.icon;
               const active = item.action === activeItem;
               return (
                 <Button
-                  key={item.label}
+                  key={item.navKey}
                   onClick={() => handleNav(item.action)}
                   sx={{
                     justifyContent: 'flex-start',
@@ -146,7 +141,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                   }}
                 >
                   <Icon />
-                  <Box sx={{ flexGrow: 1, textAlign: 'left' }}>{item.label}</Box>
+                  <Box sx={{ flexGrow: 1, textAlign: 'left' }}>{st.nav[item.navKey]}</Box>
                   {item.action === 'appointments' && (
                     <Box
                       sx={{
@@ -171,11 +166,11 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
           </Stack>
 
           <Typography sx={{ mt: 5, mb: 2, px: 1.5, color: colors.muted, fontSize: 14, letterSpacing: 1.4 }}>
-            SETTINGS
+            {st.settings_label}
           </Typography>
           <Stack spacing={1.25}>
             {[
-              ['My Profile', 'profile', <PersonIcon key="profile" />]
+              [st.my_profile, 'profile', <PersonIcon key="profile" />]
             ].map(([label, action, icon]) => {
               const active = action === activeSetting;
               return (
@@ -225,7 +220,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
               >
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <SettingsIcon />
-                  <Box>Settings</Box>
+                  <Box>{st.settings}</Box>
                 </Stack>
                 <ChevronRightIcon
                   sx={{
@@ -237,7 +232,8 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
 
               {settingsOpen && (
                 <Stack spacing={0.45} sx={{ mt: 0.75, pl: 4 }}>
-                  {settingsSections.map(([key, label]) => {
+                  {settingsSectionKeys.map((key) => {
+                    const label = st.settings_sections[key] || key;
                     const active = key === activeSettingSection;
                     return (
                       <Button
@@ -276,25 +272,25 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
         </Box>
 
         <Box sx={{ p: 2.5, borderTop: `1px solid ${colors.line}` }}>
-          <Typography sx={{ color: colors.muted, fontSize: 16, mb: 1.75 }}>Language</Typography>
+          <Typography sx={{ color: colors.muted, fontSize: 16, mb: 1.75 }}>{st.language_label}</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {['EN', 'HIN', 'TAM', 'TEL', 'BAN'].map((item) => (
+            {[{ code: 'en', label: 'EN' }, { code: 'hi', label: 'HIN' }, { code: 'ta', label: 'TAM' }, { code: 'te', label: 'TEL' }, { code: 'bn', label: 'BAN' }].map((item) => (
               <Button
-                key={item}
-                onClick={() => setLanguage(item)}
+                key={item.code}
+                onClick={() => setLanguage(item.code)}
                 sx={{
                   minWidth: 0,
                   px: 1.8,
                   py: 0.75,
                   borderRadius: 999,
-                  border: `1px solid ${language === item ? colors.green : '#bcb4aa'}`,
-                  bgcolor: language === item ? colors.greenSoft : '#fff',
-                  color: language === item ? colors.greenDark : '#5f5a52',
+                  border: `1px solid ${language === item.code ? colors.green : '#bcb4aa'}`,
+                  bgcolor: language === item.code ? colors.greenSoft : '#fff',
+                  color: language === item.code ? colors.greenDark : '#5f5a52',
                   textTransform: 'none',
                   fontSize: 15
                 }}
               >
-                {item}
+                {item.label}
               </Button>
             ))}
           </Stack>
@@ -330,7 +326,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
             '&:hover': { bgcolor: '#f0f0f0' }
             }}
           >
-            Logout
+            {st.logout}
           </Button>
         </Box>
       </Box>
