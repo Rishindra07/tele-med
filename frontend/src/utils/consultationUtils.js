@@ -17,7 +17,24 @@ export const getConsultationStatus = (appt) => {
 
   const now = new Date();
   const apptDate = new Date(appt.appointmentDate);
-  const [hours, minutes] = String(appt.timeSlot).split(':').map(Number);
+  
+  // Handle 12h or 24h formats
+  let hours = 0;
+  let minutes = 0;
+  const timeStr = String(appt.timeSlot).toUpperCase();
+  
+  if (timeStr.includes('AM') || timeStr.includes('PM')) {
+    const [time, modifier] = timeStr.split(' ');
+    let [h, m] = time.split(':').map(Number);
+    if (modifier === 'PM' && h < 12) h += 12;
+    if (modifier === 'AM' && h === 12) h = 0;
+    hours = h;
+    minutes = m;
+  } else {
+    const parts = timeStr.split(':').map(Number);
+    hours = parts[0] || 0;
+    minutes = parts[1] || 0;
+  }
   
   const targetTime = new Date(apptDate);
   targetTime.setHours(hours, minutes, 0, 0);

@@ -108,6 +108,7 @@ function PatientAppointments() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const [payingId, setPayingId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -166,6 +167,57 @@ function PatientAppointments() {
       }
     } catch (err) {
       setSnackbar({ open: true, message: err.response?.data?.message || t.messages.reschedule_fail, severity: 'error' });
+    }
+  };
+
+  const handleStartPayment = async (appointment) => {
+    setPayingId(appointment.id);
+    try {
+      const fee = appointment.consultationFee || 500;
+      const { createRazorpayOrder, verifyRazorpayPayment } = await import('../../api/patientApi');
+      
+      const orderRes = await createRazorpayOrder({ 
+        amount: fee,
+        referenceId: appointment.id,
+        referenceType: 'consultation'
+      });
+
+      if (!orderRes.success) throw new Error("Payment initialization failed");
+
+      const options = {
+        key: orderRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: "Seva Telehealth",
+        description: `Consultation with Dr. ${appointment.doctorName}`,
+        order_id: orderRes.orderId,
+        handler: async (response) => {
+          try {
+            const verifyRes = await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes.success) {
+              setSnackbar({ open: true, message: 'Payment successful!', severity: 'success' });
+              fetchAppointments();
+            } else {
+              setSnackbar({ open: true, message: 'Payment verification failed', severity: 'error' });
+            }
+          } catch (err) {
+            setSnackbar({ open: true, message: 'Error: ' + err.message, severity: 'error' });
+          }
+        },
+        theme: { color: colors.primary }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Payment error: ' + err.message, severity: 'error' });
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -363,6 +415,16 @@ function PatientAppointments() {
             <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1.5, justifyContent: 'flex-end' }}>
               {dashStatus === 'upcoming' && (
                 <>
+                  {a.paymentStatus === 'Pending' && (
+                    <Button 
+                      onClick={() => handleStartPayment(a)} 
+                      variant="contained" 
+                      disabled={payingId === a.id}
+                      sx={{ bgcolor: colors.warning, color: '#fff', borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#e89b00' } }}
+                    >
+                      {payingId === a.id ? <CircularProgress size={20} color="inherit" /> : 'Pay Now'}
+                    </Button>
+                  )}
                   {isJoinNear ? (
                     <Button onClick={() => navigate('/patient/consultation')} variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.primary, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}>{t.actions.join}</Button>
                   ) : (

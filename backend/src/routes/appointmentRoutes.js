@@ -13,6 +13,8 @@ const {
   rescheduleAppointment
 } = require("../controllers/appointmentController.js");
 
+const { finishConsultation } = require("../controllers/consultationControllers.js");
+
 const  protect  = require("../middleware/authMiddleware.js");
 const { allowRoles } = require("../middleware/roleMiddleware.js");
 
@@ -32,5 +34,6 @@ router.get("/doctor", protect, allowRoles("doctor"), getDoctorAppointments);
 
 router.put("/cancel/:id", protect, allowRoles("patient"), cancelAppointment);
 router.put("/:id/reschedule", protect, allowRoles("patient"), rescheduleAppointment);
+router.put("/:id/end", protect, allowRoles("patient", "doctor"), finishConsultation);
 
 module.exports = router;

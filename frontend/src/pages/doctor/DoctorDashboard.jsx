@@ -252,21 +252,23 @@ export default function DoctorDashboard() {
                           <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             {dashStatus === 'upcoming' && (
                               <>
-                                {isJoinNear ? (
-                                  <Button onClick={() => navigate(`/doctor/consultation/${appointment._id}`)} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{t.join_consult}</Button>
-                                ) : (
-                                  <Box sx={{ px: 1.5, py: 0.8, borderRadius: 1.5, bgcolor: colors.blue + '10', border: `1px solid ${colors.blue}30` }}>
-                                    <Typography sx={{ color: colors.blue, fontSize: 11, fontWeight: 600 }}>{getConsultationStatus(appointment).label}</Typography>
-                                  </Box>
-                                )}
+                                <Button 
+                                  onClick={() => navigate('/doctor/video-call', { state: { appointment } })} 
+                                  size="small" 
+                                  variant="contained" 
+                                  startIcon={<VideoIcon />} 
+                                  sx={{ bgcolor: colors.green, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}
+                                >
+                                  {t.join_consult}
+                                </Button>
                                 <Button onClick={() => handleOpenReschedule(appointment)} size="small" variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.reschedule}</Button>
                                 <Button onClick={() => handleCancel(appointment._id)} disabled={cancellingId === appointment._id} size="small" variant="text" sx={{ color: colors.red, fontSize: 11, textTransform: 'none' }}>{cancellingId === appointment._id ? t.cancelling : t.cancel}</Button>
                               </>
                             )}
                             {dashStatus === 'ongoing' && (
                               <>
-                                <Button onClick={() => navigate(`/doctor/consultation/${appointment._id}`)} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{t.join_now}</Button>
-                                <Button onClick={() => navigate(`/doctor/consultation/${appointment._id}`, { state: { openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.chat_patient}</Button>
+                                <Button onClick={() => navigate('/doctor/video-call', { state: { appointment } })} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.green, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: colors.green } }}>{t.join_now}</Button>
+                                <Button onClick={() => navigate('/doctor/video-call', { state: { appointment } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.chat_patient}</Button>
                                 <Button onClick={() => navigate('/doctor/prescribe', { state: { appointment } })} size="small" variant="contained" startIcon={<PrescriptionIcon />} sx={{ ml: 'auto', bgcolor: colors.green, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.prescribe}</Button>
                               </>
                             )}

@@ -252,33 +252,45 @@ function PatientDashboard() {
     }
   };
 
-  const handleBookAppointment = async (paymentStatus = 'Pending') => {
+  const handleBookAppointment = async (paymentStatus = 'Pending', referenceDetails = null) => {
     if (!selectedDoctor || !selectedDate || !selectedSlot) {
       setSnackbar({ open: true, severity: 'error', message: 'Please select doctor, date, and time slot.' });
-      return;
+      return null;
     }
     const doctorId = selectedDoctor.user?._id || selectedDoctor.user;
     if (!doctorId) {
       setSnackbar({ open: true, severity: 'error', message: 'Selected doctor is missing an ID.' });
-      return;
+      return null;
     }
     setBookingLoading(true);
     try {
-      await bookAppointment({
+      const res = await bookAppointment({
         doctorId,
         specialization: selectedDoctor.specialization || specialization,
         date: selectedDate,
         slot: selectedSlot,
         paymentStatus,
-        paymentMethod: 'Online'
+        paymentMethod: paymentStatus === 'Paid' ? 'Online' : 'Pending'
       });
-      setSnackbar({ open: true, severity: 'success', message: 'Appointment booked successfully.' });
-      setSlots((prev) => prev.map((s) => s.time === selectedSlot ? { ...s, isBooked: true } : s));
-      setSelectedSlot('');
-      setPaymentDone(true);
-      setTimeout(() => navigate('/patient/appointments'), 2000);
+      
+      if (res.success) {
+        if (paymentStatus === 'Paid') {
+          setSnackbar({ open: true, severity: 'success', message: 'Appointment booked and paid successfully.' });
+          setPaymentDone(true);
+          setTimeout(() => navigate('/patient/appointments'), 2000);
+        } else if (!referenceDetails) {
+          // If just booking without immediate payment flow
+          setSnackbar({ open: true, severity: 'success', message: 'Appointment request sent successfully.' });
+          setTimeout(() => navigate('/patient/appointments'), 2000);
+        }
+        
+        setSlots((prev) => prev.map((s) => s.time === selectedSlot ? { ...s, isBooked: true } : s));
+        setSelectedSlot('');
+        return res.appointment;
+      }
     } catch (error) {
       setSnackbar({ open: true, severity: 'error', message: error.message || 'Booking failed.' });
+      return null;
     } finally {
       setBookingLoading(false);
     }
@@ -290,36 +302,55 @@ function PatientDashboard() {
       return;
     }
     
-    const fee = selectedDoctor.consultationFee || 500; // Fallback to 500 if no fee
     setPaying(true);
-    
     try {
+      // 1. Create appointment first in Pending state
+      const appointment = await handleBookAppointment('Pending', { isPaymentFlow: true });
+      if (!appointment) return;
+
+      const fee = selectedDoctor.consultationFee || 500;
+      
+      // 2. Create Razorpay Order
       const orderRes = await createRazorpayOrder({ 
         amount: fee,
-        receipt: `appt_${Date.now()}`
+        referenceId: appointment._id,
+        referenceType: 'consultation'
       });
 
       if (!orderRes.success) throw new Error("Payment initialization failed");
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        key: orderRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
         amount: orderRes.amount,
         currency: orderRes.currency,
         name: "Seva Telehealth",
         description: `Consultation with Dr. ${selectedDoctor.user?.full_name || 'Expert'}`,
         order_id: orderRes.orderId,
         handler: async (response) => {
-          const verifyRes = await verifyRazorpayPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature
-          });
+          setPaying(true);
+          try {
+            const verifyRes = await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
 
-          if (verifyRes.success) {
-            handleBookAppointment('Paid');
-          } else {
-            setSnackbar({ open: true, severity: 'error', message: 'Payment verification failed' });
+            if (verifyRes.success) {
+              setSnackbar({ open: true, severity: 'success', message: 'Payment successful! Appointment confirmed.' });
+              setPaymentDone(true);
+              setTimeout(() => navigate('/patient/appointments'), 2000);
+            } else {
+              setSnackbar({ open: true, severity: 'error', message: 'Payment verification failed' });
+            }
+          } catch (err) {
+            setSnackbar({ open: true, severity: 'error', message: 'Verification error: ' + err.message });
+          } finally {
+            setPaying(false);
           }
+        },
+        prefill: {
+          name: patientName,
+          email: JSON.parse(localStorage.getItem('user') || '{}').email || ''
         },
         theme: { color: c.primary }
       };
@@ -426,7 +457,7 @@ function PatientDashboard() {
                                 {dashStatus === 'upcoming' && (
                                   <>
                                     {isJoinNear ? (
-                                      <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.join_consultation}</Button>
+                                      <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.join_consultation}</Button>
                                     ) : (
                                       <Box sx={{ px: 1.5, py: 0.8, borderRadius: 1.5, bgcolor: c.primarySoft, border: `1px solid ${c.primary}30` }}>
                                          <Typography sx={{ color: c.primaryDark, fontSize: 11, fontWeight: 700 }}>{getConsultationStatus(appt).label}</Typography>
@@ -438,8 +469,8 @@ function PatientDashboard() {
                                 )}
                                 {dashStatus === 'ongoing' && (
                                   <>
-                                    <Button onClick={() => navigate('/patient/consultation')} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: c.success, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: c.success } }}>{t.appts.join_now}</Button>
-                                    <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.chat}</Button>
+                                    <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: c.success, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: c.success } }}>{t.appts.join_now}</Button>
+                                    <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.chat}</Button>
                                     <Button onClick={() => navigate('/patient/records?tab=upload')} size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.upload}</Button>
                                   </>
                                 )}
@@ -718,16 +749,31 @@ function PatientDashboard() {
                         )}
                       </Box>
                       
-                      <Button 
-                        variant="contained" 
-                        onClick={startPaymentFlow} 
-                        disabled={paying || bookingLoading || !selectedDate || !selectedSlot} 
-                        sx={{ mt: 4, width: '100%', py: 1.5, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}
-                      >
-                        {paying ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 
-                         paymentDone ? 'Redirecting...' : 
-                         bookingLoading ? t.booking.confirming : t.booking.confirm}
-                      </Button>
+                      <Stack spacing={2} sx={{ mt: 4 }}>
+                        <Button 
+                          variant="contained" 
+                          onClick={startPaymentFlow} 
+                          disabled={bookingLoading || paying || !selectedDate || !selectedSlot} 
+                          sx={{ 
+                            width: '100%', py: 1.5, borderRadius: 1.5, bgcolor: c.primary, 
+                            textTransform: 'none', fontSize: 16, fontWeight: 700,
+                            boxShadow: `0 8px 20px ${c.primary}30`,
+                            '&:hover': { bgcolor: c.primaryDark } 
+                          }}
+                        >
+                          {paying ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 
+                           paymentDone ? 'Confirmed' : 'Pay & Confirm Appointment'}
+                        </Button>
+                        
+                        <Button 
+                          variant="outlined" 
+                          onClick={() => handleBookAppointment('Pending')} 
+                          disabled={bookingLoading || paying || !selectedDate || !selectedSlot} 
+                          sx={{ width: '100%', py: 1.2, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
+                        >
+                          Book Now, Pay Later
+                        </Button>
+                      </Stack>
                     </>
                   ) : (
                     <Box sx={{ py: 4, px: 3, borderRadius: 1.5, bgcolor: c.soft, border: `1px dashed ${c.line}`, textAlign: 'center' }}>

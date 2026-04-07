@@ -1,111 +1,169 @@
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
-const PrescriptionOrder = require("../models/PrescriptionOrder");
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const Payment = require('../models/Payment');
+const Consultation = require('../models/Consultation');
+const PrescriptionOrder = require('../models/PrescriptionOrder');
 
+// Initialize Razorpay with env credentials
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_placeholder",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "rzp_secret_placeholder",
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+/**
+ * @desc   Create a Razorpay Order for appointment or medicine order
+ * @route  POST /api/payments/order
+ * @access Private
+ * @body   { amount, currency?, referenceId, referenceType }
+ *   - referenceType: 'consultation' | 'medicine_order'
+ *   - referenceId:   ObjectId of the Consultation or PrescriptionOrder
+ */
 exports.createRazorpayOrder = async (req, res) => {
   try {
-    const { amount, currency = "INR", receipt } = req.body;
+    const {
+      amount,
+      currency = 'INR',
+      referenceId,
+      referenceType,
+    } = req.body;
 
-    if (!amount) {
-      return res.status(400).json({ success: false, message: "Amount is required" });
+    if (!amount || !referenceId || !referenceType) {
+      return res.status(400).json({
+        message: 'amount, referenceId and referenceType are required',
+      });
     }
 
-    const options = {
-      amount: Math.round(amount * 100), // convert to paisa
+    if (!['consultation', 'medicine_order'].includes(referenceType)) {
+      return res.status(400).json({
+        message: 'referenceType must be "consultation" or "medicine_order"',
+      });
+    }
+
+    const receipt = `rcpt_${referenceType.slice(0, 4)}_${Date.now()}`;
+
+    // Create order on Razorpay
+    const rzpOrder = await razorpay.orders.create({
+      amount: Math.round(amount * 100), // paise
       currency,
-      receipt: receipt || `receipt_${Date.now()}`,
-    };
+      receipt,
+    });
 
-    const order = await razorpay.orders.create(options);
+    if (!rzpOrder) {
+      return res.status(500).json({ message: 'Failed to create Razorpay order' });
+    }
 
-    res.status(200).json({
+    // Persist order record in DB
+    const payment = await Payment.create({
+      user: req.user._id,
+      referenceId,
+      referenceType,
+      razorpayOrderId: rzpOrder.id,
+      amount,
+      currency,
+      receipt,
+      status: 'created',
+    });
+
+    res.status(201).json({
       success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
+      orderId: rzpOrder.id,
+      amount: rzpOrder.amount,
+      currency: rzpOrder.currency,
+      receipt: rzpOrder.receipt,
+      paymentDbId: payment._id,
+      keyId: process.env.RAZORPAY_KEY_ID, // send key_id so frontend can init checkout
     });
   } catch (error) {
-    console.error("[PAYMENT] Create Razorpay Order Failed", error);
-    res.status(500).json({ success: false, message: "Payment setup failed" });
+    console.error('Razorpay createOrder error:', error);
+    res.status(500).json({ message: 'Payment error', error: error.message });
   }
 };
 
+/**
+ * @desc   Verify Razorpay payment signature & mark records as paid
+ * @route  POST /api/payments/verify
+ * @access Private
+ * @body   { razorpay_order_id, razorpay_payment_id, razorpay_signature }
+ */
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
 
-    const sign = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "rzp_secret_placeholder")
-      .update(sign.toString())
-      .digest("hex");
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: 'Missing payment fields' });
+    }
 
-    if (razorpay_signature === expectedSign) {
-      // Payment verified
-      return res.status(200).json({
-        success: true,
-        message: "Payment verified successfully",
-      });
-    } else {
+    // Verify HMAC signature
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSig = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSig !== razorpay_signature) {
       return res.status(400).json({
+        message: 'Payment verification failed – invalid signature',
         success: false,
-        message: "Invalid signature, payment verification failed",
       });
     }
-  } catch (error) {
-    console.error("[PAYMENT] Verify Payment Failed", error);
-    res.status(500).json({ success: false, message: "Payment verification failed" });
-  }
-};
 
-exports.getMyPayments = async (req, res) => {
-  try {
-    const userId = req.user._id;
+    // Update Payment record
+    const payment = await Payment.findOneAndUpdate(
+      { razorpayOrderId: razorpay_order_id },
+      {
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+        status: 'paid',
+      },
+      { new: true }
+    );
 
-    // 1. Fetch consultations with payments
-    const consultations = await require("../models/Consultation").find({
-      patient: userId,
-    }).populate("doctor", "full_name");
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment record not found' });
+    }
 
-    // 2. Fetch medicine orders with payments
-    const medicineOrders = await require("../models/PrescriptionOrder").find({
-      patient: userId,
-    }).populate("pharmacy", "pharmacyName");
-
-    // 3. Format and combine
-    const consultationPayments = consultations.map(c => ({
-      id: c._id,
-      type: "Consultation",
-      description: `Appointment with Dr. ${c.doctor?.full_name || 'Expert'}`,
-      amount: c.consultationFee || 0,
-      status: c.paymentStatus,
-      method: c.paymentMethod,
-      date: c.createdAt,
-    }));
-
-    const orderPayments = medicineOrders.map(o => ({
-      id: o._id,
-      type: "Medicine Order",
-      description: `Medicines from ${o.pharmacy?.pharmacyName || 'Pharmacy'}`,
-      amount: o.totalAmount || 0,
-      status: o.paymentStatus,
-      method: o.paymentMethod,
-      date: o.createdAt,
-    }));
-
-    const allPayments = [...consultationPayments, ...orderPayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Update the linked document
+    if (payment.referenceType === 'consultation') {
+      await Consultation.findByIdAndUpdate(payment.referenceId, {
+        paymentStatus: 'Paid',
+        paymentMethod: 'Online',
+      });
+    } else if (payment.referenceType === 'medicine_order') {
+      await PrescriptionOrder.findByIdAndUpdate(payment.referenceId, {
+        paymentStatus: 'Paid',
+        paymentMethod: 'UPI',
+      });
+    }
 
     res.status(200).json({
       success: true,
-      payments: allPayments,
+      message: 'Payment verified and recorded successfully',
+      paymentId: razorpay_payment_id,
     });
   } catch (error) {
-    console.error("[PAYMENT] Get My Payments Failed", error);
-    res.status(500).json({ success: false, message: "Failed to fetch payment history" });
+    console.error('Razorpay verifyPayment error:', error);
+    res.status(500).json({ message: 'Verification error', error: error.message });
+  }
+};
+
+/**
+ * @desc   Get all payments for the logged-in patient
+ * @route  GET /api/payments/my
+ * @access Private
+ */
+exports.getMyPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({ success: true, payments });
+  } catch (error) {
+    console.error('getMyPayments error:', error);
+    res.status(500).json({ message: 'Could not fetch payments', error: error.message });
   }
 };
