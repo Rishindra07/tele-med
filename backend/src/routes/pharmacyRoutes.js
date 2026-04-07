@@ -10,7 +10,8 @@ const {
 const {
   updateDeliverySettings,
   getIncomingOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  checkStockAndPrice
 } = require("../controllers/pharmacyController.js");
 const {
   checkPrescriptionAvailability,
@@ -76,6 +77,7 @@ router.put("/supply-orders/:id", ph, role, updateSupplyOrder);
 router.put("/delivery-settings", ph, role, updateDeliverySettings);
 router.get("/orders", ph, role, getIncomingOrders);
 router.put("/orders/status", ph, role, updateOrderStatus);
+router.post("/check-stock", protect, checkStockAndPrice);
 
 module.exports = router;
 

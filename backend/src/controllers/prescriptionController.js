@@ -243,7 +243,7 @@ exports.verifyPrescription = async (req, res) => {
 
 exports.assignToPharmacy = async (req, res) => {
   try {
-    const { prescriptionId, pharmacyId, deliveryType, deliveryAddress } = req.body;
+    const { prescriptionId, pharmacyId, deliveryType, deliveryAddress, paymentMethod, paymentStatus } = req.body;
     
     // Find prescription
     const prescription = await Prescription.findById(prescriptionId).populate("patient");
@@ -273,13 +273,24 @@ exports.assignToPharmacy = async (req, res) => {
     await prescription.save();
 
     // Create a new PrescriptionOrder
+    const orderItems = prescription.medications.map(m => ({
+      name: m.name,
+      dosage: m.dosage,
+      quantity: 1, // Defaulting to 1 for this simple flow
+      price: 0,
+      instructions: m.instructions || m.frequency
+    }));
+
     const order = await PrescriptionOrder.create({
       patient: req.user._id,
       pharmacy: pharmacyId,
       prescription: prescriptionId,
+      items: orderItems,
       deliveryType: deliveryType || "PICKUP",
       deliveryAddress: deliveryType === "HOME" ? deliveryAddress : null,
-      status: "Pending"
+      paymentMethod: paymentMethod || (deliveryType === 'HOME' ? 'COD' : 'OFFLINE'),
+      paymentStatus: paymentStatus || 'Pending',
+      status: "Order Placed"
     });
 
     res.json({
@@ -289,7 +300,14 @@ exports.assignToPharmacy = async (req, res) => {
     });
   } catch (error) {
     console.error("[PRESCRIPTION] assign failed", error);
-    res.status(500).json({ message: "Failed to place order with pharmacy" });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Order validation failed", 
+        errors: error.errors 
+      });
+    }
+    res.status(500).json({ success: false, message: "Failed to place order with pharmacy" });
   }
 };
 
@@ -401,7 +419,7 @@ exports.cancelOrder = async (req, res) => {
     const order = await PrescriptionOrder.findOne({ _id: orderId, patient: req.user._id });
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    if (order.status !== 'Pending') {
+    if (order.status !== 'Order Placed') {
       return res.status(400).json({ message: "Only pending orders can be cancelled." });
     }
 
@@ -412,5 +430,71 @@ exports.cancelOrder = async (req, res) => {
   } catch (error) {
     console.error("[PRESCRIPTION] cancel order failed", error);
     return res.status(500).json({ message: "Failed to cancel order" });
+  }
+};
+
+exports.createAdvancedOrder = async (req, res) => {
+  try {
+    const { 
+      prescriptionId, 
+      pharmacyId, 
+      items, 
+      deliveryType, 
+      deliveryAddress, 
+      paymentMethod,
+      totalAmount,
+      deliveryFee,
+      notes
+    } = req.body;
+
+    const prescription = await Prescription.findById(prescriptionId);
+    if (!prescription && prescriptionId) {
+      console.warn(`[PRESCRIPTION ORDER] Prescription ${prescriptionId} not found but ID provided.`);
+    }
+
+    const pharmacy = await Pharmacy.findById(pharmacyId);
+    if (!pharmacy) {
+      return res.status(404).json({ message: "Pharmacy not found" });
+    }
+
+    const orderStatus = "Order Placed";
+    
+    const order = await PrescriptionOrder.create({
+      patient: req.user._id,
+      pharmacy: pharmacyId,
+      prescription: prescriptionId || null,
+      items: items.map(item => ({
+        name: item.name,
+        dosage: item.dosage,
+        quantity: item.quantity,
+        price: item.price || 0,
+        instructions: item.instructions || ""
+      })),
+      deliveryType: deliveryType || "PICKUP",
+      deliveryAddress: deliveryAddress,
+      paymentMethod: paymentMethod || "OFFLINE",
+      paymentStatus: req.body.paymentStatus || (paymentMethod === 'UPI' ? 'Paid' : 'Pending'),
+      deliveryFee: deliveryFee || 0,
+      totalAmount: totalAmount || 0,
+      status: orderStatus,
+      notes: notes || `Order for ${items.length} items from ${pharmacy.pharmacyName}`,
+      trackingHistory: [
+        {
+          status: orderStatus,
+          timestamp: new Date(),
+          note: "Order has been placed by patient"
+        }
+      ]
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully!",
+      orderId: order._id
+    });
+
+  } catch (error) {
+    console.error("[PRESCRIPTION ORDER] Advanced order failed", error);
+    res.status(500).json({ message: "Failed to place advanced order" });
   }
 };

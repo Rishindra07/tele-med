@@ -217,7 +217,10 @@ exports.bookAppointment = async (req, res) => {
       doctor: doctorId,
       specialization,
       appointmentDate: normalizedDate,
-      timeSlot: slot
+      timeSlot: slot,
+      consultationFee: doctor.consultationFee || 0,
+      paymentStatus: req.body.paymentStatus || 'Pending',
+      paymentMethod: req.body.paymentMethod || 'Online'
     });
 
     const patientUser = await User.findById(req.user._id);

@@ -44,7 +44,9 @@ import {
   fetchMyRecords, 
   fetchPharmacies,
   fetchMyOrders,
-  cancelMyOrder
+  cancelMyOrder,
+  createRazorpayOrder,
+  verifyRazorpayPayment
 } from '../../api/patientApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
 import { useLanguage } from '../../context/LanguageContext';
@@ -112,6 +114,8 @@ function PatientDashboard() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const [doctorsError, setDoctorsError] = useState('');
+  const [paying, setPaying] = useState(false);
+  const [paymentDone, setPaymentDone] = useState(false);
 
   const [appointments, setAppointments] = useState([]);
   const [records, setRecords] = useState([]);
@@ -248,24 +252,9 @@ function PatientDashboard() {
     }
   };
 
-  const handleBookAppointment = async () => {
+  const handleBookAppointment = async (paymentStatus = 'Pending') => {
     if (!selectedDoctor || !selectedDate || !selectedSlot) {
       setSnackbar({ open: true, severity: 'error', message: 'Please select doctor, date, and time slot.' });
-      return;
-    }
-    const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
-    if (!timePattern.test(selectedSlot)) {
-      setSnackbar({ open: true, severity: 'error', message: 'Invalid time slot format.' });
-      return;
-    }
-    const today = new Date();
-    const picked = new Date(selectedDate);
-    if (Number.isNaN(picked.getTime())) {
-      setSnackbar({ open: true, severity: 'error', message: 'Invalid date.' });
-      return;
-    }
-    if (picked.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0)) {
-      setSnackbar({ open: true, severity: 'error', message: 'Please choose a future date.' });
       return;
     }
     const doctorId = selectedDoctor.user?._id || selectedDoctor.user;
@@ -279,15 +268,69 @@ function PatientDashboard() {
         doctorId,
         specialization: selectedDoctor.specialization || specialization,
         date: selectedDate,
-        slot: selectedSlot
+        slot: selectedSlot,
+        paymentStatus,
+        paymentMethod: 'Online'
       });
       setSnackbar({ open: true, severity: 'success', message: 'Appointment booked successfully.' });
       setSlots((prev) => prev.map((s) => s.time === selectedSlot ? { ...s, isBooked: true } : s));
       setSelectedSlot('');
+      setPaymentDone(true);
+      setTimeout(() => navigate('/patient/appointments'), 2000);
     } catch (error) {
       setSnackbar({ open: true, severity: 'error', message: error.message || 'Booking failed.' });
     } finally {
       setBookingLoading(false);
+    }
+  };
+
+  const startPaymentFlow = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedSlot) {
+      setSnackbar({ open: true, severity: 'error', message: 'Please complete all selections first.' });
+      return;
+    }
+    
+    const fee = selectedDoctor.consultationFee || 500; // Fallback to 500 if no fee
+    setPaying(true);
+    
+    try {
+      const orderRes = await createRazorpayOrder({ 
+        amount: fee,
+        receipt: `appt_${Date.now()}`
+      });
+
+      if (!orderRes.success) throw new Error("Payment initialization failed");
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: "Seva Telehealth",
+        description: `Consultation with Dr. ${selectedDoctor.user?.full_name || 'Expert'}`,
+        order_id: orderRes.orderId,
+        handler: async (response) => {
+          const verifyRes = await verifyRazorpayPayment({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          });
+
+          if (verifyRes.success) {
+            handleBookAppointment('Paid');
+          } else {
+            setSnackbar({ open: true, severity: 'error', message: 'Payment verification failed' });
+          }
+        },
+        theme: { color: c.primary }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, severity: 'error', message: 'Payment error: ' + err.message });
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -322,6 +365,9 @@ function PatientDashboard() {
             </Box>
             <Button sx={{ minWidth: 44, width: 44, height: 44, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.text, position: 'relative' }}>
               <NotificationIcon fontSize="small" />
+            </Button>
+            <Button onClick={() => navigate('/patient/order-medicines')} sx={{ px: 3, py: 1.25, borderRadius: 2, border: `1px solid ${c.primary}`, color: c.primary, fontSize: 15, fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: c.primarySoft } }}>
+              {t.order_medicines_btn}
             </Button>
             <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} sx={{ px: 3, py: 1.25, borderRadius: 2, bgcolor: c.primary, color: '#fff', fontSize: 15, fontWeight: 600, textTransform: 'none', boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: c.primaryDark, boxShadow: '0 4px 6px rgba(26,115,232,0.3)' } }}>
               {t.book_appointment_btn}
@@ -531,12 +577,12 @@ function PatientDashboard() {
                             size="small" 
                             sx={{ 
                               height: 18, fontSize: 9, fontWeight: 800,
-                              bgcolor: order.status === 'Delivered' ? c.successSoft : order.status === 'Rejected' || order.status === 'Cancelled' ? c.dangerSoft : order.status === 'Pending' ? c.warningSoft : c.primarySoft,
-                              color: order.status === 'Delivered' ? c.success : order.status === 'Rejected' || order.status === 'Cancelled' ? c.danger : order.status === 'Pending' ? c.warning : c.primary
+                              bgcolor: order.status === 'Delivered' ? c.successSoft : order.status === 'Rejected' || order.status === 'Cancelled' ? c.dangerSoft : (order.status === 'Pending' || order.status === 'Order Placed') ? c.warningSoft : c.primarySoft,
+                              color: order.status === 'Delivered' ? c.success : order.status === 'Rejected' || order.status === 'Cancelled' ? c.danger : (order.status === 'Pending' || order.status === 'Order Placed') ? c.warning : c.primary
                             }} 
                           />
                           <Typography sx={{ fontSize: 10, color: c.muted, mr: 1 }}>{order.deliveryType}</Typography>
-                          {order.status === 'Pending' && (
+                          {(order.status === 'Pending' || order.status === 'Order Placed') && (
                             <Button 
                               size="small" 
                               onClick={() => handleCancelOrder(order._id)}
@@ -672,8 +718,15 @@ function PatientDashboard() {
                         )}
                       </Box>
                       
-                      <Button variant="contained" onClick={handleBookAppointment} disabled={bookingLoading || !selectedDate || !selectedSlot} sx={{ mt: 4, width: '100%', py: 1.5, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}>
-                        {bookingLoading ? t.booking.confirming : t.booking.confirm}
+                      <Button 
+                        variant="contained" 
+                        onClick={startPaymentFlow} 
+                        disabled={paying || bookingLoading || !selectedDate || !selectedSlot} 
+                        sx={{ mt: 4, width: '100%', py: 1.5, borderRadius: 1.5, bgcolor: c.primary, textTransform: 'none', fontSize: 15, fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: c.primaryDark, boxShadow: 'none' } }}
+                      >
+                        {paying ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 
+                         paymentDone ? 'Redirecting...' : 
+                         bookingLoading ? t.booking.confirming : t.booking.confirm}
                       </Button>
                     </>
                   ) : (

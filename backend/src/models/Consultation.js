@@ -96,6 +96,19 @@ const consultationSchema = new mongoose.Schema(
     reminders: {
       type: reminderSchema,
       default: () => ({})
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid", "Refunded"],
+      default: "Pending"
+    },
+    paymentMethod: {
+      type: String,
+      default: "Online"
+    },
+    consultationFee: {
+      type: Number,
+      default: 0
     }
   },
   {

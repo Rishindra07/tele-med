@@ -17,6 +17,8 @@ import PatientSettings from "./pages/patient/PatientSettings.jsx";
 import ConsultationScreen from "./pages/patient/ConsultationScreen.jsx";
 import HealthRecords from "./pages/patient/HealthRecords.jsx";
 import OrderTracking from "./pages/patient/OrderTracking.jsx";
+import MedicineOrderFlow from "./pages/patient/MedicineOrderFlow.jsx";
+import PatientPayments from "./pages/patient/PatientPayments.jsx";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments.jsx";
 import PrescriptionForm from "./pages/doctor/PrescriptionForm.jsx";
@@ -131,6 +133,20 @@ function App() {
         <ProtectedRoute>
           <RoleRoute role="patient">
             <OrderTracking/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/order-medicines' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <MedicineOrderFlow/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
+      <Route path='/patient/payments' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <PatientPayments/>
           </RoleRoute>
         </ProtectedRoute>
       }/>

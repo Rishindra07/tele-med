@@ -97,7 +97,8 @@ function ColorlibStepIcon(props) {
     1: <OrderIcon />,
     2: <AcceptedIcon />,
     3: <ReadyIcon />,
-    4: <DeliveredIcon />,
+    4: <ShippingIcon />,
+    5: <DeliveredIcon />,
   };
 
   return (
@@ -107,18 +108,16 @@ function ColorlibStepIcon(props) {
   );
 }
 
-const steps = ['Pending', 'Accepted', 'Ready/Shipped', 'Delivered'];
+const steps = ['Placed', 'Accepted', 'Packed', 'Shipped', 'Delivered'];
 
 const getActiveStep = (status) => {
-  switch (status) {
-    case 'Pending': return 0;
-    case 'Accepted': return 1;
-    case 'Ready': return 2;
-    case 'Delivered': return 3;
-    case 'Rejected': return -1;
-    case 'Cancelled': return -1;
-    default: return 0;
-  }
+  const s = status.toLowerCase();
+  if (s.includes('pending') || s.includes('placed')) return 0;
+  if (s.includes('accepted')) return 1;
+  if (s.includes('packed')) return 2;
+  if (s.includes('shipped') || s.includes('delivery') || s.includes('pickup') || s.includes('ready')) return 3;
+  if (s.includes('delivered')) return 4;
+  return -1;
 };
 
 export default function OrderTracking() {
@@ -228,7 +227,7 @@ export default function OrderTracking() {
                       </Grid>
                       <Grid item xs={12} md={6} sx={{ textAlign: { md: 'right' } }}>
                         <Stack direction="row" spacing={1} justifyContent={{ md: 'flex-end' }} alignItems="center">
-                           {order.status === 'Pending' && (
+                           {(order.status === 'Pending' || order.status === 'Order Placed') && (
                              <Button 
                                size="small" 
                                variant="outlined" 
@@ -245,12 +244,19 @@ export default function OrderTracking() {
                             variant="outlined"
                             sx={{ fontWeight: 600, fontSize: 11 }}
                            />
-                           <Chip 
-                            label={order.status.toUpperCase()} 
-                            color={isFailed ? 'error' : order.status === 'Delivered' ? 'success' : 'primary'}
-                            size="small"
-                            sx={{ fontWeight: 700, fontSize: 11 }}
-                           />
+                            <Chip 
+                             label={order.status.toUpperCase()} 
+                             color={isFailed ? 'error' : order.status === 'Delivered' ? 'success' : 'primary'}
+                             size="small"
+                             sx={{ fontWeight: 700, fontSize: 11 }}
+                            />
+                            <Chip 
+                             label={order.paymentStatus === 'Paid' ? 'PAID' : (order.paymentMethod === 'COD' ? 'COD - UNPAID' : 'PAYMENT PENDING')} 
+                             variant="filled"
+                             color={order.paymentStatus === 'Paid' ? 'success' : 'warning'}
+                             size="small"
+                             sx={{ fontWeight: 800, fontSize: 10, bgcolor: order.paymentStatus === 'Paid' ? colors.success : colors.warning, color: '#fff' }}
+                            />
                         </Stack>
                       </Grid>
                     </Grid>

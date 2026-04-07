@@ -21,9 +21,9 @@ import {
   ShoppingBagRounded as OrderIcon,
   CheckCircleRounded as CheckIcon,
   PersonOutlineRounded as PatientIcon,
-  ReceiptLongRounded as PrescriptionIcon,
   EditRounded as EditIcon,
   MoreVertRounded as MoreIcon,
+  DescriptionOutlined as PrescriptionIcon,
   RefreshRounded as RefreshIcon
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
@@ -46,7 +46,7 @@ const colors = {
   dangerSoft: '#fce8e6'
 };
 
-const statuses = ["Pending", "Accepted", "Ready", "Delivered", "Rejected", "Cancelled"];
+const statuses = ["Order Placed", "Pharmacy Accepted", "Packed", "Out for Delivery", "Delivered", "Cancelled", "Rejected", "Ready for Pickup"];
 
 export default function PharmacyOrders() {
   const [orders, setOrders] = useState([]);
@@ -108,6 +108,7 @@ export default function PharmacyOrders() {
       case 'Delivered': return colors.green;
       case 'Accepted': return colors.greenDark;
       case 'Ready': return '#1a73e8';
+      case 'Order Placed':
       case 'Pending': return colors.warning;
       case 'Rejected':
       case 'Cancelled': return colors.danger;
@@ -120,6 +121,7 @@ export default function PharmacyOrders() {
       case 'Delivered': return colors.greenSoft;
       case 'Accepted': return '#e8f5e9';
       case 'Ready': return '#e8f0fe';
+      case 'Order Placed':
       case 'Pending': return colors.warningSoft;
       case 'Rejected':
       case 'Cancelled': return colors.dangerSoft;
@@ -192,7 +194,7 @@ export default function PharmacyOrders() {
                     <Card key={order._id} sx={{ p: 0, borderRadius: 3, border: `1px solid ${colors.line}`, boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
                         <Box sx={{ p: 3, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}` }}>
                             <Grid container spacing={3} alignItems="center">
-                                <Grid item xs={12} md={4}>
+                                <Grid size={{ xs: 12, md: 4 }}>
                                     <Stack direction="row" spacing={2} alignItems="center">
                                         <Avatar sx={{ bgcolor: colors.greenSoft, color: colors.greenDark }}>
                                             <PatientIcon />
@@ -203,7 +205,7 @@ export default function PharmacyOrders() {
                                         </Box>
                                     </Stack>
                                 </Grid>
-                                <Grid item xs={12} md={4}>
+                                <Grid size={{ xs: 12, md: 4 }}>
                                     <Stack spacing={0.5}>
                                         <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.muted, display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <OrderIcon fontSize="small" /> ID: #{order._id.slice(-8).toUpperCase()}
@@ -213,7 +215,7 @@ export default function PharmacyOrders() {
                                         </Typography>
                                     </Stack>
                                 </Grid>
-                                <Grid item xs={12} md={4} sx={{ textAlign: { md: 'right' } }}>
+                                <Grid size={{ xs: 12, md: 4 }} sx={{ textAlign: { md: 'right' } }}>
                                     <Chip 
                                         label={order.status.toUpperCase()} 
                                         sx={{ 
@@ -275,20 +277,41 @@ export default function PharmacyOrders() {
                         </Box>
 
                         <Divider />
-                        <Box sx={{ p: 2, px: 3, bgcolor: '#fff', display: 'flex', justifyContent: 'flex-end' }}>
+                        <Box sx={{ p: 2, px: 3, bgcolor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                             <Button 
+                                size="small" 
+                                startIcon={<PrescriptionIcon />}
+                                onClick={() => {
+                                  const pid = order.prescription?.prescriptionId || order.prescription?._id || order.prescription;
+                                  window.open(`/view-prescription/${pid}`, '_blank');
+                                }}
+                                sx={{ color: colors.primary || '#138762', fontWeight: 600, textTransform: 'none' }}
+                             >
+                                 {t.view_prescription || 'View Prescription'}
+                             </Button>
                              <Button 
                                 size="small" 
                                 sx={{ color: colors.greenDark, fontWeight: 600, textTransform: 'none' }}
                                 startIcon={<CheckIcon />}
                                 disabled={order.status === 'Delivered' || order.status === 'Cancelled' || order.status === 'Rejected'}
                                 onClick={() => {
-                                  let nextStatus = 'Accepted';
-                                  if (order.status === 'Accepted') nextStatus = 'Ready';
-                                  if (order.status === 'Ready') nextStatus = 'Delivered';
+                                  let nextStatus = 'Pharmacy Accepted';
+                                  if (order.status === 'Pharmacy Accepted' || order.status === 'Accepted') {
+                                    nextStatus = 'Packed';
+                                  } else if (order.status === 'Packed') {
+                                    nextStatus = order.deliveryType === 'HOME' ? 'Out for Delivery' : 'Ready for Pickup';
+                                  } else if (order.status === 'Out for Delivery' || order.status === 'Ready for Pickup' || order.status === 'Ready') {
+                                    nextStatus = 'Delivered';
+                                  }
                                   handleStatusUpdate(order._id, nextStatus);
                                 }}
                              >
-                                {t.quick} {order.status === 'Pending' ? t.accept_order : order.status === 'Accepted' ? t.mark_ready : t.mark_delivered}
+                                {t.quick} {
+                                  (order.status === 'Pending' || order.status === 'Order Placed') ? t.accept_order : 
+                                  (order.status.includes('Accepted')) ? t.mark_ready : 
+                                  (order.status === 'Packed') ? (order.deliveryType === 'HOME' ? 'Ship Order' : 'Mark Ready') : 
+                                  t.mark_delivered
+                                }
                              </Button>
                         </Box>
                     </Card>

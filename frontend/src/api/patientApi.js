@@ -90,3 +90,32 @@ export const uploadFile = async (file) => {
   });
 };
 
+export const extractPrescriptionMedicines = async (file) => {
+  const formData = new FormData();
+  formData.append('prescription', file);
+  return await API.post('/patient/prescriptions/ocr', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
+
+export const createAdvancedPrescriptionOrder = async (orderData) => {
+  return await API.post('/patient/prescriptions/order', orderData);
+};
+
+// Payment APIs
+export const createRazorpayOrder = async (paymentData) => {
+  return await API.post('/payments/order', paymentData);
+};
+
+export const verifyRazorpayPayment = async (verificationData) => {
+  return await API.post('/payments/verify', verificationData);
+};
+
+export const fetchMyPayments = async () => {
+  return await API.get('/payments/my');
+};
+
+export const checkPharmacyStock = async (stockData) => {
+  return await API.post('/pharmacy/check-stock', stockData);
+};
+

@@ -5,7 +5,9 @@ const { allowRoles } = require("../middleware/roleMiddleware.js");
 const { getPatientProfile, updatePatientProfile, updatePatientSettings } = require("../controllers/userControllers.js");
 const { getMyRecords, addRecord, deleteRecord } = require("../controllers/medicalRecordController");
 const { getAllPharmacies, getPharmacyStock } = require("../controllers/pharmacyController");
-const { assignToPharmacy, getMyOrders, cancelOrder } = require("../controllers/prescriptionController");
+const { assignToPharmacy, getMyOrders, cancelOrder, createAdvancedOrder } = require("../controllers/prescriptionController");
+const { extractMedicines } = require("../controllers/ocrController");
+const upload = require("../middleware/uploadMiddleware");
 
 // Profile & Settings
 router.get("/profile", protect, allowRoles("patient"), getPatientProfile);
@@ -21,6 +23,8 @@ router.delete("/records/:id", protect, allowRoles("patient"), deleteRecord);
 router.get("/pharmacies", protect, allowRoles("patient"), getAllPharmacies);
 router.get("/pharmacies/:id/stock", protect, allowRoles("patient"), getPharmacyStock);
 router.post("/prescriptions/assign-pharmacy", protect, allowRoles("patient"), assignToPharmacy);
+router.post("/prescriptions/order", protect, allowRoles("patient"), createAdvancedOrder);
+router.post("/prescriptions/ocr", protect, allowRoles("patient"), upload.single("prescription"), extractMedicines);
 router.get("/prescriptions/orders", protect, allowRoles("patient"), getMyOrders);
 router.delete("/prescriptions/orders/:orderId", protect, allowRoles("patient"), cancelOrder);
 

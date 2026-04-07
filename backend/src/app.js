@@ -9,6 +9,8 @@ const protect = require('./middleware/authMiddleware.js');
 const notFoundMiddleware = require('./middleware/routeNotFound.js')
 const appointmentRoutes = require("./routes/appointmentRoutes.js");
 const notificationRoutes = require("./routes/notificationRoutes.js");
+const paymentRoutes = require("./routes/paymentRoutes.js");
+
 const logger = require('./middleware/logger.js');
 
 const cors = require('cors');
@@ -45,6 +47,8 @@ app.use('/api/symptoms',symptomRouter);
 
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/payments", paymentRoutes);
+
 
 app.get('/',(req,res)=>{
     res.send("API Running ");

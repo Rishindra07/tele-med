@@ -25,7 +25,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  Radio
 } from '@mui/material';
 import {
   LocalPharmacyOutlined as PharmacyIcon,
@@ -40,7 +41,9 @@ import {
   MapRounded as MapIcon,
   ListRounded as ListIcon,
   MyLocationRounded as LocationIcon,
-  PhoneRounded as CallIcon
+  PhoneRounded as CallIcon,
+  AddCircleOutlineRounded as AddIcon,
+  RemoveCircleOutlineRounded as RemoveIcon
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -67,7 +70,7 @@ const createPharmacyIcon = (color) => L.divIcon({
   popupAnchor: [0, -32]
 });
 import PatientShell from '../../components/patient/PatientShell';
-import { fetchPharmacies, fetchMyRecords, assignPrescriptionToPharmacy, fetchPharmacyStock, fetchPatientProfile } from '../../api/patientApi';
+import { fetchPharmacies, fetchMyRecords, assignPrescriptionToPharmacy, fetchPharmacyStock, fetchPatientProfile, checkPharmacyStock } from '../../api/patientApi';
 
 const colors = {
   bg: '#f8f9fa',
@@ -108,6 +111,8 @@ export default function PatientPharmacies() {
   const [sendOpen, setSendOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [isPaying, setIsPaying] = useState(false);
   
   // New state for stock viewing
   const [stockOpen, setStockOpen] = useState(false);
@@ -124,6 +129,9 @@ export default function PatientPharmacies() {
   const [viewMode, setViewMode] = useState('list');
   const [userLocation, setUserLocation] = useState([17.3850, 78.4867]); // Default: Hyderabad
   const [mapCenter, setMapCenter] = useState([17.3850, 78.4867]);
+  const [orderStockInfo, setOrderStockInfo] = useState([]);
+  const [isCheckingOrderStock, setIsCheckingOrderStock] = useState(false);
+  const [orderItems, setOrderItems] = useState([]);
 
   const loadData = async () => {
     setLoading(true);
@@ -150,8 +158,8 @@ export default function PatientPharmacies() {
       if (pharRes.success) setPharmacies(pharRes.pharmacies || []);
       if (recRes.success) setRecords(recRes.records || []);
       if (profRes.success) {
-        setPatientProfile(profRes.patient);
-        setDeliveryAddress(profRes.patient.address || '');
+        setPatientProfile(profRes.profile);
+        setDeliveryAddress(profRes.profile?.address || '');
       }
     } catch (err) {
       console.error(err);
@@ -227,9 +235,13 @@ export default function PatientPharmacies() {
   const handleOpenSend = (pharmacy) => {
     setSelectedPharmacy(pharmacy);
     if (activePrescriptions.length > 0) {
-      setSelectedRx(activePrescriptions[0]._id);
+      const rx = activePrescriptions[0];
+      setSelectedRx(rx._id);
+      const meds = rx.prescription?.medications || [];
+      setOrderItems(meds.map(m => ({ name: m.name, quantity: 1, dosage: m.dosage })));
     }
     setDeliveryType('PICKUP');
+    setPaymentMethod('OFFLINE');
     setSendOpen(true);
   };
 
@@ -275,11 +287,16 @@ export default function PatientPharmacies() {
     if (!selectedRx) return;
     try {
       setSending(true);
+      const totalAmount = calculateOrderTotal();
       const res = await assignPrescriptionToPharmacy({
         prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || selectedRx,
         pharmacyId: selectedPharmacy._id,
         deliveryType,
-        deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null
+        deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null,
+        paymentMethod,
+        paymentStatus: paymentMethod === 'UPI' ? 'Paid' : 'Pending',
+        totalAmount,
+        items: orderItems
       });
       if (res.success) {
         setSnackbar({ open: true, message: t.snack_sent, severity: 'success' });
@@ -293,6 +310,54 @@ export default function PatientPharmacies() {
     } finally {
       setSending(false);
     }
+  };
+
+  useEffect(() => {
+    if (sendOpen && selectedRx) {
+      const rx = records.find(r => r._id === selectedRx);
+      const meds = rx?.prescription?.medications || [];
+      setOrderItems(meds.map(m => ({ name: m.name, quantity: 1, dosage: m.dosage })));
+    }
+  }, [selectedRx, sendOpen]);
+
+  useEffect(() => {
+    if (sendOpen && selectedPharmacy && orderItems.length > 0) {
+      handleCheckOrderStock();
+    }
+  }, [selectedPharmacy, sendOpen, orderItems.map(i => i.quantity).join(',')]);
+
+  const handleCheckOrderStock = async () => {
+    if (orderItems.length === 0) return;
+
+    setIsCheckingOrderStock(true);
+    try {
+      const res = await checkPharmacyStock({
+        pharmacyId: selectedPharmacy._id,
+        items: orderItems.map(m => ({ name: m.name, quantity: m.quantity }))
+      });
+      if (res.success) {
+        setOrderStockInfo(res.results);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCheckingOrderStock(false);
+    }
+  };
+
+  const calculateOrderTotal = () => {
+    const base = orderStockInfo.reduce((sum, item) => {
+       const oItem = orderItems.find(oi => oi.name.toLowerCase() === item.name.toLowerCase());
+       return sum + ((item.price || 150) * (oItem?.quantity || 1));
+    }, 0);
+    const delivery = deliveryType === 'HOME' ? 40 : 0;
+    return base + delivery;
+  };
+
+  const updateOrderItemQuantity = (name, delta) => {
+    setOrderItems(prev => prev.map(item => 
+      item.name === name ? { ...item, quantity: Math.max(1, (item.quantity || 1) + delta) } : item
+    ));
   };
 
   const handleMapClick = (e) => {
@@ -694,7 +759,7 @@ export default function PatientPharmacies() {
               <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>{t.fulfillment_method}</Typography>
               <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
                 <Box 
-                  onClick={() => setDeliveryType('PICKUP')}
+                  onClick={() => { setDeliveryType('PICKUP'); setPaymentMethod('OFFLINE'); }}
                   sx={{ 
                     flex: 1, p: 2, borderRadius: 2, border: `1px solid ${deliveryType === 'PICKUP' ? colors.primary : colors.line}`, 
                     bgcolor: deliveryType === 'PICKUP' ? colors.primarySoft : '#fff', cursor: 'pointer', textAlign: 'center' 
@@ -706,7 +771,7 @@ export default function PatientPharmacies() {
                 
                 {selectedPharmacy?.deliveryAvailable && (
                   <Box 
-                    onClick={() => setDeliveryType('HOME')}
+                    onClick={() => { setDeliveryType('HOME'); setPaymentMethod('COD'); }}
                     sx={{ 
                       flex: 1, p: 2, borderRadius: 2, border: `1px solid ${deliveryType === 'HOME' ? colors.primary : colors.line}`, 
                       bgcolor: deliveryType === 'HOME' ? colors.primarySoft : '#fff', cursor: 'pointer', textAlign: 'center' 
@@ -717,6 +782,125 @@ export default function PatientPharmacies() {
                   </Box>
                 )}
               </Stack>
+
+              <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>Payment Method</Typography>
+              <Stack spacing={1} sx={{ mb: 3 }}>
+                {deliveryType === 'HOME' && (
+                  <Box 
+                    onClick={() => setPaymentMethod('COD')}
+                    sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${paymentMethod === 'COD' ? colors.primary : colors.line}`, bgcolor: paymentMethod === 'COD' ? colors.primarySoft : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}
+                  >
+                    <Radio checked={paymentMethod === 'COD'} size="small" />
+                    <Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Cash on Delivery</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>Pay when item arrives</Typography>
+                    </Box>
+                  </Box>
+                )}
+                <Box 
+                  onClick={() => setPaymentMethod('UPI')}
+                  sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${paymentMethod === 'UPI' ? colors.primary : colors.line}`, bgcolor: paymentMethod === 'UPI' ? colors.primarySoft : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}
+                >
+                  <Radio checked={paymentMethod === 'UPI'} size="small" />
+                  <Box>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Pay Online (UPI)</Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.muted }}>Instant secure payment</Typography>
+                  </Box>
+                </Box>
+                {deliveryType === 'PICKUP' && (
+                  <Box 
+                    onClick={() => setPaymentMethod('OFFLINE')}
+                    sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${paymentMethod === 'OFFLINE' ? colors.primary : colors.line}`, bgcolor: paymentMethod === 'OFFLINE' ? colors.primarySoft : '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}
+                  >
+                    <Radio checked={paymentMethod === 'OFFLINE'} size="small" />
+                    <Box>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Pay at Pharmacy</Typography>
+                      <Typography sx={{ fontSize: 11, color: colors.muted }}>Pay when picking up</Typography>
+                    </Box>
+                  </Box>
+                )}
+              </Stack>
+
+              {/* Order Summary Section */}
+              <Box sx={{ 
+                p: 2.5, mb: 3, borderRadius: 3, 
+                border: `1px solid ${colors.line}`, 
+                bgcolor: '#fff',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+              }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 800, mb: 2, color: colors.muted, letterSpacing: 1 }}>ORDER SUMMARY</Typography>
+                <Stack spacing={1.5}>
+                  {isCheckingOrderStock ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center', py: 2 }}>
+                      <CircularProgress size={20} thickness={5} />
+                      <Typography variant="caption" sx={{ color: colors.muted }}>Syncing with pharmacy...</Typography>
+                    </Box>
+                  ) : (
+                    orderStockInfo.map((item, idx) => {
+                      const isOutOfStock = item.available === 0;
+                      const oItem = orderItems.find(oi => oi.name.toLowerCase() === item.name.toLowerCase());
+                      const currentQty = oItem?.quantity || 1;
+
+                      return (
+                        <Box key={idx} sx={{ borderBottom: idx < orderStockInfo.length - 1 ? `1px dashed ${colors.line}` : 'none', pb: idx < orderStockInfo.length - 1 ? 1.5 : 0 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                             <Box sx={{ flex: 1 }}>
+                               <Typography sx={{ fontSize: 14, fontWeight: 700, color: isOutOfStock ? colors.danger : colors.text }}>{item.name}</Typography>
+                               
+                               {/* Quantity Controls */}
+                               <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+                                 <IconButton 
+                                   size="small" 
+                                   onClick={() => updateOrderItemQuantity(item.name, -1)}
+                                   sx={{ border: `1px solid ${colors.line}`, p: 0.3 }}
+                                 >
+                                   <RemoveIcon sx={{ fontSize: 14 }} />
+                                 </IconButton>
+                                 <Typography sx={{ fontSize: 13, fontWeight: 700, minWidth: 16, textAlign: 'center' }}>{currentQty}</Typography>
+                                 <IconButton 
+                                   size="small" 
+                                   onClick={() => updateOrderItemQuantity(item.name, 1)}
+                                   sx={{ border: `1px solid ${colors.line}`, p: 0.3 }}
+                                 >
+                                    <AddIcon sx={{ fontSize: 14 }} />
+                                 </IconButton>
+                               </Stack>
+                               
+                               <Typography sx={{ mt: 0.5, fontSize: 11, color: item.inStock ? colors.success : item.available > 0 ? colors.warning : colors.danger, fontWeight: 700 }}>
+                                 {item.inStock ? 'In Stock' : (item.available > 0 ? `Stock: ${item.available}` : 'Out of Stock')}
+                               </Typography>
+                             </Box>
+                             <Box sx={{ textAlign: 'right' }}>
+                               <Typography sx={{ fontSize: 14, fontWeight: 800, color: colors.primary }}>₹{(item.price || 150) * currentQty}</Typography>
+                               <Typography sx={{ fontSize: 10, color: colors.muted }}>₹{item.price || 150}/unit</Typography>
+                             </Box>
+                          </Stack>
+                        </Box>
+                      );
+                    })
+                  )}
+                </Stack>
+                <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>Items Subtotal</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>₹{calculateOrderTotal() - (deliveryType === 'HOME' ? 40 : 0)}</Typography>
+                </Box>
+                {deliveryType === 'HOME' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography sx={{ fontSize: 13, color: colors.muted }}>Delivery Charge</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>₹40</Typography>
+                  </Box>
+                )}
+                <Box sx={{ 
+                  p: 2, borderRadius: 2, 
+                  bgcolor: colors.primarySoft, 
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  border: `1px solid ${colors.primary}20`
+                }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>Total Outstanding</Typography>
+                  <Typography sx={{ fontSize: 18, fontWeight: 900, color: colors.primary }}>₹{calculateOrderTotal()}</Typography>
+                </Box>
+              </Box>
 
               {deliveryType === 'HOME' ? (
                 <TextField
@@ -766,10 +950,30 @@ export default function PatientPharmacies() {
              <Alert severity="warning">{t.no_rx_warning}</Alert>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted }}>{t.cancel}</Button>
-          <Button variant="contained" onClick={handleSendToPharmacy} disabled={sending || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim())} sx={{ bgcolor: colors.primary, color: '#fff', px: 3, borderRadius: 1.5 }}>
-            {sending ? t.sending : t.confirm_order}
+        <DialogActions sx={{ p: 3, bgcolor: '#fcfcfc', borderTop: `1px solid ${colors.line}` }}>
+          <Button onClick={() => setSendOpen(false)} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 600 }}>{t.cancel}</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => {
+              if (paymentMethod === 'UPI') {
+                setIsPaying(true);
+                setTimeout(() => {
+                  setIsPaying(false);
+                  handleSendToPharmacy();
+                }, 2500);
+              } else {
+                handleSendToPharmacy();
+              }
+            }} 
+            disabled={sending || isPaying || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim()) || isCheckingOrderStock} 
+            sx={{ 
+              bgcolor: colors.primary, color: '#fff', px: 4, py: 1.25, borderRadius: 2, 
+              textTransform: 'none', fontWeight: 700, fontSize: 15,
+              boxShadow: '0 4px 12px rgba(26,115,232,0.2)',
+              '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 6px 16px rgba(26,115,232,0.3)' }
+            }}
+          >
+            {isPaying ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : sending ? t.sending : paymentMethod === 'UPI' ? 'Pay Securely' : 'Place Order'}
           </Button>
         </DialogActions>
       </Dialog>

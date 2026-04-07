@@ -45,6 +45,42 @@ exports.getPharmacyStock = async (req, res) => {
     }
 };
 
+exports.checkStockAndPrice = async (req, res) => {
+    try {
+        const { pharmacyId, items } = req.body;
+        if (!pharmacyId || !Array.isArray(items)) {
+            return res.status(400).json({ message: "pharmacyId and items array are required" });
+        }
+
+        // Case-insensitive matching for medicine names
+        const itemNames = items.map(item => new RegExp(`^${item.name}$`, "i"));
+        
+        const stocks = await PharmacyStock.find({
+            pharmacy: pharmacyId,
+            medicineName: { $in: itemNames }
+        });
+
+        const results = items.map(item => {
+            const stock = stocks.find(s => s.medicineName.toLowerCase() === item.name.toLowerCase());
+            return {
+                name: item.name,
+                available: stock ? stock.quantity : 0,
+                price: stock ? stock.mrp : 150, // Default 150 if not found
+                inStock: stock ? stock.quantity >= (item.quantity || 1) : false
+            };
+        });
+
+        res.json({
+            success: true,
+            results
+        });
+
+    } catch (error) {
+        console.error("[STOCK_CHECK] error:", error);
+        res.status(500).json({ message: "Failed to verify stock" });
+    }
+};
+
 exports.updateDeliverySettings = async (req, res) => {
     try {
         const { deliveryAvailable } = req.body;
@@ -79,7 +115,7 @@ exports.getIncomingOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
-        const validStatuses = ["Pending", "Accepted", "Rejected", "Ready", "Delivered", "Cancelled"];
+        const validStatuses = ["Order Placed", "Pharmacy Accepted", "Packed", "Out for Delivery", "Delivered", "Cancelled", "Rejected", "Ready for Pickup"];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: "Invalid status" });
         }

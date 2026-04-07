@@ -5,7 +5,11 @@ import {
   Chip,
   CircularProgress,
   Stack,
-  Typography
+  Typography,
+  Divider,
+  Button,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import PharmacyLayout from '../../components/PharmacyLayout';
 import { 
@@ -17,9 +21,9 @@ import {
   LocalShippingOutlined as DeliveryIcon, 
   StorefrontOutlined as PickupIcon, 
   CheckCircleOutline as AcceptIcon, 
-  CancelOutlined as RejectIcon 
+  CancelOutlined as RejectIcon,
+  AssignmentOutlined as PrescriptionIcon
 } from '@mui/icons-material';
-import { Button, Switch, FormControlLabel } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import { PHARMACY_DASHBOARD_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
@@ -175,7 +179,7 @@ export default function PharmacyDashboard() {
                         )}
 
                         <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
-                          {item.status === 'Pending' ? (
+                          {(item.status === 'Pending' || item.status === 'Order Placed') ? (
                             <>
                               <Button 
                                 fullWidth 
@@ -206,6 +210,21 @@ export default function PharmacyDashboard() {
                             </Box>
                           )}
                         </Stack>
+
+                        <Divider sx={{ my: 2, borderColor: colors.line }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                             <Button 
+                                size="small" 
+                                startIcon={<PrescriptionIcon sx={{ fontSize: 18 }} />}
+                                onClick={() => {
+                                  const pid = item.prescription?.prescriptionId;
+                                  window.open(`/view-prescription/${pid}`, '_blank');
+                                }}
+                                sx={{ color: colors.blue, fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: colors.soft } }}
+                             >
+                                 {t.view_prescription || 'View Prescription'}
+                             </Button>
+                        </Box>
                       </Box>
                     ))
                   ) : (
