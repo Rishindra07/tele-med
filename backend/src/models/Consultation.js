@@ -109,6 +109,10 @@ const consultationSchema = new mongoose.Schema(
     consultationFee: {
       type: Number,
       default: 0
+    },
+    duration: {
+      type: Number,
+      default: 0
     }
   },
   {

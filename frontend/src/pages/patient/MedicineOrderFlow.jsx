@@ -172,7 +172,7 @@ export default function MedicineOrderFlow() {
     return cartItems.reduce((sum, item) => sum + (150 * (item.quantity || 1)), 0) + (deliveryType === 'HOME' ? 40 : 0);
   };
 
-  const handleSubmitOrder = async (finalPaymentStatus) => {
+  const handleSubmitOrder = async (finalPaymentStatus = 'Pending', referenceDetails = null) => {
     setLoading(true);
     try {
       const totalAmount = calculateTotal();
@@ -186,7 +186,7 @@ export default function MedicineOrderFlow() {
         deliveryType,
         deliveryAddress: address,
         paymentMethod,
-        paymentStatus: finalPaymentStatus || (paymentMethod === 'COD' ? 'Pending' : 'Paid'),
+        paymentStatus: finalPaymentStatus,
         totalAmount,
         deliveryFee: deliveryType === 'HOME' ? 40 : 0,
         notes: "Placed via Advanced Order Flow"
@@ -194,10 +194,14 @@ export default function MedicineOrderFlow() {
       
       const res = await createAdvancedPrescriptionOrder(orderData);
       if (res.success) {
-        setActiveStep(4);
+        if (!referenceDetails) {
+          setActiveStep(4);
+        }
+        return res;
       }
     } catch (err) {
       console.error(err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -208,33 +212,52 @@ export default function MedicineOrderFlow() {
     setPaying(true);
     
     try {
+      // 1. Create order first in Pending state
+      const orderResData = await handleSubmitOrder('Pending', { isPaymentFlow: true });
+      if (!orderResData || !orderResData.orderId) {
+        throw new Error("Could not create initial order");
+      }
+
+      // 2. Create Razorpay Order with reference
       const orderRes = await createRazorpayOrder({ 
         amount: totalAmount,
-        receipt: `ord_${Date.now()}`
+        referenceId: orderResData.orderId,
+        referenceType: 'medicine_order'
       });
 
       if (!orderRes.success) throw new Error("Payment server busy");
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        key: orderRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
         amount: orderRes.amount,
         currency: orderRes.currency,
         name: "Seva Telehealth",
         description: "Payment for Medicines",
         order_id: orderRes.orderId,
         handler: async (response) => {
-          const verifyRes = await verifyRazorpayPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature
-          });
+          setPaying(true);
+          try {
+            const verifyRes = await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
 
-          if (verifyRes.success) {
-            setPaymentDone(true);
-            setTimeout(() => handleSubmitOrder('Paid'), 1000);
-          } else {
-            alert("Payment verification failed");
+            if (verifyRes.success) {
+              setPaymentDone(true);
+              setActiveStep(4);
+            } else {
+              alert("Payment verification failed");
+            }
+          } catch (err) {
+            alert("Verification error: " + err.message);
+          } finally {
+            setPaying(false);
           }
+        },
+        prefill: {
+          name: JSON.parse(localStorage.getItem('user') || '{}').full_name || '',
+          email: JSON.parse(localStorage.getItem('user') || '{}').email || ''
         },
         theme: { color: colors.primary }
       };

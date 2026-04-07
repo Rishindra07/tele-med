@@ -15,6 +15,7 @@ import PatientPharmacies from "./pages/patient/PatientPharmacies.jsx";
 import PatientProfile from "./pages/patient/PatientProfile.jsx";
 import PatientSettings from "./pages/patient/PatientSettings.jsx";
 import ConsultationScreen from "./pages/patient/ConsultationScreen.jsx";
+import VideoCallScreen from "./pages/patient/VideoCallScreen.jsx";
 import HealthRecords from "./pages/patient/HealthRecords.jsx";
 import OrderTracking from "./pages/patient/OrderTracking.jsx";
 import MedicineOrderFlow from "./pages/patient/MedicineOrderFlow.jsx";
@@ -122,6 +123,13 @@ function App() {
           </RoleRoute>
         </ProtectedRoute>
       }/>
+      <Route path='/patient/video-call' element={
+        <ProtectedRoute>
+          <RoleRoute role="patient">
+            <VideoCallScreen/>
+          </RoleRoute>
+        </ProtectedRoute>
+      }/>
       <Route path='/pharmacy/orders' element={
         <ProtectedRoute>
           <RoleRoute role="pharmacist">
@@ -185,6 +193,13 @@ function App() {
               <ProtectedRoute>
                 <RoleRoute role="doctor">
                   <ConsultationScreen />
+                </RoleRoute>
+              </ProtectedRoute>
+            }/>
+            <Route path="/doctor/video-call" element={
+              <ProtectedRoute>
+                <RoleRoute role="doctor">
+                  <VideoCallScreen />
                 </RoleRoute>
               </ProtectedRoute>
             }/>

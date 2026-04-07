@@ -283,10 +283,10 @@ export default function PatientPharmacies() {
     }
   };
 
-  const handleSendToPharmacy = async () => {
+  const handleSendToPharmacy = async (finalPaymentStatus = 'Pending', isPaymentFlow = false) => {
     if (!selectedRx) return;
     try {
-      setSending(true);
+      if (!isPaymentFlow) setSending(true);
       const totalAmount = calculateOrderTotal();
       const res = await assignPrescriptionToPharmacy({
         prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || selectedRx,
@@ -294,21 +294,93 @@ export default function PatientPharmacies() {
         deliveryType,
         deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null,
         paymentMethod,
-        paymentStatus: paymentMethod === 'UPI' ? 'Paid' : 'Pending',
+        paymentStatus: finalPaymentStatus,
         totalAmount,
         items: orderItems
       });
       if (res.success) {
-        setSnackbar({ open: true, message: t.snack_sent, severity: 'success' });
-        setSendOpen(false);
+        if (!isPaymentFlow) {
+          setSnackbar({ open: true, message: t.snack_sent, severity: 'success' });
+          setSendOpen(false);
+        }
+        return res;
       } else {
-        setSnackbar({ open: true, message: res.message || t.snack_error, severity: 'error' });
+        if (!isPaymentFlow) setSnackbar({ open: true, message: res.message || t.snack_error, severity: 'error' });
+        return null;
       }
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: t.snack_error, severity: 'error' });
+      if (!isPaymentFlow) setSnackbar({ open: true, message: t.snack_error, severity: 'error' });
+      return null;
     } finally {
-      setSending(false);
+      if (!isPaymentFlow) setSending(false);
+    }
+  };
+
+  const startRazorpayPayment = async () => {
+    const totalAmount = calculateOrderTotal();
+    setIsPaying(true);
+    try {
+      // 1. Create order first in Pending state
+      const orderResData = await handleSendToPharmacy('Pending', true);
+      if (!orderResData || !orderResData.orderId) {
+        throw new Error("Could not initialize order");
+      }
+
+      const { createRazorpayOrder, verifyRazorpayPayment } = await import('../../api/patientApi');
+      
+      // 2. Create Razorpay Order
+      const orderRes = await createRazorpayOrder({ 
+        amount: totalAmount,
+        referenceId: orderResData.orderId,
+        referenceType: 'medicine_order'
+      });
+
+      if (!orderRes.success) throw new Error("Payment initialization failed");
+
+      const options = {
+        key: orderRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        name: "Seva Telehealth",
+        description: "Payment for Medicines",
+        order_id: orderRes.orderId,
+        handler: async (response) => {
+          setIsPaying(true);
+          try {
+            const verifyRes = await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes.success) {
+              setSnackbar({ open: true, message: 'Payment successful! Order placed.', severity: 'success' });
+              setSendOpen(false);
+              loadData(); // Refresh to show active orders if needed (though dashboard usually shows them)
+            } else {
+              setSnackbar({ open: true, message: 'Payment verification failed', severity: 'error' });
+            }
+          } catch (err) {
+            setSnackbar({ open: true, message: 'Verification error: ' + err.message, severity: 'error' });
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        prefill: {
+          name: patientProfile?.full_name || '',
+          email: patientProfile?.email || ''
+        },
+        theme: { color: colors.primary }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: 'Payment error: ' + err.message, severity: 'error' });
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -956,11 +1028,7 @@ export default function PatientPharmacies() {
             variant="contained" 
             onClick={() => {
               if (paymentMethod === 'UPI') {
-                setIsPaying(true);
-                setTimeout(() => {
-                  setIsPaying(false);
-                  handleSendToPharmacy();
-                }, 2500);
+                startRazorpayPayment();
               } else {
                 handleSendToPharmacy();
               }
