@@ -13,12 +13,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
-  bg: '#f5f1e8',
-  line: '#d8d0c4',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57'
+  bg: '#f8f9fa',
+  line: '#e0e0e0',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0'
 };
 
 const navItems = [
@@ -60,13 +60,13 @@ function DoctorLayout({ children }) {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: colors.bg, color: '#252525', display: 'flex', flexDirection: { xs: 'column', lg: 'row' } }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: colors.bg, color: '#202124', display: 'flex', flexDirection: { xs: 'column', lg: 'row' } }}>
       <CssBaseline />
       <Box
         component="aside"
         sx={{
           width: { xs: '100%', lg: 320 },
-          bgcolor: '#fcfbf7',
+          bgcolor: '#ffffff',
           borderRight: { xs: 'none', lg: `1px solid ${colors.line}` },
           borderBottom: { xs: `1px solid ${colors.line}`, lg: 'none' },
           display: 'flex',
@@ -79,7 +79,7 @@ function DoctorLayout({ children }) {
         }}
       >
         <Box sx={{ px: 4, py: 5, borderBottom: `1px solid ${colors.line}` }}>
-          <Typography sx={{ fontSize: 26, fontWeight: 700, color: colors.green, fontFamily: 'Georgia, serif' }}>
+          <Typography sx={{ fontSize: 26, fontWeight: 700, color: colors.primary, fontFamily: 'Inter, sans-serif' }}>
             Seva TeleHealth
           </Typography>
           <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 17 }}>
@@ -88,7 +88,7 @@ function DoctorLayout({ children }) {
         </Box>
 
         <Box sx={{ px: 2.5, py: 3, flex: 1 }}>
-          <Stack spacing={1.25}>
+          <Stack spacing={1}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = location.pathname === item.path;
@@ -98,18 +98,19 @@ function DoctorLayout({ children }) {
                   onClick={() => navigate(item.path)}
                   sx={{
                     justifyContent: 'flex-start',
-                    gap: 1.5,
-                    px: 2,
-                    py: 1.6,
-                    borderRadius: 3,
+                    gap: 2,
+                    px: 2.5,
+                    py: 1.5,
+                    borderRadius: 2,
                     textTransform: 'none',
                     fontSize: 16,
-                    color: active ? colors.greenDark : '#3d3d3d',
-                    bgcolor: active ? colors.greenSoft : 'transparent',
-                    '&:hover': { bgcolor: active ? colors.greenSoft : '#f3eee4' }
+                    fontWeight: active ? 600 : 500,
+                    color: active ? colors.primaryDark : '#3c4043',
+                    bgcolor: active ? colors.primarySoft : 'transparent',
+                    '&:hover': { bgcolor: active ? colors.primarySoft : '#f1f3f4' }
                   }}
                 >
-                  <Icon />
+                  <Icon sx={{ fontSize: 22 }} />
                   <Box>{t[item.textKey]}</Box>
                 </Button>
               );
@@ -118,7 +119,7 @@ function DoctorLayout({ children }) {
         </Box>
 
         <Box sx={{ p: 2.5, borderTop: `1px solid ${colors.line}` }}>
-          <Typography sx={{ color: colors.muted, fontSize: 16, mb: 1.75 }}>Language</Typography>
+          <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 600, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Language</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {[
               { code: 'en', label: 'EN' },
@@ -133,14 +134,15 @@ function DoctorLayout({ children }) {
                 onClick={() => setLanguage(lang.code)}
                 sx={{
                   minWidth: 0,
-                  px: 1.8,
-                  py: 0.75,
+                  px: 1.5,
+                  py: 0.5,
                   borderRadius: 999,
-                  border: `1px solid ${language === lang.code ? colors.green : '#bcb4aa'}`,
-                  bgcolor: language === lang.code ? colors.greenSoft : '#fff',
-                  color: language === lang.code ? colors.greenDark : '#5f5a52',
+                  border: `1px solid ${language === lang.code ? colors.primary : '#dadce0'}`,
+                  bgcolor: language === lang.code ? colors.primarySoft : 'transparent',
+                  color: language === lang.code ? colors.primaryDark : '#5f6368',
                   textTransform: 'none',
-                  fontSize: 15
+                  fontSize: 14,
+                  fontWeight: 500
                 }}
               >
                 {lang.label}
@@ -148,13 +150,13 @@ function DoctorLayout({ children }) {
             ))}
           </Stack>
 
-          <Box sx={{ mt: 3.5, p: 2, borderRadius: 3, bgcolor: '#f2efe6', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Avatar src={profileImage} alt={doctorName} sx={{ width: 48, height: 48, bgcolor: '#d8efe8', color: colors.greenDark, fontWeight: 700 }}>
+          <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Avatar src={profileImage} alt={doctorName} sx={{ width: 44, height: 44, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700 }}>
               {initials(doctorName)}
             </Avatar>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 16 }}>{doctorName}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 15 }}>{doctor?.specialization || 'Medicine Specialist'}</Typography>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 600, fontSize: 15, color: '#202124', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{doctorName}</Typography>
+              <Typography sx={{ color: colors.muted, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{doctor?.specialization || 'Medicine Specialist'}</Typography>
             </Box>
           </Box>
 
@@ -162,17 +164,18 @@ function DoctorLayout({ children }) {
             onClick={handleLogout}
             startIcon={<LogoutIcon />}
             sx={{
-              mt: 1.5,
+              mt: 2,
               width: '100%',
               justifyContent: 'center',
-              py: 1.1,
-              borderRadius: 3,
-              border: `1px solid ${colors.line}`,
+              py: 1,
+              borderRadius: 2,
+              border: `1px solid #dadce0`,
               bgcolor: '#fff',
-              color: '#34322f',
+              color: '#3c4043',
               textTransform: 'none',
-              fontSize: 15.5,
-              '&:hover': { bgcolor: '#f7f3ea' }
+              fontSize: 14.5,
+              fontWeight: 500,
+              '&:hover': { bgcolor: '#f1f3f4' }
             }}
           >
             {t.logout || 'Logout'}

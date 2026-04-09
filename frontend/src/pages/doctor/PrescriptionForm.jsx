@@ -42,38 +42,40 @@ const LAB_TEST_OPTIONS = [
   'Urine Routine & Microscopy', 'Chest X-Ray', 'ECG', 'Ultrasound Abdomen'
 ];
 
-const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  red: '#d9635b',
-  redSoft: '#fdeaea',
-  bg: '#f5f1e8',
-  white: '#ffffff',
-  shadow: '0 4px 20px rgba(0,0,0,0.05)'
+const c = {
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  danger: '#d93025',
+  dangerSoft: '#fce8e6'
 };
 
 const premiumTextFieldSx = {
   '& .MuiOutlinedInput-root': {
     bgcolor: '#fff',
-    borderRadius: 3,
+    borderRadius: 2,
     transition: '0.2s',
-    '& fieldset': { borderColor: colors.line },
-    '&:hover fieldset': { borderColor: colors.muted },
-    '&.Mui-focused fieldset': { borderColor: colors.green },
-    '&.Mui-focused': { boxShadow: '0 0 0 4px rgba(38, 163, 124, 0.08)' }
+    '& fieldset': { borderColor: c.line },
+    '&:hover fieldset': { borderColor: c.muted },
+    '&.Mui-focused fieldset': { borderColor: c.primary },
+    '&.Mui-focused': { boxShadow: `0 0 0 4px ${c.primary}15` }
   },
-  '& .MuiInputLabel-root': { color: colors.muted, fontSize: 13.5 },
-  '& .MuiInputLabel-root.Mui-focused': { color: colors.green },
-  '& .MuiOutlinedInput-input::placeholder': { color: colors.muted, opacity: 0.6 },
-  '& .MuiSelect-icon': { color: colors.muted },
-  '& .MuiAutocomplete-popupIndicator': { color: colors.muted },
-  '& .MuiAutocomplete-clearIndicator': { color: colors.muted },
+  '& .MuiInputLabel-root': { color: c.muted, fontSize: 13.5 },
+  '& .MuiInputLabel-root.Mui-focused': { color: c.primary },
+  '& .MuiOutlinedInput-input::placeholder': { color: c.muted, opacity: 0.6 },
+  '& .MuiSelect-icon': { color: c.muted },
+  '& .MuiAutocomplete-popupIndicator': { color: c.muted },
+  '& .MuiAutocomplete-clearIndicator': { color: c.muted },
 };
 
 export default function PrescriptionForm() {
@@ -168,8 +170,8 @@ export default function PrescriptionForm() {
       return;
     }
 
-    let phone = patientInfo.phone.trim().replace(/\D/g, ''); // Get just digits
-    if (phone.length === 10) phone = `91${phone}`; // Add Indian code if missing
+    let phone = patientInfo.phone.trim().replace(/\D/g, ''); 
+    if (phone.length === 10) phone = `91${phone}`; 
 
     const rxId = forcedRxId || null;
     const shareLink = rxId ? getShareLink(rxId) : '';
@@ -240,31 +242,29 @@ export default function PrescriptionForm() {
 
   return (
     <DoctorLayout>
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 6 }, py: { xs: 3, md: 4 }, bgcolor: c.bg, minHeight: 'calc(100vh - 64px)' }}>
         
         {/* Header Actions */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Stack direction="row" spacing={3} alignItems="center">
             <Button 
               startIcon={<BackIcon />} 
               onClick={() => navigate(-1)} 
-              sx={{ color: colors.muted, textTransform: 'none', fontWeight: '500', fontSize: 16 }}
+              sx={{ color: c.muted, textTransform: 'none', fontWeight: 600, fontSize: 16, '&:hover': { bgcolor: c.soft } }}
             >
               {t.back}
             </Button>
-            <Typography sx={{ fontSize: 42, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700, color: c.text, fontFamily: 'Inter, sans-serif' }}>
               {t.writePrescription}
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box sx={{ px: 2, py: 1, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 15, fontWeight: 500 }}>
-               {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </Box>
-          </Stack>
+          <Box sx={{ px: 2.5, py: 1.2, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, fontSize: 15, fontWeight: 700, color: c.primary }}>
+             {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </Box>
         </Stack>
 
         {/* Patient Info Section */}
-        <Box sx={{ p: 3, mb: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+        <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={7}>
               <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
@@ -272,20 +272,20 @@ export default function PrescriptionForm() {
                   sx={{ 
                     width: 72, 
                     height: 72, 
-                    bgcolor: colors.greenSoft, 
-                    color: colors.green, 
+                    bgcolor: c.primarySoft, 
+                    color: c.primary, 
                     fontSize: 24, 
                     fontWeight: 700,
-                    border: `1px solid ${colors.green}20` 
+                    border: `4px solid ${c.bg}` 
                   }}
                 >
                   {patientInfo.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                 </Avatar>
-                <Box>
-                  <Typography variant="h5" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 700, color: c.text, mb: 0.5 }}>
                     {patientInfo.name}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: colors.muted, mb: 1.5, fontSize: 15 }}>
+                  <Typography sx={{ color: c.muted, mb: 2, fontSize: 15, fontWeight: 500 }}>
                     ID: {patientInfo.id} • {patientInfo.age} Yrs • {patientInfo.gender}
                   </Typography>
                   
@@ -296,7 +296,7 @@ export default function PrescriptionForm() {
                     size="small"
                     sx={{ ...premiumTextFieldSx, maxWidth: 280 }}
                   />
-                  <Typography variant="caption" sx={{ display: 'block', mt: 0.8, color: colors.red, fontSize: 12 }}>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: c.danger, fontSize: 12, fontWeight: 600 }}>
                     {t.phone_required_warning}
                   </Typography>
                 </Box>
@@ -314,17 +314,17 @@ export default function PrescriptionForm() {
             <Grid item xs={12} md={5}>
               <Box sx={{ 
                 p: 3, 
-                bgcolor: colors.redSoft, 
-                borderRadius: 3, 
+                bgcolor: c.dangerSoft, 
+                borderRadius: 2, 
                 height: '100%', 
-                border: `1px solid ${colors.red}20`,
+                border: `1px solid ${c.danger}20`,
                 display: 'flex',
                 flexDirection: 'column'
               }}>
-                <Typography variant="subtitle2" fontWeight="700" sx={{ color: colors.red, display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
-                  <span style={{ fontSize: '1.2rem' }}>⚠️</span> {t.allergies.toUpperCase()}
+                <Typography sx={{ color: c.danger, display: 'flex', alignItems: 'center', mb: 2, gap: 1, fontWeight: 700, fontSize: 14, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '1.2rem' }}>⚠️</span> {t.allergies}
                 </Typography>
-                <Typography variant="body2" sx={{ color: colors.red, opacity: 0.9, mb: 2, fontSize: 15 }}>
+                <Typography sx={{ color: c.danger, fontWeight: 600, mb: 2, fontSize: 15 }}>
                   {patientInfo.allergies || t.none_reported}
                 </Typography>
                 <Box sx={{ mt: 'auto' }}>
@@ -332,38 +332,47 @@ export default function PrescriptionForm() {
                     fullWidth 
                     size="small"
                     placeholder={t.add_allergy_placeholder}
-                    sx={premiumTextFieldSx}
+                    sx={{
+                        ...premiumTextFieldSx,
+                        '& .MuiOutlinedInput-root': {
+                            ...premiumTextFieldSx['& .MuiOutlinedInput-root'],
+                            bgcolor: 'rgba(255,255,255,0.5)',
+                            '&:hover fieldset': { borderColor: c.danger },
+                            '&.Mui-focused fieldset': { borderColor: c.danger },
+                        }
+                    }}
                   />
                 </Box>
               </Box>
             </Grid>
           </Grid>
-        </Box>
+        </Paper>
 
         {/* Medicine Section */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight="700" color="text.primary">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 700, color: c.text }}>
             {t.medicines}
           </Typography>
-          <Chip label={`${medicines.length} Item${medicines.length > 1 ? 's' : ''}`} sx={{ bgcolor: colors.green, color: colors.white, fontWeight: 'bold', px: 1, height: 24 }} />
+          <Chip label={`${medicines.length} Item${medicines.length > 1 ? 's' : ''}`} sx={{ bgcolor: c.primary, color: '#fff', fontWeight: 700, height: 28 }} />
         </Box>
 
         {medicines.map((med, index) => (
-          <Box key={med.id} 
+          <Paper key={med.id} 
+            elevation={0}
             sx={{ 
-              p: 3, 
-              mb: 2, 
-              borderRadius: 3.5, 
-              bgcolor: colors.paper, 
-              border: `1px solid ${colors.line}`,
+              p: 4, 
+              mb: 3, 
+              borderRadius: 2, 
+              bgcolor: c.paper, 
+              border: `1px solid ${c.line}`,
               position: 'relative',
               transition: '0.2s',
-              '&:hover': { boxShadow: colors.shadow }
+              '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderColor: c.primary }
             }}
           >
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={5}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.medicine_name}</Typography>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.medicine_name}</Typography>
                 <Autocomplete
                   freeSolo
                   options={MEDICINE_OPTIONS}
@@ -373,7 +382,7 @@ export default function PrescriptionForm() {
                 />
               </Grid>
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.dosage}</Typography>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.dosage}</Typography>
                 <TextField 
                   fullWidth 
                   placeholder="e.g. 500mg"
@@ -383,9 +392,9 @@ export default function PrescriptionForm() {
                 />
               </Grid>
               <Grid item xs={12} md={4}>
-                <Stack direction="row" spacing={1} alignItems="flex-end">
+                <Stack direction="row" spacing={1.5} alignItems="flex-end">
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.form}</Typography>
+                    <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.form}</Typography>
                     <FormControl fullWidth sx={premiumTextFieldSx}>
                       <Select
                         value={med.form}
@@ -402,7 +411,7 @@ export default function PrescriptionForm() {
                   {medicines.length > 1 && (
                     <IconButton 
                       onClick={() => removeMedicine(med.id)}
-                      sx={{ mb: 0.5, color: colors.muted, '&:hover': { color: colors.red, bgcolor: colors.redSoft } }}
+                      sx={{ mb: 0.5, color: c.muted, '&:hover': { color: c.danger, bgcolor: c.dangerSoft } }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -411,12 +420,12 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={4}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.timing}</Typography>
-                <Stack direction="row" spacing={1.5}>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.timing}</Typography>
+                <Stack direction="row" spacing={2}>
                   {[
-                    { key: 'morning', icon: '🌅', color: '#fbbf24', bg: '#fffbeb' },
+                    { key: 'morning', icon: '🌅', color: c.warning, bg: c.warningSoft },
                     { key: 'afternoon', icon: '🌞', color: '#fb923c', bg: '#fff7ed' },
-                    { key: 'night', icon: '🌙', color: '#818cf8', bg: '#eef2ff' }
+                    { key: 'night', icon: '🌙', color: c.primary, bg: c.primarySoft }
                   ].map((t) => (
                     <Button 
                       key={t.key}
@@ -424,11 +433,11 @@ export default function PrescriptionForm() {
                       sx={{ 
                         minWidth: 0, 
                         flex: 1,
-                        py: 1.5,
+                        py: 2,
                         border: '2px solid',
-                        borderColor: med.timing[t.key] ? t.color : colors.line,
+                        borderColor: med.timing[t.key] ? t.color : c.line,
                         bgcolor: med.timing[t.key] ? t.bg : '#fff',
-                        borderRadius: 3, 
+                        borderRadius: 2, 
                         fontSize: '1.4rem',
                         transition: '0.2s',
                         '&:hover': { borderColor: t.color, bgcolor: t.bg }
@@ -441,7 +450,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={2}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.duration}</Typography>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.duration}</Typography>
                 <TextField 
                   fullWidth 
                   value={med.duration}
@@ -451,7 +460,7 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.frequency}</Typography>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.frequency}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
                     value={med.frequency}
@@ -466,19 +475,19 @@ export default function PrescriptionForm() {
               </Grid>
               
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" sx={{ color: colors.muted, mb: 0.8, display: 'block', fontWeight: 600 }}>{t.food}</Typography>
+                <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.food}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
                     value={med.food}
                     onChange={(e) => updateMedicine(med.id, 'food', e.target.value)}
                   >
-                    <MenuItem value="Before Food">Before Food</MenuItem>
-                    <MenuItem value="After Food">After Food</MenuItem>
+                    <MenuItem value="Before Food">Before Food (खाने से पहले)</MenuItem>
+                    <MenuItem value="After Food">After Food (खाने के बाद)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
             </Grid>
-          </Box>
+          </Paper>
         ))}
 
         <Button 
@@ -487,25 +496,25 @@ export default function PrescriptionForm() {
           startIcon={<AddIcon />} 
           onClick={handleAddMedicine}
           sx={{ 
-            py: 2, 
-            borderRadius: 3.5, 
-            bgcolor: colors.paper, 
-            color: colors.muted,
-            border: `1px dashed ${colors.line}`,
+            py: 3, 
+            borderRadius: 2, 
+            bgcolor: c.paper, 
+            color: c.primary,
+            border: `2px dashed ${c.line}`,
             textTransform: 'none',
             fontSize: 16,
             fontWeight: 600,
-            '&:hover': { bgcolor: '#f1eee7', borderColor: colors.muted }
+            '&:hover': { bgcolor: c.primarySoft, borderColor: c.primary }
           }}
         >
           {t.addMedicine}
         </Button>
 
         {/* Labs and Follow Up */}
-        <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid container spacing={4} sx={{ mt: 1 }}>
           <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
-              <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, color: c.text }}>
                 <span style={{ fontSize: '1.2rem' }}>📋</span> {t.labTests}
               </Typography>
               <Autocomplete
@@ -516,15 +525,15 @@ export default function PrescriptionForm() {
                 renderInput={(params) => <TextField {...params} placeholder={t.search_tests} sx={premiumTextFieldSx} />}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip key={index} label={option} {...getTagProps({ index })} sx={{ bgcolor: colors.green, color: colors.white, borderRadius: 2, fontWeight: '600' }} />
+                    <Chip key={index} label={option} {...getTagProps({ index })} sx={{ bgcolor: c.primary, color: '#fff', borderRadius: 1.5, fontWeight: 600 }} />
                   ))
                 }
               />
-            </Box>
+            </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
-              <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, color: c.text }}>
                 <span style={{ fontSize: '1.2rem' }}>🗓️</span> {t.followUp}
               </Typography>
               <TextField 
@@ -532,9 +541,9 @@ export default function PrescriptionForm() {
                 fullWidth 
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
-                sx={{ ...premiumTextFieldSx, mb: 2.5 }}
+                sx={{ ...premiumTextFieldSx, mb: 3 }}
               />
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
                 {[
                   { label: "7 Days", days: 7 },
                   { label: "14 Days", days: 14 },
@@ -549,33 +558,33 @@ export default function PrescriptionForm() {
                     }} 
                     variant="outlined"
                     sx={{ 
-                      borderRadius: 2, 
-                      px: 0.5,
-                      color: colors.text, 
-                      borderColor: colors.line,
+                      borderRadius: 1.5, 
+                      px: 1,
+                      color: c.text, 
+                      borderColor: c.line,
                       fontWeight: 600,
-                      '&:hover': { bgcolor: colors.bg, borderColor: colors.muted }
+                      '&:hover': { bgcolor: c.primarySoft, borderColor: c.primary, color: c.primaryDark }
                     }}
                   />
                 ))}
               </Stack>
-            </Box>
+            </Paper>
           </Grid>
         </Grid>
 
         {/* Notes */}
-        <Box sx={{ p: 3, mt: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: colors.text }}>
+        <Paper elevation={0} sx={{ p: 4, mt: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+            <Typography sx={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5, color: c.text }}>
               <span style={{ fontSize: '1.2rem' }}>📝</span> {t.notes}
             </Typography>
             <IconButton 
               onClick={handleSpeak} 
               sx={{ 
-                bgcolor: colors.blueSoft, 
-                color: colors.blue, 
-                '&:hover': { bgcolor: '#dbeafe' },
-                borderRadius: 2.5
+                bgcolor: c.primarySoft, 
+                color: c.primary, 
+                '&:hover': { bgcolor: c.primarySoft, opacity: 0.8 },
+                borderRadius: 1.5
               }} 
               size="small"
             >
@@ -591,7 +600,7 @@ export default function PrescriptionForm() {
             onChange={(e) => setNotes(e.target.value)}
             sx={premiumTextFieldSx}
           />
-        </Box>
+        </Paper>
 
         <Box sx={{ 
           position: 'fixed', 
@@ -599,38 +608,38 @@ export default function PrescriptionForm() {
           left: { lg: 'calc(50% + 160px)', xs: '50%' },
           transform: 'translateX(-50%)', 
           width: { xs: '90%', md: '80%', lg: '800px' },
-          bgcolor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          borderRadius: 4,
-          p: 1.5,
+          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 3,
+          p: 2,
           zIndex: 1100,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          border: '1px solid rgba(216, 208, 196, 0.4)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          border: `1px solid ${c.line}`,
         }}>
           <Stack direction="row" spacing={1}>
             <Button 
               variant="text" 
               startIcon={<PreviewIcon />} 
               onClick={() => setShowPreview(true)} 
-              sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
+              sx={{ color: c.text, textTransform: 'none', fontWeight: 600, px: 2, borderRadius: 1.5, '&:hover': { bgcolor: c.soft } }}
             >
               {t.preview}
             </Button>
             <Button 
               variant="text" 
               startIcon={<SaveIcon />} 
-              sx={{ color: colors.text, textTransform: 'none', fontWeight: '600', px: 2, borderRadius: 2.5, '&:hover': { bgcolor: colors.bg } }}
+              sx={{ color: c.text, textTransform: 'none', fontWeight: 600, px: 2, borderRadius: 1.5, '&:hover': { bgcolor: c.soft } }}
             >
               {t.save_draft}
             </Button>
           </Stack>
           
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center">
             <Tooltip title={t.send_sms}>
-              <IconButton sx={{ color: colors.blue, bgcolor: colors.blueSoft, borderRadius: 2.5, '&:hover': { bgcolor: '#dbeafe' } }}>
+              <IconButton sx={{ color: c.primary, bgcolor: c.primarySoft, borderRadius: 1.5, '&:hover': { bgcolor: c.primarySoft, opacity: 0.8 } }}>
                 <SmsIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Tooltip>
@@ -641,16 +650,16 @@ export default function PrescriptionForm() {
               disabled={loading}
               startIcon={!loading && <SendIcon />}
               sx={{ 
-                borderRadius: 2.5, 
-                px: 4, 
-                py: 1.25,
-                bgcolor: colors.green,
+                borderRadius: 2, 
+                px: 5, 
+                py: 1.5,
+                bgcolor: c.primary,
                 color: '#fff',
                 textTransform: 'none',
-                fontWeight: '700',
-                boxShadow: '0 4px 12px rgba(38, 163, 124, 0.25)',
-                '&:hover': { bgcolor: '#1f8c6a', boxShadow: '0 6px 16px rgba(38, 163, 124, 0.35)' },
-                '&.Mui-disabled': { bgcolor: colors.line }
+                fontWeight: 700,
+                boxShadow: `0 8px 16px ${c.primary}30`,
+                '&:hover': { bgcolor: c.primaryDark, boxShadow: `0 8px 24px ${c.primary}40` },
+                '&.Mui-disabled': { bgcolor: c.line }
               }}
             >
               {loading ? t.processing : t.submit}
@@ -665,110 +674,115 @@ export default function PrescriptionForm() {
         onClose={() => setShowPreview(false)} 
         maxWidth="md" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', bgcolor: '#fff' } }}
+        PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden', bgcolor: '#fff' } }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2.5, px: 4, borderBottom: `1px solid ${colors.line}` }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'Georgia, serif' }}>{t.preview}</Typography>
-          <IconButton onClick={() => setShowPreview(false)} size="small" sx={{ bgcolor: colors.bg }}>
-            <BackIcon />
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 3, px: 4, borderBottom: `1px solid ${c.line}` }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 700, color: c.text }}>{t.preview}</Typography>
+          <IconButton onClick={() => setShowPreview(false)} size="small" sx={{ bgcolor: c.bg }}>
+            <BackIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, bgcolor: colors.bg }}>
-          <Box sx={{ p: 4, bgcolor: '#fff', m: { xs: 1, md: 3 }, borderRadius: 3, border: `1px solid ${colors.line}`, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+        <DialogContent sx={{ p: 4, bgcolor: c.bg }}>
+          <Paper elevation={0} sx={{ p: 5, bgcolor: '#fff', borderRadius: 2, border: `1px solid ${c.line}`, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
              {/* Prescription Header */}
-             <Stack direction="row" justifyContent="space-between" sx={{ mb: 4 }}>
+             <Stack direction="row" justifyContent="space-between" sx={{ mb: 5 }}>
                 <Box>
-                  <Typography variant="h4" fontWeight="800" color={colors.green} sx={{ fontFamily: 'Georgia, serif', letterSpacing: -0.5 }}>Seva TeleHealth</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: 0.5 }}>Healing through connection</Typography>
+                  <Typography sx={{ fontSize: 28, fontWeight: 800, color: c.primary, letterSpacing: -0.5 }}>Seva TeleHealth</Typography>
+                  <Typography sx={{ fontSize: 13, color: c.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Healing through connection</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="h6" fontWeight="700">Dr. Sharma</Typography>
-                  <Typography variant="caption" sx={{ display: 'block', color: colors.muted }}>Reg No: 123456 • MBBS, MD</Typography>
-                  <Typography variant="caption" sx={{ display: 'block', color: colors.muted }}>Seva City Hospital, Bengaluru</Typography>
+                  <Typography sx={{ fontSize: 18, fontWeight: 700, color: c.text }}>Dr. Sharma</Typography>
+                  <Typography sx={{ fontSize: 12, color: c.muted, fontWeight: 500 }}>Reg No: 123456 • MBBS, MD</Typography>
+                  <Typography sx={{ fontSize: 12, color: c.muted, fontWeight: 500 }}>Seva City Hospital, Bengaluru</Typography>
                 </Box>
              </Stack>
              
-             <Divider sx={{ mb: 4, borderColor: colors.line }} />
+             <Divider sx={{ mb: 4, borderColor: c.soft, borderStyle: 'dashed' }} />
              
              {/* Patient Overview */}
-             <Grid container spacing={2} sx={{ mb: 4 }}>
+             <Grid container spacing={2} sx={{ mb: 5 }}>
                 <Grid item xs={8}>
-                   <Typography variant="subtitle1" fontWeight="800" sx={{ mb: 0.5 }}>{patientInfo.name}</Typography>
-                   <Typography variant="body2" color="text.secondary">AGE: {patientInfo.age}Y • {patientInfo.gender} • ID: {patientInfo.id}</Typography>
+                   <Typography sx={{ fontSize: 18, fontWeight: 700, color: c.text, mb: 0.5 }}>{patientInfo.name}</Typography>
+                   <Typography sx={{ fontSize: 14, color: c.muted, fontWeight: 500 }}>AGE: {patientInfo.age}Y • {patientInfo.gender} • ID: {patientInfo.id}</Typography>
                 </Grid>
                 <Grid item xs={4} sx={{ textAlign: 'right' }}>
-                   <Typography variant="body2"><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                   <Typography sx={{ fontSize: 14, color: c.text, fontWeight: 600 }}>Date: {new Date().toLocaleDateString()}</Typography>
                 </Grid>
              </Grid>
 
-             <Box sx={{ mb: 3, p: 2, bgcolor: colors.redSoft, borderRadius: 2, border: `1px solid ${colors.redSoft}` }}>
-                <Typography variant="caption" fontWeight="700" sx={{ color: colors.red, display: 'block', mb: 0.5 }}>⚠️ {t.allergies.toUpperCase()}</Typography>
-                <Typography variant="body2" sx={{ color: colors.red }}>{patientInfo.allergies || t.none_reported.toUpperCase()}</Typography>
+             <Box sx={{ mb: 4, p: 2, bgcolor: c.dangerSoft, borderRadius: 1.5, borderLeft: `4px solid ${c.danger}` }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.danger, textTransform: 'uppercase', mb: 0.5 }}>⚠️ {t.allergies}</Typography>
+                <Typography sx={{ fontSize: 14, color: c.danger, fontWeight: 600 }}>{patientInfo.allergies || t.none_reported}</Typography>
              </Box>
 
-             <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.diagnosis.toUpperCase()}</Typography>
-                <Typography variant="body2" sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>{patientInfo.diagnosis || '--'}</Typography>
+             <Box sx={{ mb: 4 }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.diagnosis}</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: c.text, p: 2, bgcolor: c.bg, borderRadius: 1.5 }}>{patientInfo.diagnosis || '--'}</Typography>
              </Box>
 
-             <Box sx={{ mb: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.medications.toUpperCase()} (Rx)</Typography>
+             <Box sx={{ mb: 4 }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1.5 }}>{t.medications} (Rx)</Typography>
                 {medicines.map((m, i) => (
-                  <Box key={i} sx={{ mb: 1, p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #f1f5f9' }}>
+                  <Box key={i} sx={{ mb: 2, p: 2.5, bgcolor: c.bg, borderRadius: 2, border: `1px solid ${c.line}` }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                        <Box>
-                         <Typography variant="body2" fontWeight="700">{i+1}. {m.name}</Typography>
-                         <Typography variant="caption" color="text.secondary">
+                         <Typography sx={{ fontSize: 16, fontWeight: 700, color: c.text }}>{i+1}. {m.name}</Typography>
+                         <Typography sx={{ fontSize: 13, color: c.muted, mt: 0.5, fontWeight: 500 }}>
                             {m.form} • {m.frequency} • {m.food}
                          </Typography>
                        </Box>
-                       <Typography variant="caption" fontWeight="700">{m.dosage} • {m.duration} Days</Typography>
+                       <Typography sx={{ fontSize: 14, fontWeight: 700, color: c.primaryDark }}>{m.dosage} • {m.duration} Days</Typography>
                     </Stack>
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, color: colors.muted }}>
-                       Timing: {Object.keys(m.timing).filter(k => m.timing[k]).map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(', ')}
-                    </Typography>
+                    <Box sx={{ mt: 2, pt: 1.5, borderTop: `1px solid ${c.line}`, borderStyle: 'dotted' }}>
+                      <Typography sx={{ fontSize: 12, color: c.muted, fontWeight: 600 }}>TIMING</Typography>
+                      <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                        {Object.keys(m.timing).filter(k => m.timing[k]).map(k => (
+                          <Chip key={k} label={k.toUpperCase()} size="small" sx={{ height: 18, fontSize: 9, fontWeight: 800, bgcolor: c.primarySoft, color: c.primaryDark }} />
+                        ))}
+                      </Stack>
+                    </Box>
                   </Box>
                 ))}
              </Box>
 
-             <Grid container spacing={2}>
-                <Grid item xs={6}>
-                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.labTests.toUpperCase()}</Typography>
-                   <Stack direction="row" flexWrap="wrap" gap={0.5}>
-                      {labTests.map((t, index) => <Chip key={index} label={t} size="small" variant="outlined" sx={{ borderRadius: 1 }} />)}
-                      {labTests.length === 0 && <Typography variant="caption">--</Typography>}
+             <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                   <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.labTests}</Typography>
+                   <Stack direction="row" flexWrap="wrap" gap={1}>
+                      {labTests.map((t, index) => <Chip key={index} label={t} size="small" sx={{ borderRadius: 1, fontWeight: 600, fontSize: 12 }} variant="outlined" />)}
+                      {labTests.length === 0 && <Typography sx={{ fontSize: 14, color: c.muted }}>--</Typography>}
                    </Stack>
                 </Grid>
-                <Grid item xs={6}>
-                   <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.followUp.toUpperCase()}</Typography>
-                   <Typography variant="body2" fontWeight="600">{followUp ? new Date(followUp).toLocaleDateString() : '--'}</Typography>
+                <Grid item xs={12} md={6}>
+                   <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.followUp}</Typography>
+                   <Typography sx={{ fontSize: 16, fontWeight: 700, color: c.text }}>{followUp ? new Date(followUp).toLocaleDateString() : '--'}</Typography>
                 </Grid>
              </Grid>
 
-             <Box sx={{ mt: 3 }}>
-                <Typography variant="caption" fontWeight="700" color={colors.muted} sx={{ display: 'block', mb: 1 }}>{t.notes.toUpperCase()}</Typography>
-                <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>{notes || '--'}</Typography>
+             <Box sx={{ mt: 4 }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.notes}</Typography>
+                <Typography sx={{ fontSize: 14, fontStyle: 'italic', color: c.muted, p: 2, bgcolor: c.bg, borderRadius: 1.5, borderLeft: `3px solid ${c.soft}` }}>{notes || '--'}</Typography>
              </Box>
              
-             <Box sx={{ mt: 6, textAlign: 'right' }}>
-                <Box sx={{ display: 'inline-block', textAlign: 'center' }}>
-                  <Divider sx={{ mb: 1, width: '150px' }} />
-                  <Typography variant="caption" color="text.secondary">{t.digital_signature}</Typography>
-                  <Typography variant="subtitle2" fontWeight="700">Dr. Sharma</Typography>
+             <Box sx={{ mt: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ mb: 1.5, width: 180, height: 1, bgcolor: c.line }} />
+                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: c.muted, textTransform: 'uppercase', mb: 0.5 }}>{t.digital_signature}</Typography>
+                  <Typography sx={{ fontSize: 16, fontWeight: 800, color: c.text }}>Dr. Sharma</Typography>
                 </Box>
              </Box>
-          </Box>
+          </Paper>
         </DialogContent>
-        <DialogActions sx={{ p: 3, bgcolor: '#F8FAFC' }}>
-          <Button onClick={() => setShowPreview(false)} sx={{ fontWeight: 'bold' }}>{t.close}</Button>
-          <Button variant="contained" color="primary" startIcon={<PrintIcon />} onClick={() => window.print()} sx={{ borderRadius: 4, px: 4, fontWeight: 'bold' }}>
+        <DialogActions sx={{ p: 4, bgcolor: c.paper, borderTop: `1px solid ${c.line}` }}>
+          <Button onClick={() => setShowPreview(false)} sx={{ fontWeight: 600, textTransform: 'none', color: c.text }}>{t.close}</Button>
+          <Button variant="contained" startIcon={<PrintIcon />} onClick={() => window.print()} sx={{ borderRadius: 2, px: 4, fontWeight: 600, textTransform: 'none', bgcolor: c.primary, boxShadow: `0 8px 16px ${c.primary}30` }}>
             {t.download_print}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert severity={snackbar.severity} sx={{ borderRadius: 3, fontWeight: '600' }}>{snackbar.message}</Alert>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 2, fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>{snackbar.message}</Alert>
       </Snackbar>
     </DoctorLayout>
   );

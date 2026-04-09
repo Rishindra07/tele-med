@@ -456,13 +456,7 @@ function PatientDashboard() {
                              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                 {dashStatus === 'upcoming' && (
                                   <>
-                                    {isJoinNear ? (
-                                      <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.join_consultation}</Button>
-                                    ) : (
-                                      <Box sx={{ px: 1.5, py: 0.8, borderRadius: 1.5, bgcolor: c.primarySoft, border: `1px solid ${c.primary}30` }}>
-                                         <Typography sx={{ color: c.primaryDark, fontSize: 11, fontWeight: 700 }}>{getConsultationStatus(appt).label}</Typography>
-                                      </Box>
-                                    )}
+                                    <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.join_consultation}</Button>
                                     <Button onClick={() => bookingRef.current?.scrollIntoView({ behavior: 'smooth' })} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.reschedule}</Button>
                                     <Button onClick={() => setSnackbar({ open: true, severity: 'info', message: 'Cancellation request sent to doctor.' })} size="small" variant="text" sx={{ color: c.danger, fontSize: 11, textTransform: 'none' }}>{t.appts.cancel}</Button>
                                   </>
@@ -470,7 +464,7 @@ function PatientDashboard() {
                                 {dashStatus === 'ongoing' && (
                                   <>
                                     <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: c.success, borderRadius: 1.5, fontSize: 11, textTransform: 'none', '&:hover': { bgcolor: c.success } }}>{t.appts.join_now}</Button>
-                                    <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.chat}</Button>
+                                    <Button onClick={() => navigate('/patient/video-call', { state: { appointment: appt, openChat: true } })} size="small" variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.chat}</Button>
                                     <Button onClick={() => navigate('/patient/records?tab=upload')} size="small" variant="outlined" startIcon={<UploadIcon />} sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.appts.upload}</Button>
                                   </>
                                 )}

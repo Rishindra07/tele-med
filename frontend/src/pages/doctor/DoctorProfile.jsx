@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert, Avatar, Box, Button, Chip, CircularProgress,
-  Divider, Snackbar, Stack, Switch, TextField, Typography
+  Divider, Grid, Paper, Snackbar, Stack, Switch, TextField, Typography
 } from '@mui/material';
 import {
   EmailOutlined as EmailIcon,
@@ -14,12 +14,22 @@ import { fetchDoctorProfile, updateDoctorProfile } from '../../api/doctorApi';
 import { useLanguage } from '../../context/LanguageContext';
 import { DOCTOR_PROFILE_TRANSLATIONS } from '../../utils/translations/doctor';
 
-const colors = {
-  paper: '#fffdf8', line: '#d8d0c4', soft: '#e9e2d8',
-  text: '#2c2b28', muted: '#8b857d',
-  green: '#26a37c', greenSoft: '#dff3eb', greenDark: '#176d57',
-  blue: '#4a90e2', blueSoft: '#e7f0fe',
-  amber: '#d18a1f', amberSoft: '#fbefdc'
+const c = {
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  soft: '#f0f0f0',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  danger: '#d93025',
+  dangerSoft: '#fce8e6'
 };
 
 const initials = (name = '') =>
@@ -76,7 +86,6 @@ export default function DoctorProfile() {
       };
       const res = await updateDoctorProfile(payload);
       
-      // Update local storage so sidebar reflects the change
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       const updatedUser = { 
         ...currentUser, 
@@ -105,162 +114,186 @@ export default function DoctorProfile() {
   if (loading) return (
     <DoctorLayout>
       <Box sx={{ py: 12, display: 'grid', placeItems: 'center' }}>
-        <CircularProgress sx={{ color: colors.green }} />
+        <CircularProgress sx={{ color: c.primary }} />
       </Box>
     </DoctorLayout>
   );
 
   return (
     <DoctorLayout>
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 } }}>
-        <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 3 }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 6 }, py: { xs: 3, md: 4 }, bgcolor: c.bg, minHeight: 'calc(100vh - 64px)' }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: c.text, fontFamily: 'Inter, sans-serif' }}>
               {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18 }}>
+            <Typography sx={{ mt: 0.5, color: c.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1.5}>
+          <Stack direction="row" spacing={2}>
             {editing ? (
               <>
-                <Button onClick={() => setEditing(false)} sx={{ px: 2.5, py: 1.1, borderRadius: 3, border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', fontSize: 15 }}>
+                <Button onClick={() => setEditing(false)} sx={{ px: 3, py: 1.2, borderRadius: 2, border: `1px solid ${c.line}`, color: c.text, textTransform: 'none', fontWeight: 600 }}>
                   {t.cancel}
                 </Button>
-                <Button onClick={handleSave} disabled={saving} startIcon={<SaveIcon />} sx={{ px: 2.5, py: 1.1, borderRadius: 3, bgcolor: colors.green, color: '#fff', textTransform: 'none', fontSize: 15, '&:hover': { bgcolor: colors.greenDark } }}>
+                <Button onClick={handleSave} disabled={saving} startIcon={<SaveIcon />} sx={{ px: 3, py: 1.2, borderRadius: 2, bgcolor: c.primary, color: '#fff', textTransform: 'none', fontWeight: 600, boxShadow: `0 8px 16px ${c.primary}30`, '&:hover': { bgcolor: c.primaryDark } }}>
                   {saving ? t.saving : t.save_changes}
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setEditing(true)} sx={{ px: 2.5, py: 1.1, borderRadius: 3, border: `1px solid ${colors.green}`, color: colors.green, textTransform: 'none', fontSize: 15 }}>
+              <Button onClick={() => setEditing(true)} sx={{ px: 3, py: 1.2, borderRadius: 2, border: `1px solid ${c.primary}`, color: c.primary, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: c.primarySoft } }}>
                 {t.edit_profile}
               </Button>
             )}
           </Stack>
         </Stack>
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={4} alignItems="flex-start">
           {/* Left: Profile Card */}
-          <Box sx={{ width: { xs: '100%', md: '35%' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper, textAlign: 'center' }}>
-              <Typography sx={{ fontSize: 18, mb: 2, textAlign: 'left' }}>{t.title}</Typography>
-              <Avatar sx={{ width: 92, height: 92, margin: '0 auto', bgcolor: colors.greenSoft, color: colors.green, fontSize: '2rem', fontWeight: 800, border: '4px solid #dceee8', mb: 1.5 }}>
+          <Box sx={{ width: { xs: '100%', lg: '380px' }, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Paper elevation={0} sx={{ border: `1px solid ${c.line}`, borderRadius: 2, p: 4, bgcolor: c.paper, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <Avatar sx={{ width: 100, height: 100, margin: '0 auto', bgcolor: c.primarySoft, color: c.primary, fontSize: '2.5rem', fontWeight: 700, border: `4px solid ${c.bg}`, mb: 2 }}>
                 {initials(name)}
               </Avatar>
-              <Typography sx={{ fontSize: 22, fontFamily: 'Georgia, serif' }}>{name}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 14.5, mb: 2 }}>{form.specialization || doctor.specialization || t.spec_def}</Typography>
+              <Typography sx={{ fontSize: 24, fontWeight: 700, color: c.text }}>{name}</Typography>
+              <Typography sx={{ color: c.muted, fontSize: 15, mb: 3 }}>{form.specialization || doctor.specialization || t.spec_def}</Typography>
 
-              <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                <Typography sx={{ color: available ? colors.green : colors.muted, fontSize: 14.5, fontWeight: available ? 600 : 400 }}>
+              <Stack direction="row" justifyContent="center" alignItems="center" spacing={1.5} sx={{ mb: 3, p: 1, borderRadius: 2, bgcolor: available ? c.successSoft : c.soft }}>
+                <Typography sx={{ color: available ? c.success : c.muted, fontSize: 14, fontWeight: 700, textTransform: 'uppercase' }}>
                   {available ? t.avail : t.busy}
                 </Typography>
                 <Switch
                   checked={available}
                   onChange={(e) => setAvailable(e.target.checked)}
                   disabled={!editing}
-                  sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: colors.green }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: colors.green } }}
+                  sx={{ 
+                    '& .MuiSwitch-switchBase.Mui-checked': { color: c.success }, 
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: c.success } 
+                  }}
                 />
               </Stack>
 
-              <Divider sx={{ mb: 2 }} />
-              <Stack spacing={1.5} sx={{ textAlign: 'left' }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><PhoneIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{form.phone || user.phone || t.not_provided}</Typography>
+              <Divider sx={{ mb: 3, borderColor: c.soft }} />
+              <Stack spacing={2} sx={{ textAlign: 'left' }}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Box sx={{ p: 1, bgcolor: c.primarySoft, borderRadius: 1.5, color: c.primary }}><PhoneIcon sx={{ fontSize: 18 }} /></Box>
+                  <Typography sx={{ fontSize: 15, color: c.text }}>{form.phone || user.phone || t.not_provided}</Typography>
                 </Stack>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green }}><EmailIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography noWrap sx={{ fontSize: 14.5 }}>{user.email || t.not_provided}</Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Box sx={{ p: 1, bgcolor: c.primarySoft, borderRadius: 1.5, color: c.primary }}><EmailIcon sx={{ fontSize: 18 }} /></Box>
+                  <Typography noWrap sx={{ fontSize: 15, color: c.text }}>{user.email || t.not_provided}</Typography>
                 </Stack>
-                <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                  <Box sx={{ p: 0.8, bgcolor: '#eef9f4', borderRadius: 1.5, color: colors.green, flexShrink: 0 }}><LocationIcon sx={{ fontSize: 14 }} /></Box>
-                  <Typography sx={{ fontSize: 14.5 }}>{form.hospitalName || doctor.hospitalName || t.not_provided}</Typography>
+                <Stack direction="row" spacing={2} alignItems="flex-start">
+                  <Box sx={{ p: 1, bgcolor: c.primarySoft, borderRadius: 1.5, color: c.primary, flexShrink: 0 }}><LocationIcon sx={{ fontSize: 18 }} /></Box>
+                  <Typography sx={{ fontSize: 15, color: c.text }}>{form.hospitalName || doctor.hospitalName || t.not_provided}</Typography>
                 </Stack>
               </Stack>
-            </Box>
+            </Paper>
 
-            <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 18, mb: 2 }}>{t.about}</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 14.5, lineHeight: 1.7 }}>
+            <Paper elevation={0} sx={{ border: `1px solid ${c.line}`, borderRadius: 2, p: 4, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text, mb: 2 }}>{t.about}</Typography>
+              <Typography sx={{ color: c.muted, fontSize: 15, lineHeight: 1.6, mb: 4 }}>
                 {form.bio || doctor.bio || t.no_bio}
               </Typography>
-              <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <Stack spacing={2.5}>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_spec}</Typography>
-                  <Chip label={form.specialization || doctor.specialization || 'N/A'} sx={{ bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12.5, mt: 0.6 }} />
+                  <Typography sx={{ color: c.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', mb: 1 }}>{t.lbl_spec}</Typography>
+                  <Chip label={form.specialization || doctor.specialization || 'N/A'} sx={{ bgcolor: c.primarySoft, color: c.primaryDark, fontWeight: 600 }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_exp}</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{(form.experience || doctor.experience) ? `${form.experience || doctor.experience} ${t.years}` : t.not_spec}</Typography>
+                  <Typography sx={{ color: c.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', mb: 0.5 }}>{t.lbl_exp}</Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: c.text }}>{(form.experience || doctor.experience) ? `${form.experience || doctor.experience} ${t.years}` : t.not_spec}</Typography>
                 </Box>
                 <Box>
-                  <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_lang}</Typography>
-                  <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>{finalLanguages.join(', ') || t.not_spec}</Typography>
+                  <Typography sx={{ color: c.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', mb: 0.5 }}>{t.lbl_lang}</Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: c.text }}>{finalLanguages.join(', ') || t.not_spec}</Typography>
                 </Box>
                 {(form.consultationFee > 0 || doctor.consultationFee > 0) && (
                   <Box>
-                    <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.lbl_fee}</Typography>
-                    <Typography sx={{ mt: 0.3, fontSize: 14.5 }}>₹{form.consultationFee || doctor.consultationFee}</Typography>
+                    <Typography sx={{ color: c.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', mb: 0.5 }}>{t.lbl_fee}</Typography>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: c.success }}>₹{form.consultationFee || doctor.consultationFee}</Typography>
                   </Box>
                 )}
               </Stack>
-            </Box>
+            </Paper>
           </Box>
 
           {/* Right: Edit Form */}
           <Box sx={{ flex: 1 }}>
-            {editing ? (
-              <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 2.5 }}>{t.edit_details}</Typography>
-                <Stack spacing={2.2}>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label={t.f_name} value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} />
-                    <TextField fullWidth label={t.f_phone} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+            <Paper elevation={0} sx={{ border: `1px solid ${c.line}`, borderRadius: 2, p: 4, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              {editing ? (
+                <>
+                  <Typography sx={{ fontSize: 20, fontWeight: 600, color: c.text, mb: 4 }}>{t.edit_details}</Typography>
+                  <Stack spacing={3}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_name} value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_phone} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                    </Grid>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_spec} value={form.specialization} onChange={e => setForm(p => ({ ...p, specialization: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_qual} value={form.qualification} onChange={e => setForm(p => ({ ...p, qualification: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                    </Grid>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_hosp} value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_lic} value={form.medicalLicense} onChange={e => setForm(p => ({ ...p, medicalLicense: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                    </Grid>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_fee} type="number" value={form.consultationFee} onChange={e => setForm(p => ({ ...p, consultationFee: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField fullWidth label={t.f_exp} type="number" value={form.experience} onChange={e => setForm(p => ({ ...p, experience: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                      </Grid>
+                    </Grid>
+                    <TextField fullWidth label={t.f_lang} value={form.languages} onChange={e => setForm(p => ({ ...p, languages: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+                    <TextField fullWidth multiline minRows={4} label={t.f_bio} value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                   </Stack>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label={t.f_spec} value={form.specialization} onChange={e => setForm(p => ({ ...p, specialization: e.target.value }))} />
-                    <TextField fullWidth label={t.f_qual} value={form.qualification} onChange={e => setForm(p => ({ ...p, qualification: e.target.value }))} />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label={t.f_hosp} value={form.hospitalName} onChange={e => setForm(p => ({ ...p, hospitalName: e.target.value }))} />
-                    <TextField fullWidth label={t.f_lic} value={form.medicalLicense} onChange={e => setForm(p => ({ ...p, medicalLicense: e.target.value }))} />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                    <TextField fullWidth label={t.f_fee} type="number" value={form.consultationFee} onChange={e => setForm(p => ({ ...p, consultationFee: e.target.value }))} />
-                    <TextField fullWidth label={t.f_exp} type="number" value={form.experience} onChange={e => setForm(p => ({ ...p, experience: e.target.value }))} />
-                  </Stack>
-                  <TextField fullWidth label={t.f_lang} value={form.languages} onChange={e => setForm(p => ({ ...p, languages: e.target.value }))} />
-                  <TextField fullWidth multiline minRows={4} label={t.f_bio} value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} />
-                </Stack>
-              </Box>
-            ) : (
-              <Box sx={{ border: `1px solid ${colors.line}`, borderRadius: 4, p: 3, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 2 }}>{t.prof_info}</Typography>
-                {[
-                  [t.f_name, name],
-                  ['Email', user.email],
-                  [t.f_phone, user.phone],
-                  [t.f_spec, doctor.specialization],
-                  [t.f_qual, doctor.qualification],
-                  [t.f_hosp, doctor.hospitalName],
-                  [t.f_exp, doctor.experience ? `${doctor.experience} ${t.years}` : null],
-                  [t.f_fee, doctor.consultationFee > 0 ? `₹${doctor.consultationFee}` : null],
-                  [t.f_lic, doctor.medicalLicense]
-                ].map(([label, value]) => value ? (
-                  <Box key={label} sx={{ py: 1.5, borderBottom: `1px solid ${colors.soft}` }}>
-                    <Typography sx={{ fontSize: 12.5, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</Typography>
-                    <Typography sx={{ mt: 0.4, fontSize: 15.5 }}>{value}</Typography>
-                  </Box>
-                ) : null)}
-              </Box>
-            )}
+                </>
+              ) : (
+                <>
+                  <Typography sx={{ fontSize: 20, fontWeight: 600, color: c.text, mb: 4 }}>{t.prof_info}</Typography>
+                  <Grid container spacing={1}>
+                    {[
+                      [t.f_name, name],
+                      ['Email', user.email],
+                      [t.f_phone, user.phone],
+                      [t.f_spec, doctor.specialization],
+                      [t.f_qual, doctor.qualification],
+                      [t.f_hosp, doctor.hospitalName],
+                      [t.f_exp, doctor.experience ? `${doctor.experience} ${t.years}` : null],
+                      [t.f_fee, doctor.consultationFee > 0 ? `₹${doctor.consultationFee}` : null],
+                      [t.f_lic, doctor.medicalLicense]
+                    ].map(([label, value]) => value ? (
+                      <Grid item xs={12} md={6} key={label}>
+                        <Box sx={{ py: 2, px: 2, borderRadius: 1.5, '&:hover': { bgcolor: c.bg } }}>
+                          <Typography sx={{ fontSize: 12, color: c.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</Typography>
+                          <Typography sx={{ mt: 0.5, fontSize: 16, fontWeight: 600, color: c.text }}>{value}</Typography>
+                        </Box>
+                      </Grid>
+                    ) : null)}
+                  </Grid>
+                </>
+              )}
+            </Paper>
           </Box>
         </Stack>
       </Box>
 
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(p => ({ ...p, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5 }}>{snackbar.message}</Alert>
+        <Alert severity={snackbar.severity} sx={{ borderRadius: 1.5, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>{snackbar.message}</Alert>
       </Snackbar>
     </DoctorLayout>
   );

@@ -425,18 +425,36 @@ function PatientAppointments() {
                       {payingId === a.id ? <CircularProgress size={20} color="inherit" /> : 'Pay Now'}
                     </Button>
                   )}
-                  {isJoinNear ? (
-                    <Button onClick={() => navigate('/patient/consultation')} variant="contained" startIcon={<VideoIcon />} sx={{ bgcolor: colors.primary, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}>{t.actions.join}</Button>
-                  ) : (
-                    <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>{t.actions.reschedule}</Button>
-                  )}
+                  <Button 
+                    onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a } })} 
+                    variant="contained" 
+                    startIcon={<VideoIcon />} 
+                    sx={{ bgcolor: colors.primary, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {t.actions.join}
+                  </Button>
+                  <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>{t.actions.reschedule}</Button>
                   <Button onClick={() => handleCancel(a.id)} variant="text" sx={{ color: colors.danger, textTransform: 'none', fontWeight: 600 }}>{t.actions.cancel}</Button>
                 </>
               )}
               {dashStatus === 'ongoing' && (
                 <>
-                  <Button onClick={() => navigate('/patient/consultation')} variant="contained" startIcon={<OngoingIcon />} sx={{ bgcolor: colors.success, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: colors.success } }}>{t.actions.join_now}</Button>
-                  <Button onClick={() => navigate('/patient/consultation', { state: { openChat: true } })} variant="outlined" startIcon={<ChatIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.chat}</Button>
+                  <Button 
+                    onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a } })} 
+                    variant="contained" 
+                    startIcon={<OngoingIcon />} 
+                    sx={{ bgcolor: colors.success, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: colors.success } }}
+                  >
+                    {t.actions.join_now}
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a, openChat: true } })} 
+                    variant="outlined" 
+                    startIcon={<ChatIcon />} 
+                    sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}
+                  >
+                    {t.actions.chat}
+                  </Button>
                 </>
               )}
               {dashStatus === 'completed' && (
