@@ -1,16 +1,18 @@
 import API from "./axios";
 
-export const fetchDoctorDashboard = () => API.get("/doctor/dashboard");
-export const fetchDoctorProfile = () => API.get("/doctor/profile");
-export const updateDoctorProfile = (data) => API.put("/doctor/profile", data);
-export const fetchDoctorPatients = () => API.get("/doctor/patients");
+export const fetchDoctorDashboard = () => API.get("doctor/dashboard");
+export const fetchDoctorProfile = () => API.get("doctor/profile");
+export const updateDoctorProfile = (data) => API.put("doctor/profile", data);
+export const fetchDoctorPatients = () => API.get("doctor/patients");
 export const updateAppointmentStatus = (id, status) =>
-  API.patch(`/doctor/appointments/${id}/status`, { status });
+  API.patch(`doctor/appointments/${id}/status`, { status });
 export const generatePrescription = (data) =>
-  API.post("/doctor/prescriptions/generate", data);
+  API.post("doctor/prescriptions/generate", data);
 export const fetchPatientHistory = (id) =>
-  API.get(`/doctor/patients/${id}/history`);
+  API.get(`doctor/patients/${id}/history`);
 export const fetchPrescriptionByConsultation = (id) =>
-  API.get(`/doctor/prescriptions/consultation/${id}`);
+  API.get(`doctor/prescriptions/consultation/${id}`);
 export const rescheduleAppointment = (id, newDate, newTime) =>
-  API.patch(`/doctor/appointments/${id}/reschedule`, { newDate, newTime });
+  API.patch(`doctor/appointments/${id}/reschedule`, { newDate, newTime });
+export const updateDoctorSettings = (settings) => API.put("users/settings", { settings });
+export const fetchMyAppointments = () => API.get("appointments/my");

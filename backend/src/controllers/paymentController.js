@@ -157,13 +157,58 @@ exports.verifyPayment = async (req, res) => {
  */
 exports.getMyPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({ user: req.user._id })
+    const rawPayments = await Payment.find({ user: req.user._id })
       .sort({ createdAt: -1 })
       .lean();
+
+    const payments = await Promise.all(rawPayments.map(async (p) => {
+      let description = "Unknown Transaction";
+      if (p.referenceType === 'consultation') {
+        const c = await Consultation.findById(p.referenceId).populate('doctor', 'full_name');
+        description = `Consultation with Dr. ${c?.doctor?.full_name || 'Medical Specialist'}`;
+      } else if (p.referenceType === 'medicine_order') {
+        const po = await PrescriptionOrder.findById(p.referenceId).populate('pharmacy', 'name');
+        description = `Pharmacy Order: ${po?.pharmacy?.name || 'Local Pharmacy'}`;
+      }
+      return { 
+        ...p, 
+        description,
+        date: p.createdAt, // alias for frontend
+        type: p.referenceType === 'consultation' ? 'Consultation' : 'Medicines',
+        method: p.razorpayPaymentId ? 'Online (Razorpay)' : 'Pending'
+      };
+    }));
 
     res.status(200).json({ success: true, payments });
   } catch (error) {
     console.error('getMyPayments error:', error);
     res.status(500).json({ message: 'Could not fetch payments', error: error.message });
+  }
+};
+
+/**
+ * @desc   Cancel a pending payment
+ * @route  POST /api/payments/cancel/:id
+ * @access Private
+ */
+exports.cancelPayment = async (req, res) => {
+  try {
+    const payment = await Payment.findOne({ _id: req.params.id, user: req.user._id });
+    
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+
+    if (payment.status !== 'created') {
+      return res.status(400).json({ success: false, message: `Cannot cancel payment with status: ${payment.status}` });
+    }
+
+    payment.status = 'cancelled';
+    await payment.save();
+
+    res.status(200).json({ success: true, message: 'Payment cancelled successfully' });
+  } catch (error) {
+    console.error('cancelPayment error:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel payment' });
   }
 };

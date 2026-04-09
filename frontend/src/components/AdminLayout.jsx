@@ -38,33 +38,27 @@ const NAV_SECTIONS = [
   {
     titleKey: 'overview',
     items: [
-      { textKey: 'dashboard', icon: DashboardIcon, path: '/admin' },
-      { textKey: 'analytics', icon: AnalyticsIcon, path: '/admin/analytics' }
+      { textKey: 'dashboard', icon: DashboardIcon, path: '/admin' }
     ]
   },
   {
     titleKey: 'platform',
     items: [
-      { textKey: 'patients', icon: PatientsIcon, path: '/admin/patients', badge: '12.4K', badgeColor: colors.green },
-      { textKey: 'doctors', icon: DoctorsIcon, path: '/admin/doctors', badge: 'Pending', badgeColor: colors.orange },
+      { textKey: 'patients', icon: PatientsIcon, path: '/admin/patients' },
+      { textKey: 'doctors', icon: DoctorsIcon, path: '/admin/doctors' },
       { textKey: 'pharmacies', icon: PharmaciesIcon, path: '/admin/pharmacies' },
-      { textKey: 'consultations', icon: ConsultationsIcon, path: '/admin/consultations', badge: '924', badgeColor: colors.blue }
+      { textKey: 'consultations', icon: ConsultationsIcon, path: '/admin/consultations' }
     ]
   },
   {
     titleKey: 'insights_finances',
     items: [
-      { textKey: 'health_records', icon: RecordsIcon, path: '/admin/records' },
-      { textKey: 'financial', icon: FinanceIcon, path: '/admin/financials', badge: '3', badgeColor: colors.red, badgeTextColor: '#fff' },
       { textKey: 'reports', icon: ReportsIcon, path: '/admin/reports' }
     ]
   },
   {
     titleKey: 'system',
     items: [
-      { textKey: 'system_health', icon: HealthIcon, path: '/admin/health', badge: '1', badgeColor: colors.red },
-      { textKey: 'user_management', icon: UserMgmtIcon, path: '/admin/users' },
-      { textKey: 'audit_log', icon: AuditIcon, path: '/admin/audit' },
       { textKey: 'settings', icon: SettingsIcon, path: '/admin/settings' }
     ]
   }
@@ -192,17 +186,18 @@ export default function AdminLayout({ children }) {
           <Stack direction="row" spacing={0.5} sx={{ mb: 2 }}>
             {[
               { code: 'en', label: 'EN' },
-              { code: 'hi', label: 'HI' },
-              { code: 'ta', label: 'TA' },
-              { code: 'te', label: 'TE' },
-              { code: 'bn', label: 'BN' }
+              { code: 'hi', label: 'हि' },
+              { code: 'pa', label: 'ਪੰ' },
+              { code: 'ta', label: 'தமி' },
+              { code: 'te', label: 'తె' },
+              { code: 'bn', label: 'বা' }
             ].map((lang) => (
               <Button
                 key={lang.code}
                 size="small"
                 onClick={() => setLanguage(lang.code)}
                 sx={{
-                  minWidth: 0, px: 1, py: 0.4, borderRadius: 1, fontSize: 11, fontWeight: 600,
+                  minWidth: 32, px: 0.5, py: 0.4, borderRadius: 1, fontSize: 10, fontWeight: 700,
                   bgcolor: language === lang.code ? colors.blueSoft : 'transparent',
                   color: language === lang.code ? colors.blue : colors.muted,
                   '&:hover': { bgcolor: colors.blueSoft }

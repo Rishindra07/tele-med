@@ -21,7 +21,8 @@ const sanitizeUser = (user) => ({
   role: user.role,
   is_active: user.is_active,
   is_approved: user.is_approved,
-  profile_image: user.profile_image
+  profile_image: user.profile_image,
+  settings: user.settings || {}
 });
 
 const registerUser = async (req, res) => {
@@ -83,8 +84,10 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // Reactivate account if it was deactivated
     if (!user.is_active) {
-      return res.status(403).json({ message: "Account is inactive" });
+      user.is_active = true;
+      user.reactivated_at = new Date();
     }
 
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
@@ -297,20 +300,111 @@ const updatePatientSettings = async (req, res) => {
   try {
     const { settings } = req.body;
     
-    let profile = await Patient.findOne({ user: req.user._id });
-    if (!profile) {
-      profile = new Patient({ user: req.user._id, settings: {} });
+    // Save to user model (universal)
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.settings = settings || {};
+      user.markModified('settings');
+      await user.save();
     }
-    
-    profile.settings = settings || {};
-    profile.markModified('settings');
-    await profile.save();
+
+    // Still save to patient profile for backward compatibility
+    let profile = await Patient.findOne({ user: req.user._id });
+    if (profile) {
+      profile.settings = settings || {};
+      profile.markModified('settings');
+      await profile.save();
+    }
 
     return res.json({
       success: true,
       message: "Settings updated successfully",
-      settings: profile.settings
+      settings: settings || {}
     });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateUserSettings = async (req, res) => {
+  try {
+    const { settings } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.settings = settings || {};
+    user.markModified('settings');
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Settings updated successfully",
+      settings: user.settings
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deactivateUserAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.is_active = false;
+    user.deactivated_at = new Date();
+    user.deactivation_reason = (req.body && req.body.reason) || "Self-deactivated via settings";
+    await user.save();
+
+    try {
+        await RefreshToken.revokeAll(req.user._id);
+    } catch (tokenErr) {
+        // Continue anyway, account is already inactive
+    }
+
+    return res.json({ success: true, message: "Account deactivated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteUserMedicalData = async (req, res) => {
+  try {
+    const Consultation = require("../models/Consultation.js");
+    const Prescription = require("../models/Prescription.js");
+    const HealthRecord = require("../models/HealthRecord.js");
+
+    await Promise.all([
+      Consultation.deleteMany({ patient: req.user._id }),
+      Prescription.deleteMany({ patient: req.user._id }),
+      HealthRecord.deleteMany({ patient: req.user._id })
+    ]);
+
+    return res.json({ success: true, message: "Medical data deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteUserAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Delete associated patient profile
+    const Patient = require("../models/Patient.js");
+    await Patient.deleteOne({ user: req.user._id });
+
+    // Delete the user
+    await User.findByIdAndDelete(req.user._id);
+    
+    // Revoke all tokens
+    await RefreshToken.revokeAll(req.user._id);
+
+    return res.json({ success: true, message: "Account deleted permanently" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -325,5 +419,9 @@ module.exports = {
   getPatientProfile,
   updatePatientProfile,
   updatePatientSettings,
+  updateUserSettings,
+  deactivateUserAccount,
+  deleteUserMedicalData,
+  deleteUserAccount,
   createAccessToken
 };

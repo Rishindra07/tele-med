@@ -37,9 +37,7 @@ const navItemDefs = [
 ];
 
 const settingsSectionKeys = [
-  'appearance', 'language', 'notifications', 'connectivity',
-  'privacy', 'security', 'storage', 'accessibility',
-  'account', 'devices', 'danger'
+  'account', 'notifications', 'language', 'privacy', 'danger'
 ];
 
 const initials = (name) =>
@@ -277,7 +275,14 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
         <Box sx={{ p: 2.5, borderTop: `1px solid ${colors.line}` }}>
           <Typography sx={{ color: colors.muted, fontSize: 16, mb: 1.75 }}>{st.language_label}</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {[{ code: 'en', label: 'EN' }, { code: 'hi', label: 'HIN' }, { code: 'ta', label: 'TAM' }, { code: 'te', label: 'TEL' }, { code: 'bn', label: 'BAN' }].map((item) => (
+            {[
+              { code: 'en', label: 'EN' },
+              { code: 'hi', label: 'हि' },
+              { code: 'pa', label: 'ਪੰ' },
+              { code: 'ta', label: 'தமி' },
+              { code: 'te', label: 'తె' },
+              { code: 'bn', label: 'বা' }
+            ].map((item) => (
               <Button
                 key={item.code}
                 onClick={() => setLanguage(item.code)}

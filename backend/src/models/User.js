@@ -63,6 +63,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    reactivated_at: {
+      type: Date,
+      default: null
+    },
     deactivation_reason: {
       type: String,
       default: null
@@ -74,6 +78,10 @@ const userSchema = new mongoose.Schema(
     last_login_ip: {
       type: String,
       default: null
+    },
+    settings: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
     }
   },
   {

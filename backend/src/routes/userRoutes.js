@@ -9,7 +9,11 @@ const {
   logoutAllSessions,
   getPatientProfile,
   updatePatientProfile,
-  updatePatientSettings
+  updatePatientSettings,
+  updateUserSettings,
+  deactivateUserAccount,
+  deleteUserMedicalData,
+  deleteUserAccount
 } = require("../controllers/userControllers.js");
 // OTP verification endpoints are disabled for now.
 // const { sendOtp, verifyOtp } = require("../controllers/userControllers.js");
@@ -25,5 +29,9 @@ router.post("/logout-all", protect, logoutAllSessions);
 router.get("/patient/profile", protect, getPatientProfile);
 router.put("/patient/profile", protect, updatePatientProfile);
 router.put("/patient/settings", protect, updatePatientSettings);
+router.put("/settings", protect, updateUserSettings);
+router.post("/deactivate", protect, deactivateUserAccount);
+router.delete("/medical-data", protect, deleteUserMedicalData);
+router.delete("/", protect, deleteUserAccount);
 
 module.exports = router;

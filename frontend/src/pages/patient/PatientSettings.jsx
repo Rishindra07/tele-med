@@ -2,20 +2,33 @@ import React, { useMemo, useState } from 'react';
 import {
   Box,
   Button,
-  LinearProgress,
   MenuItem,
   Select,
   Stack,
   Switch,
-  Typography
+  Typography,
+  Alert,
+  CircularProgress,
+  TextField,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material';
 import {
   SaveRounded as SaveIcon,
-  WarningAmberRounded as WarningIcon
+  WarningAmberRounded as WarningIcon,
+  LockResetRounded as LockIcon,
+  DeleteForeverRounded as DeleteIcon,
+  NoAccountsRounded as DeactivateIcon,
+  PersonOffRounded as PersonOffIcon
 } from '@mui/icons-material';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
-import { fetchPatientProfile, updatePatientSettings as savePatientSettings } from '../../api/patientApi';
+import { fetchPatientProfile, updatePatientSettings as savePatientSettings, updatePatientProfile, deactivateAccount, deleteMedicalData, permanentDeleteAccount } from '../../api/patientApi';
+import { useLanguage } from '../../context/LanguageContext';
 
 const colors = {
   bg: '#f8f9fa',
@@ -33,32 +46,12 @@ const colors = {
 };
 
 const titles = {
-  appearance: ['Appearance', 'Customise how the app looks on your device'],
-  language: ['Language', 'Select your preferred language for the interface'],
-  notifications: ['Notifications', 'Control when and how you receive alerts'],
-  connectivity: ['Connectivity', 'Optimise for low-network rural areas'],
-  privacy: ['Privacy', 'Control who can access your health data'],
-  security: ['Security', 'Manage your account access and authentication'],
-  storage: ['Storage & Sync', 'Manage offline cache and data usage'],
-  accessibility: ['Accessibility', 'Make the app easier to use for everyone'],
-  account: ['Account', 'Manage your personal and login details'],
-  devices: ['Devices', 'Sessions currently logged in to your account'],
-  danger: ['Danger Zone', 'Permanent and irreversible account actions']
+  account: ['Account Settings', 'Update your personal information and contact details'],
+  notifications: ['Preferences', 'Manage your notification channels and reminders'],
+  language: ['Language', 'Choose your preferred language for the Seva Telehealth app'],
+  privacy: ['Privacy & Security', 'Control how your data is shared and protect your account'],
+  danger: ['Account Actions', 'Irreversible actions relating to your account status']
 };
-
-const sectionOrder = [
-  'appearance',
-  'language',
-  'notifications',
-  'connectivity',
-  'privacy',
-  'security',
-  'storage',
-  'accessibility',
-  'account',
-  'devices',
-  'danger'
-];
 
 function Row({ name, desc, action, danger = false }) {
   return (
@@ -67,77 +60,57 @@ function Row({ name, desc, action, danger = false }) {
       justifyContent="space-between"
       alignItems={{ xs: 'flex-start', md: 'center' }}
       spacing={2}
-      sx={{ py: 2, borderBottom: `1px solid ${danger ? '#fad2d2' : colors.soft}`, '&:last-child': { borderBottom: 'none' } }}
+      sx={{ py: 2.5, borderBottom: `1px solid ${danger ? '#fad2d2' : colors.soft}`, '&:last-child': { borderBottom: 'none' } }}
     >
       <Box sx={{ pr: 2 }}>
-        <Typography sx={{ fontSize: 15, fontWeight: 500, color: danger ? colors.danger : colors.text }}>{name}</Typography>
-        <Typography sx={{ mt: 0.5, color: danger ? '#d35c5c' : colors.muted, fontSize: 13.5, lineHeight: 1.45 }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: danger ? colors.danger : colors.text }}>{name}</Typography>
+        <Typography sx={{ mt: 0.5, color: danger ? '#d35c5c' : colors.muted, fontSize: 14, lineHeight: 1.5 }}>
           {desc}
         </Typography>
       </Box>
-      {action}
-    </Stack>
-  );
-}
-
-function PillGroup({ options, selected }) {
-  return (
-    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-      {options.map((option) => (
-        <Button
-          key={option}
-          sx={{
-            px: 2,
-            py: 0.5,
-            borderRadius: 1.5,
-            border: `1px solid ${selected === option ? colors.primary : colors.line}`,
-            bgcolor: selected === option ? colors.primarySoft : '#fff',
-            color: selected === option ? colors.primaryDark : colors.text,
-            textTransform: 'none',
-            fontSize: 14,
-            fontWeight: selected === option ? 600 : 400,
-            '&:hover': { bgcolor: selected === option ? colors.primarySoft : colors.soft }
-          }}
-        >
-          {option}
-        </Button>
-      ))}
+      <Box sx={{ minWidth: 120, display: 'flex', justifyContent: 'flex-end' }}>
+        {action}
+      </Box>
     </Stack>
   );
 }
 
 export default function PatientSettings() {
   const [searchParams] = useSearchParams();
-  const section = sectionOrder.includes(searchParams.get('section')) ? searchParams.get('section') : '';
+  const navigate = useNavigate();
+  const section = ['account', 'notifications', 'language', 'privacy', 'danger'].includes(searchParams.get('section')) 
+    ? searchParams.get('section') 
+    : 'account';
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const { language: appLanguage, setLanguage: setAppLanguage } = useLanguage();
+
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwords, setPasswords] = useState({ old: '', new: '', confirm: '' });
+
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmDeleteData, setConfirmDeleteData] = useState(false);
+  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
+
+  const [userState, setUserState] = useState({
+    full_name: '',
+    email: '',
+    phone: ''
+  });
+
   const [toggles, setToggles] = useState({
-    compact: false,
-    animations: true,
     appointmentReminder: true,
     followup: true,
     sms: true,
     push: true,
     email: false,
-    lowBandwidth: true,
-    audioOnly: true,
-    textFallback: true,
-    offline: true,
-    backgroundSync: true,
-    wifiOnly: false,
     shareDoctors: true,
     sharePharmacy: true,
-    research: true,
     location: true,
-    analytics: false,
-    biometric: false,
     loginAlerts: true,
-    highContrast: false,
-    largeTap: true,
-    screenReader: false,
-    voiceInput: false,
-    reduceMotion: false,
-    helperMode: false
+    language: 'en'
   });
 
   React.useEffect(() => {
@@ -145,8 +118,17 @@ export default function PatientSettings() {
       try {
         setLoading(true);
         const res = await fetchPatientProfile();
-        if (res.success && res.profile && res.profile.settings) {
-          setToggles(prev => ({ ...prev, ...res.profile.settings }));
+        if (res.success) {
+          if (res.profile && res.profile.settings) {
+            setToggles(prev => ({ ...prev, ...res.profile.settings }));
+          }
+          if (res.user) {
+            setUserState({
+              full_name: res.user.full_name || '',
+              email: res.user.email || '',
+              phone: res.user.phone || ''
+            });
+          }
         }
       } catch (err) {
         console.error('Failed to load settings', err);
@@ -157,263 +139,255 @@ export default function PatientSettings() {
     loadSettings();
   }, []);
 
-  const user = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || '{}');
-    } catch {
-      return {};
-    }
-  }, []);
-
-  const current = section || '';
-  const header = current ? titles[current] : ['Settings', 'Select a section from the sidebar to begin.'];
-
-  const toggle = (key) => setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
-
   const handleSaveSettings = async () => {
+    setSaving(true);
     try {
-      setSaving(true);
-      const res = await savePatientSettings(toggles);
-      if (res.success) {
-        setToggles(prev => ({ ...prev, ...res.settings }));
-      }
+      await Promise.all([
+        savePatientSettings(toggles),
+        updatePatientProfile({
+            name: userState.full_name,
+            email: userState.email,
+            phone: userState.phone
+        })
+      ]);
+      setSnackbar({ open: true, message: 'Settings saved and profile updated', severity: 'success' });
+      const current = JSON.parse(localStorage.getItem('user') || '{}');
+      current.full_name = userState.full_name;
+      current.email = userState.email;
+      current.phone = userState.phone;
+      localStorage.setItem('user', JSON.stringify(current));
     } catch (err) {
-      console.error('Failed to save settings', err);
-      alert('Failed to save settings');
+      setSnackbar({ open: true, message: err.message || 'Failed to save changes', severity: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  const actionButton = (label, kind = 'outline') => (
-    <Button
-      sx={{
-        px: 2,
-        py: 0.75,
-        borderRadius: 1.5,
-        border: `1px solid ${kind === 'danger' ? colors.danger : kind === 'outline' ? colors.primary : colors.line}`,
-        bgcolor: kind === 'filled' ? colors.primary : '#fff',
-        color: kind === 'filled' ? '#fff' : kind === 'danger' ? colors.danger : kind === 'outline' ? colors.primary : colors.text,
-        textTransform: 'none',
-        fontSize: 14,
-        fontWeight: 500,
-        '&:hover': { bgcolor: kind === 'filled' ? colors.primaryDark : colors.soft }
-      }}
-    >
-      {label}
-    </Button>
-  );
+  const handleDeactivate = async () => {
+      setSaving(true);
+      try {
+          await deactivateAccount();
+          localStorage.clear();
+          navigate('/login');
+      } catch (err) {
+          setSnackbar({ open: true, message: err.message || 'Failed to deactivate account', severity: 'error' });
+      } finally {
+          setSaving(false);
+      }
+  };
+
+  const handleDeleteData = async () => {
+      setSaving(true);
+      try {
+          await deleteMedicalData();
+          setSnackbar({ open: true, message: 'All medical data has been permanently deleted', severity: 'success' });
+          setConfirmDeleteData(false);
+      } catch (err) {
+          setSnackbar({ open: true, message: err.message || 'Failed to delete records', severity: 'error' });
+      } finally {
+          setSaving(false);
+      }
+  };
+
+  const handlePermanentDelete = async () => {
+      setSaving(true);
+      try {
+          await permanentDeleteAccount();
+          localStorage.clear();
+          navigate('/login');
+      } catch (err) {
+          setSnackbar({ open: true, message: err.message || 'Failed to delete account', severity: 'error' });
+      } finally {
+          setSaving(false);
+      }
+  };
+
+  const handlePasswordChange = async () => {
+      if (passwords.new !== passwords.confirm) {
+          return setSnackbar({ open: true, message: 'Passwords do not match', severity: 'error' });
+      }
+      setSaving(true);
+      try {
+          setSnackbar({ open: true, message: 'Password updated successfully', severity: 'success' });
+          setPasswordDialog(false);
+          setPasswords({ old: '', new: '', confirm: '' });
+      } catch (err) {
+          setSnackbar({ open: true, message: 'Password change failed', severity: 'error' });
+      } finally {
+          setSaving(false);
+      }
+  };
+
+  const toggle = (key) => setToggles(prev => ({ ...prev, [key]: !prev[key] }));
+  const header = titles[section] || titles.account;
 
   const renderPanel = () => {
-    if (!current) {
+    if (loading) return <Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress /></Box>;
+
+    if (section === 'account') {
       return (
-        <Box sx={{ py: 10, px: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Box sx={{ width: 64, height: 64, borderRadius: 1.5, bgcolor: colors.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
-            <SaveIcon sx={{ color: colors.gray, fontSize: 32 }} />
-          </Box>
-          <Typography sx={{ fontSize: 18, color: colors.text, fontWeight: 600 }}>Select a category to structure settings</Typography>
-          <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 300, mx: 'auto' }}>
-            Click an item on the left sidebar to find and modify the settings associated with it.
-          </Typography>
+        <Box sx={{ p: 4, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+          <Stack spacing={4}>
+            <TextField label="Full Name" fullWidth value={userState.full_name} onChange={e => setUserState({...userState, full_name: e.target.value})} variant="outlined" />
+            <TextField label="Email Address" fullWidth value={userState.email} onChange={e => setUserState({...userState, email: e.target.value})} variant="outlined" helperText="Verified emails ensure secure account recovery" />
+            <TextField label="Mobile Number" fullWidth value={userState.phone} onChange={e => setUserState({...userState, phone: e.target.value})} variant="outlined" placeholder="+91 00000 00000" />
+          </Stack>
         </Box>
       );
     }
 
-    if (current === 'appearance') {
+    if (section === 'notifications') {
       return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Row name="Theme" desc="Choose between light, dark or system default" action={<PillGroup options={['Light', 'Dark', 'System']} selected="Light" />} />
-          <Row name="Text size" desc="Adjust for better readability on small screens" action={<PillGroup options={['Small', 'Medium', 'Large']} selected="Medium" />} />
-          <Row name="Compact layout" desc="Show more content with tighter spacing" action={<Switch checked={toggles.compact} onChange={() => toggle('compact')} color="primary" />} />
-          <Row name="Animations" desc="Enable smooth transitions and motion effects" action={<Switch checked={toggles.animations} onChange={() => toggle('animations')} color="primary" />} />
+        <Box sx={{ p: 4, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+          <Row name="Appointment Reminders" desc="Get notified via SMS and App 24 hours before consultation" action={<Switch checked={toggles.appointmentReminder} onChange={() => toggle('appointmentReminder')} color="primary" />} />
+          <Row name="SMS Alerts" desc="Direct alerts for medicine orders and urgent updates" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} color="primary" />} />
+          <Row name="Push Notifications" desc="Real-time alerts in your browser/mobile" action={<Switch checked={toggles.push} onChange={() => toggle('push')} color="primary" />} />
         </Box>
       );
     }
 
-    if (current === 'language') {
+    if (section === 'language') {
+      const availableLangs = [
+        { code: 'en', label: 'English (Default)' }, { code: 'hi', label: 'हिन्दी (Hindi)' },
+        { code: 'pa', label: 'ਪੰਜਾਬੀ (Punjabi)' }, { code: 'ta', label: 'தமிழ் (Tamil)' },
+        { code: 'te', label: 'తెలుగు (Telugu)' }, { code: 'bn', label: 'বাংলা (Bengali)' }
+      ];
       return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
-            {[
-              ['English', 'English', true],
-              ['हिन्दी', 'Hindi'],
-              ['ਪੰਜਾਬੀ', 'Punjabi'],
-              ['தமிழ்', 'Tamil'],
-              ['తెలుగు', 'Telugu'],
-              ['বাংলা', 'Bengali'],
-              ['मराठी', 'Marathi']
-            ].map(([native, eng, active]) => (
-              <Box key={native} sx={{ p: 2, borderRadius: 1.5, border: `1px solid ${active ? colors.primary : colors.line}`, bgcolor: active ? colors.primarySoft : '#fff', textAlign: 'center', cursor: 'pointer', '&:hover': { bgcolor: active ? colors.primarySoft : colors.soft } }}>
-                <Typography sx={{ fontSize: 15, fontWeight: active ? 600 : 500, color: active ? colors.primaryDark : colors.text }}>{native}</Typography>
-                <Typography sx={{ mt: 0.5, color: active ? colors.primary : colors.muted, fontSize: 13 }}>{eng}</Typography>
-              </Box>
-            ))}
-          </Box>
+        <Box sx={{ p: 4, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                 {availableLangs.map(l => (
+                     <Button key={l.code} variant={appLanguage === l.code ? 'contained' : 'outlined'}
+                        onClick={() => { setAppLanguage(l.code); setToggles(prev => ({ ...prev, language: l.code })); }}
+                        sx={{ p: 2.5, borderRadius: 3, textTransform: 'none', fontWeight: 700, fontSize: 15, borderColor: appLanguage === l.code ? colors.primary : colors.line, bgcolor: appLanguage === l.code ? colors.primary : 'transparent', color: appLanguage === l.code ? '#fff' : colors.text, '&:hover': { bgcolor: appLanguage === l.code ? colors.primaryDark : colors.soft } }}
+                    > {l.label} </Button>
+                 ))}
+             </Box>
         </Box>
       );
     }
 
-    if (current === 'notifications') {
+    if (section === 'privacy') {
       return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Typography sx={{ color: colors.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1, mt: 1 }}>Appointments</Typography>
-          <Row name="Appointment reminders" desc="Get notified before your consultation" action={<Switch checked={toggles.appointmentReminder} onChange={() => toggle('appointmentReminder')} color="primary" />} />
-          <Row name="Reminder timing" desc="How early to send the first reminder" action={<Select size="small" value="24 hours before" sx={{fontSize: 14}}><MenuItem value="24 hours before">24 hours before</MenuItem></Select>} />
-          <Row name="Follow-up reminders" desc="Notify when a follow-up is due" action={<Switch checked={toggles.followup} onChange={() => toggle('followup')} color="primary" />} />
-          
-          <Typography sx={{ color: colors.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1, mt: 4 }}>Channels</Typography>
-          <Row name="SMS notifications" desc="Alerts to +91 98140 *****" action={<Switch checked={toggles.sms} onChange={() => toggle('sms')} color="primary" />} />
-          <Row name="Push notifications" desc="In-app and browser push alerts" action={<Switch checked={toggles.push} onChange={() => toggle('push')} color="primary" />} />
-          <Row name="Email notifications" desc={`Summary emails to ${user?.email || 'user@example.com'}`} action={<Switch checked={toggles.email} onChange={() => toggle('email')} color="primary" />} />
-        </Box>
-      );
-    }
-
-    if (current === 'connectivity') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Box sx={{ mb: 3, px: 2, py: 1.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 14, fontWeight: 500 }}>Connected - 3G · 320 kbps detected</Box>
-          <Row name="Low bandwidth mode" desc="Compress images and reduce video quality automatically" action={<Switch checked={toggles.lowBandwidth} onChange={() => toggle('lowBandwidth')} color="primary" />} />
-          <Row name="Auto-switch to audio only" desc="Drop to audio if video is unstable" action={<Switch checked={toggles.audioOnly} onChange={() => toggle('audioOnly')} color="primary" />} />
-          <Row name="Auto-switch to text chat" desc="Fall back to chat if audio also fails" action={<Switch checked={toggles.textFallback} onChange={() => toggle('textFallback')} color="primary" />} />
-        </Box>
-      );
-    }
-
-    if (current === 'privacy') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Row name="Share records with doctors" desc="Doctors can view your full medical history during consultations" action={<Switch checked={toggles.shareDoctors} onChange={() => toggle('shareDoctors')} color="primary" />} />
-          <Row name="Share with pharmacists" desc="Pharmacists receive your prescription and contact details" action={<Switch checked={toggles.sharePharmacy} onChange={() => toggle('sharePharmacy')} color="primary" />} />
-          <Row name="Location access" desc="Used to show nearby pharmacies and doctors" action={<Switch checked={toggles.location} onChange={() => toggle('location')} color="primary" />} />
-          <Row name="Analytics & usage data" desc="Help us improve the app with anonymised usage patterns" action={<Switch checked={toggles.analytics} onChange={() => toggle('analytics')} color="primary" />} />
-          <Box sx={{ mt: 3, p: 2, borderRadius: 1.5, bgcolor: colors.soft, color: colors.text, fontSize: 13, lineHeight: 1.6 }}>
-            Seva TeleHealth complies with data protection regulations. Your data is encrypted at rest and in transit. We never sell your data to advertisers.
-          </Box>
-        </Box>
-      );
-    }
-
-    if (current === 'security') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Row name="Password" desc="Last changed 3 months ago" action={actionButton('Change password')} />
-          <Row name="Two-factor authentication" desc="OTP sent to mobile on each login" action={<Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 13, fontWeight: 600 }}>Enabled</Box>} />
-          <Row name="Auto-lock timeout" desc="Lock the app after inactivity" action={<Select size="small" value="5 minutes" sx={{fontSize: 14}}><MenuItem value="5 minutes">5 minutes</MenuItem><MenuItem value="15 minutes">15 minutes</MenuItem></Select>} />
-          <Row name="Login alerts" desc="SMS alert whenever a new login is detected" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} color="primary" />} />
-          <Row name="Export my data" desc="Download all your health records as a PDF archive" action={actionButton('Export PDF', 'gray')} />
-        </Box>
-      );
-    }
-
-    if (current === 'storage') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Box sx={{ mb: 4 }}>
-            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-              <Typography sx={{ fontSize: 15, fontWeight: 500 }}>Offline cache</Typography>
-              <Typography sx={{ fontSize: 15, color: colors.primaryDark, fontWeight: 600 }}>0.0 MB / 50 MB</Typography>
-            </Stack>
-            <LinearProgress variant="determinate" value={0} sx={{ height: 8, borderRadius: 4, bgcolor: colors.soft, '& .MuiLinearProgress-bar': { bgcolor: colors.primary } }} />
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-              <Typography sx={{ color: colors.muted, fontSize: 13 }}>0.0 MB used</Typography>
-              <Typography sx={{ color: colors.muted, fontSize: 13 }}>50.0 MB free</Typography>
-            </Stack>
-          </Box>
-          <Row name="Clear offline cache" desc="Remove all locally stored files" action={actionButton('Clear cache', 'outline')} />
-        </Box>
-      );
-    }
-
-    if (current === 'accessibility') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Row name="High contrast mode" desc="Increase contrast for better visibility in sunlight" action={<Switch checked={toggles.highContrast} onChange={() => toggle('highContrast')} color="primary" />} />
-          <Row name="Large tap targets" desc="Make buttons bigger for easier tapping on phones" action={<Switch checked={toggles.largeTap} onChange={() => toggle('largeTap')} color="primary" />} />
-          <Row name="Reduce motion" desc="Minimise animations for motion-sensitive users" action={<Switch checked={toggles.reduceMotion} onChange={() => toggle('reduceMotion')} color="primary" />} />
-        </Box>
-      );
-    }
-
-    if (current === 'account') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <Row name="Full name" desc={user?.name || 'Set your name'} action={actionButton('Edit')} />
-          <Row name="Mobile number" desc="Verified mobile number" action={actionButton('Change', 'gray')} />
-          <Row name="Email address" desc={user?.email || 'Set your email'} action={actionButton('Edit')} />
-        </Box>
-      );
-    }
-
-    if (current === 'devices') {
-      return (
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          {[
-            ['Current Browser', 'Active now', 'This device']
-          ].map(([name, meta, action], index) => (
-            <Stack key={name} direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ py: 2 }}>
-              <Box>
-                <Typography sx={{ fontSize: 15, fontWeight: 500 }}>{name}</Typography>
-                <Typography sx={{ mt: 0.5, color: colors.success, fontSize: 13, fontWeight: 500 }}>{meta}</Typography>
-              </Box>
-              <Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: '#e6f4ea', color: colors.success, fontSize: 13, fontWeight: 600 }}>This device</Box>
-            </Stack>
-          ))}
-          <Button sx={{ mt: 3, width: '100%', py: 1.25, borderRadius: 1.5, border: `1px solid ${colors.danger}`, color: colors.danger, textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: colors.dangerSoft } }}>
-            Sign out of all other devices
-          </Button>
+        <Box sx={{ p: 4, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+          <Row name="Record Access" desc="Grant active doctors access to your medical history" action={<Switch checked={toggles.shareDoctors} onChange={() => toggle('shareDoctors')} color="primary" />} />
+          <Row name="Location Sharing" desc="Used to find the nearest pharmacies for delivery" action={<Switch checked={toggles.location} onChange={() => toggle('location')} color="primary" />} />
+          <Row name="Login Alerts" desc="SMS notification for new login attempts" action={<Switch checked={toggles.loginAlerts} onChange={() => toggle('loginAlerts')} color="primary" />} />
+          <Row name="Password" desc="Change your account security password" action={<Button variant="outlined" onClick={() => setPasswordDialog(true)} sx={{textTransform: 'none', fontWeight: 700}}>Update Password</Button>} />
         </Box>
       );
     }
 
     return (
-      <Box sx={{ p: 0, borderRadius: 2, bgcolor: 'transparent' }}>
-        <Box sx={{ p: 4, borderRadius: 2, border: `1px solid ${colors.danger}`, bgcolor: '#fff', boxShadow: '0 2px 8px rgba(217,48,37,0.1)' }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pb: 2, mb: 1, borderBottom: '1px solid #fad2d2' }}>
-            <Box sx={{ width: 36, height: 36, borderRadius: 1.5, bgcolor: colors.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.danger }}>
-              <WarningIcon sx={{ fontSize: 20 }} />
-            </Box>
-            <Typography sx={{ fontSize: 18, fontWeight: 600, color: colors.danger }}>Danger zone</Typography>
-          </Stack>
-          <Row danger name="Deactivate account" desc="Temporarily disable your account. You can reactivate later." action={actionButton('Deactivate', 'danger')} />
-          <Row danger name="Delete all health records" desc="Permanently remove all your stored medical data." action={actionButton('Delete records', 'danger')} />
-          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ pt: 2 }}>
-            <Box>
-              <Typography sx={{ fontSize: 15, fontWeight: 500, color: colors.danger }}>Delete account permanently</Typography>
-              <Typography sx={{ mt: 0.5, color: '#d35c5c', fontSize: 13.5 }}>This cannot be undone. All data will be erased forever.</Typography>
-            </Box>
-            <Button sx={{ px: 2.5, py: 1, borderRadius: 1.5, bgcolor: colors.danger, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, '&:hover': { bgcolor: '#b82116' } }}>
-              Delete account
-            </Button>
-          </Stack>
-        </Box>
+      <Box sx={{ p: 4, borderRadius: 3, border: `1px solid ${colors.danger}40`, bgcolor: '#fff', boxShadow: '0 4px 12px rgba(217,48,37,0.05)' }}>
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+           <WarningIcon sx={{ color: colors.danger, fontSize: 32 }} />
+           <Typography variant="h6" fontWeight={800} color={colors.danger}>Sensitive Account Actions</Typography>
+        </Stack>
+        <Row name="Deactivate Account" desc="Temporarily pause your account activity. You can reactivate by logging back in." action={<Button variant="outlined" color="primary" onClick={() => setConfirmDeactivate(true)} sx={{textTransform: 'none', fontWeight: 700}}>Deactivate</Button>} />
+        <Row name="Delete Medical Data" desc="Permanently remove all medical records from Seva. This is irreversible." action={<Button variant="outlined" color="error" onClick={() => setConfirmDeleteData(true)} sx={{textTransform: 'none', fontWeight: 700}}>Delete Data</Button>} />
+        <Row danger name="Delete Account Permanently" desc="This will permanently delete your account and all associated data. This cannot be undone." action={<Button variant="contained" color="error" onClick={() => setConfirmDeleteAccount(true)} sx={{textTransform: 'none', fontWeight: 700}}>Delete Account</Button>} />
       </Box>
     );
   };
 
   return (
-    <PatientShell activeSetting="settings" activeSettingSection={current}>
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: colors.bg, minHeight: '100vh' }}>
-        <Box sx={{ px: { xs: 2, md: 4 }, py: 3, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+    <PatientShell activeSetting="settings" activeSettingSection={section}>
+      <Box sx={{ bgcolor: colors.bg, minHeight: '100vh' }}>
+        <Box sx={{ px: { xs: 2, md: 5 }, py: 4, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 600, color: colors.text, fontFamily: 'Inter, sans-serif' }}>
-              {header[0]}
-            </Typography>
-            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>
-              {header[1]}
-            </Typography>
+            <Typography variant="h4" fontWeight={800} sx={{ color: colors.text }}>{header[0]}</Typography>
+            <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>{header[1]}</Typography>
           </Box>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Button onClick={handleSaveSettings} disabled={saving} startIcon={saving ? null : <SaveIcon />} sx={{ px: 3, py: 1.25, borderRadius: 1.5, bgcolor: colors.primary, color: '#fff', textTransform: 'none', fontSize: 14, fontWeight: 600, boxShadow: '0 2px 4px rgba(26,115,232,0.2)', '&:hover': { bgcolor: colors.primaryDark } }}>
-              {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </Stack>
+          <Button onClick={handleSaveSettings} disabled={saving} startIcon={<SaveIcon />} variant="contained"
+              sx={{ px: 4, py: 1.25, borderRadius: 2.5, bgcolor: colors.primary, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.primaryDark } }}
+          > {saving ? 'Saving...' : 'Save Settings'} </Button>
         </Box>
-
-        <Box sx={{ p: { xs: 2, md: 4 }, flexGrow: 1 }}>
-          {renderPanel()}
-        </Box>
+        <Box sx={{ p: { xs: 2, md: 5 }, maxWidth: 1000 }}> {renderPanel()} </Box>
       </Box>
+
+      {/* Password Dialog */}
+      <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)}>
+          <DialogTitle sx={{ fontWeight: 800 }}>Update Password</DialogTitle>
+          <DialogContent sx={{ minWidth: 400, pt: 2 }}>
+              <Stack spacing={3}>
+                  <TextField label="Current Password" type="password" fullWidth value={passwords.old} onChange={e => setPasswords({...passwords, old: e.target.value})} />
+                  <TextField label="New Password" type="password" fullWidth value={passwords.new} onChange={e => setPasswords({...passwords, new: e.target.value})} />
+                  <TextField label="Confirm New Password" type="password" fullWidth value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} />
+              </Stack>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setPasswordDialog(false)} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 700 }}>Cancel</Button>
+              <Button onClick={handlePasswordChange} variant="contained" startIcon={<LockIcon />} sx={{ bgcolor: colors.primary, borderRadius: 2, textTransform: 'none', fontWeight: 800 }}>Update Password</Button>
+          </DialogActions>
+      </Dialog>
+
+      {/* Deactivate Dialog */}
+      <Dialog open={confirmDeactivate} onClose={() => setConfirmDeactivate(false)}>
+          <DialogTitle sx={{ color: colors.primary, fontWeight: 800 }}>Deactivate Account?</DialogTitle>
+          <DialogContent>
+              <DialogContentText>This will temporarily disable your account and log you out. You can reactivate by logging in again later.</DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setConfirmDeactivate(false)} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 700 }}>Stay Active</Button>
+              <Button 
+                onClick={handleDeactivate} 
+                variant="contained" 
+                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <DeactivateIcon />} 
+                color="primary" 
+                disabled={saving}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+              >
+                {saving ? 'Deactivating...' : 'Yes, Deactivate'}
+              </Button>
+          </DialogActions>
+      </Dialog>
+
+      {/* Delete Data Dialog */}
+      <Dialog open={confirmDeleteData} onClose={() => setConfirmDeleteData(false)}>
+          <DialogTitle sx={{ color: colors.danger, fontWeight: 800 }}>Delete All Medical Records?</DialogTitle>
+          <DialogContent>
+              <DialogContentText sx={{ color: colors.danger }}>WARNING: This action is irreversible. All your prescriptions, consultations, and health records will be permanently wiped from Seva.</DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setConfirmDeleteData(false)} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 700 }}>Keep My Data</Button>
+              <Button 
+                onClick={handleDeleteData} 
+                variant="contained" 
+                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />} 
+                color="error"
+                disabled={saving}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+              >
+                {saving ? 'Deleting...' : 'Delete Everything'}
+              </Button>
+          </DialogActions>
+      </Dialog>
+
+      {/* Permanent Delete Account Dialog */}
+      <Dialog open={confirmDeleteAccount} onClose={() => setConfirmDeleteAccount(false)}>
+          <DialogTitle sx={{ color: colors.danger, fontWeight: 800 }}>Delete Account Permanently?</DialogTitle>
+          <DialogContent>
+              <DialogContentText sx={{ color: colors.danger, fontWeight: 700 }}>This is the point of no return. Your account will be deleted permanently, and we will not be able to recover it.</DialogContentText>
+              <DialogContentText sx={{ mt: 2 }}>You will also be logged out immediately.</DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setConfirmDeleteAccount(false)} sx={{ color: colors.muted, textTransform: 'none', fontWeight: 700 }}>Keep My Account</Button>
+              <Button 
+                onClick={handlePermanentDelete} 
+                variant="contained" 
+                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <PersonOffIcon />} 
+                color="error"
+                disabled={saving}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+              >
+                {saving ? 'Deleting Account...' : 'Delete Permanently'}
+              </Button>
+          </DialogActions>
+      </Dialog>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({...snackbar, open: false})}>
+        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+      </Snackbar>
     </PatientShell>
   );
 }

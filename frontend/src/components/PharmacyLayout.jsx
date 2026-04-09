@@ -168,10 +168,11 @@ function PharmacyLayout({ children }) {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
             {[
               { code: 'en', label: 'EN' },
-              { code: 'hi', label: 'HI' },
-              { code: 'ta', label: 'TA' },
-              { code: 'te', label: 'TE' },
-              { code: 'bn', label: 'BN' }
+              { code: 'hi', label: 'हि' },
+              { code: 'pa', label: 'ਪੰ' },
+              { code: 'ta', label: 'தமி' },
+              { code: 'te', label: 'తె' },
+              { code: 'bn', label: 'বা' }
             ].map((lang) => (
               <Button
                 key={lang.code}

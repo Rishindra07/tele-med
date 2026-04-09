@@ -4,6 +4,7 @@ const patientRoutes = require('./routes/patientRoutes.js');
 const doctorRoutes = require('./routes/doctorRoutes.js');
 const adminRoutes = require('./routes/adminRoutes.js');
 const pharmacyRoutes = require('./routes/pharmacyRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
 const symptomRouter = require('./routes/symptomRoutes.js')
 const protect = require('./middleware/authMiddleware.js');
 const notFoundMiddleware = require('./middleware/routeNotFound.js')
@@ -90,6 +91,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
+app.use('/api/users', userRoutes);
 
 app.use('/api/symptoms', symptomRouter);
 

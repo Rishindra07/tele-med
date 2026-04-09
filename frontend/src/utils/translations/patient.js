@@ -1974,6 +1974,15 @@ export const PATIENT_PHARMACIES_TRANSLATIONS = {
     snack_stock_error: 'Failed to fetch stock',
     snack_error: 'Error occurred',
     snack_location_use: 'Use current location',
+    upload_prescription: 'Upload Physical Prescription',
+    uploading: 'Uploading & Extracting...',
+    add_medicine: 'Add Another Medicine',
+    med_name_placeholder: 'e.g. Paracetamol',
+    qty: 'Qty',
+    manual_entry: 'Manual Entry',
+    extract_success: 'Medicines extracted successfully!',
+    extract_error: 'Failed to extract medicines',
+    or: 'OR'
   },
   hi: {
     title: 'फ़ार्मेसी',
@@ -2049,6 +2058,15 @@ export const PATIENT_PHARMACIES_TRANSLATIONS = {
     snack_stock_error: 'स्टॉक लाने में विफल',
     snack_error: 'एक त्रुटि हुई',
     snack_location_use: 'वर्तमान स्थान का उपयोग करें',
+    upload_prescription: 'फोटो नुस्खा अपलोड करें',
+    uploading: 'अपलोड और विश्लेषण हो रहा है...',
+    add_medicine: 'अन्य दवा जोड़ें',
+    med_name_placeholder: 'जैसे पैरासिटामोल',
+    qty: 'मात्रा',
+    manual_entry: 'मैन्युअल प्रविष्टि',
+    extract_success: 'दवाएं सफलतापूर्वक निकाली गईं!',
+    extract_error: 'दवाएं निकालने में विफल',
+    or: 'अथवा'
   },
   ta: {
     title: 'மருந்தகங்கள்',

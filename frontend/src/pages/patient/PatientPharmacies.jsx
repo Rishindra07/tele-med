@@ -43,7 +43,9 @@ import {
   MyLocationRounded as LocationIcon,
   PhoneRounded as CallIcon,
   AddCircleOutlineRounded as AddIcon,
-  RemoveCircleOutlineRounded as RemoveIcon
+  RemoveCircleOutlineRounded as RemoveIcon,
+  CloudUploadRounded as UploadIcon,
+  AddRounded as AddBtnIcon
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -70,7 +72,16 @@ const createPharmacyIcon = (color) => L.divIcon({
   popupAnchor: [0, -32]
 });
 import PatientShell from '../../components/patient/PatientShell';
-import { fetchPharmacies, fetchMyRecords, assignPrescriptionToPharmacy, fetchPharmacyStock, fetchPatientProfile, checkPharmacyStock } from '../../api/patientApi';
+import { 
+  fetchPharmacies, 
+  fetchMyRecords, 
+  assignPrescriptionToPharmacy, 
+  fetchPharmacyStock, 
+  fetchPatientProfile, 
+  checkPharmacyStock,
+  extractPrescriptionMedicines,
+  createAdvancedPrescriptionOrder
+} from '../../api/patientApi';
 
 const colors = {
   bg: '#f8f9fa',
@@ -132,6 +143,9 @@ export default function PatientPharmacies() {
   const [orderStockInfo, setOrderStockInfo] = useState([]);
   const [isCheckingOrderStock, setIsCheckingOrderStock] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [newMedName, setNewMedName] = useState('');
 
   const loadData = async () => {
     setLoading(true);
@@ -234,6 +248,10 @@ export default function PatientPharmacies() {
 
   const handleOpenSend = (pharmacy) => {
     setSelectedPharmacy(pharmacy);
+    setOrderItems([]);
+    setUploadedFile(null);
+    setSelectedRx('');
+    
     if (activePrescriptions.length > 0) {
       const rx = activePrescriptions[0];
       setSelectedRx(rx._id);
@@ -283,21 +301,64 @@ export default function PatientPharmacies() {
     }
   };
 
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    setUploadedFile(file);
+    setIsExtracting(true);
+    try {
+      const res = await extractPrescriptionMedicines(file);
+      if (res.success) {
+        setSnackbar({ open: true, message: t.extract_success, severity: 'success' });
+        const extractedMeds = res.medicines.map(m => ({
+          name: m.name,
+          quantity: m.quantity || 10,
+          dosage: m.dosage || ''
+        }));
+        setOrderItems(prev => [...prev, ...extractedMeds]);
+      } else {
+        setSnackbar({ open: true, message: t.extract_error, severity: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: t.extract_error, severity: 'error' });
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleAddManualItem = () => {
+    if (!newMedName.trim()) return;
+    const newItem = { name: newMedName.trim(), quantity: 1, dosage: '' };
+    setOrderItems(prev => [...prev, newItem]);
+    setNewMedName('');
+  };
+
   const handleSendToPharmacy = async (finalPaymentStatus = 'Pending', isPaymentFlow = false) => {
-    if (!selectedRx) return;
+    // We'll use either assignPrescriptionToPharmacy or createAdvancedPrescriptionOrder
+    // Since we now allow manual items, createAdvancedPrescriptionOrder is more robust
     try {
       if (!isPaymentFlow) setSending(true);
+      
       const totalAmount = calculateOrderTotal();
-      const res = await assignPrescriptionToPharmacy({
-        prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || selectedRx,
+      const orderData = {
+        prescriptionId: records.find(r => r._id === selectedRx)?.prescription?._id || (isValidObjectId(selectedRx) ? selectedRx : null),
         pharmacyId: selectedPharmacy._id,
+        items: orderItems.map(item => ({
+          ...item,
+          price: orderStockInfo.find(s => s.name.toLowerCase() === item.name.toLowerCase())?.price || 150
+        })),
         deliveryType,
         deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null,
         paymentMethod,
         paymentStatus: finalPaymentStatus,
         totalAmount,
-        items: orderItems
-      });
+        deliveryFee: deliveryType === 'HOME' ? 40 : 0
+      };
+
+      const res = await createAdvancedPrescriptionOrder(orderData);
+      
       if (res.success) {
         if (!isPaymentFlow) {
           setSnackbar({ open: true, message: t.snack_sent, severity: 'success' });
@@ -315,6 +376,15 @@ export default function PatientPharmacies() {
     } finally {
       if (!isPaymentFlow) setSending(false);
     }
+  };
+
+  const removeOrderItem = (name) => {
+    setOrderItems(prev => prev.filter(item => item.name !== name));
+  };
+
+  const isValidObjectId = (id) => {
+    if (!id) return false;
+    return id.match(/^[0-9a-fA-F]{24}$/);
   };
 
   const startRazorpayPayment = async () => {
@@ -388,7 +458,16 @@ export default function PatientPharmacies() {
     if (sendOpen && selectedRx) {
       const rx = records.find(r => r._id === selectedRx);
       const meds = rx?.prescription?.medications || [];
-      setOrderItems(meds.map(m => ({ name: m.name, quantity: 1, dosage: m.dosage })));
+      
+      setOrderItems(prev => {
+        // Merge: Add items from RX that aren't already in the list
+        const existingNames = new Set(prev.map(i => i.name.toLowerCase()));
+        const newMedsFromRx = meds
+          .filter(m => !existingNames.has(m.name.toLowerCase()))
+          .map(m => ({ name: m.name, quantity: 1, dosage: m.dosage }));
+        
+        return [...prev, ...newMedsFromRx];
+      });
     }
   }, [selectedRx, sendOpen]);
 
@@ -396,7 +475,7 @@ export default function PatientPharmacies() {
     if (sendOpen && selectedPharmacy && orderItems.length > 0) {
       handleCheckOrderStock();
     }
-  }, [selectedPharmacy, sendOpen, orderItems.map(i => i.quantity).join(',')]);
+  }, [selectedPharmacy, sendOpen, JSON.stringify(orderItems)]);
 
   const handleCheckOrderStock = async () => {
     if (orderItems.length === 0) return;
@@ -813,20 +892,43 @@ export default function PatientPharmacies() {
           </Typography>
           {activePrescriptions.length > 0 ? (
             <>
-              <FormControl fullWidth sx={{ mt: 1, mb: 3 }}>
-                <InputLabel>{t.select_prescription}</InputLabel>
-                <Select
-                  value={selectedRx}
-                  label={t.select_prescription}
-                  onChange={(e) => setSelectedRx(e.target.value)}
-                >
-                  {activePrescriptions.map((rx) => (
-                    <MenuItem key={rx._id} value={rx._id}>
-                      {rx.title} ({new Date(rx.date || rx.createdAt).toLocaleDateString()})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1, mb: 3 }}>
+                <FormControl fullWidth>
+                  <InputLabel>{t.select_prescription}</InputLabel>
+                  <Select
+                    value={selectedRx}
+                    label={t.select_prescription}
+                    onChange={(e) => setSelectedRx(e.target.value)}
+                    size="small"
+                  >
+                    <MenuItem value=""><em>None</em></MenuItem>
+                    {activePrescriptions.map((rx) => (
+                      <MenuItem key={rx._id} value={rx._id}>
+                        {rx.title} ({new Date(rx.date || rx.createdAt).toLocaleDateString()})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                <Box>
+                  <input
+                    type="file"
+                    id="prescription-upload"
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                    accept="image/*,.pdf"
+                  />
+                  <IconButton 
+                    component="span" 
+                    onClick={() => document.getElementById('prescription-upload').click()}
+                    sx={{ bgcolor: colors.primarySoft, color: colors.primary, borderRadius: 1.5, '&:hover': { bgcolor: colors.primary } }}
+                    title={t.upload_prescription}
+                    disabled={isExtracting}
+                  >
+                    {isExtracting ? <CircularProgress size={24} /> : <UploadIcon />}
+                  </IconButton>
+                </Box>
+              </Stack>
 
               <Typography sx={{ fontSize: 14, fontWeight: 600, mb: 1.5 }}>{t.fulfillment_method}</Typography>
               <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
@@ -914,12 +1016,16 @@ export default function PatientPharmacies() {
                       const currentQty = oItem?.quantity || 1;
 
                       return (
-                        <Box key={idx} sx={{ borderBottom: idx < orderStockInfo.length - 1 ? `1px dashed ${colors.line}` : 'none', pb: idx < orderStockInfo.length - 1 ? 1.5 : 0 }}>
+                        <Box key={idx} sx={{ borderBottom: idx < orderStockInfo.length - 1 || true ? `1px dashed ${colors.line}` : 'none', pb: 1.5 }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                              <Box sx={{ flex: 1 }}>
-                               <Typography sx={{ fontSize: 14, fontWeight: 700, color: isOutOfStock ? colors.danger : colors.text }}>{item.name}</Typography>
+                               <Stack direction="row" alignItems="center" spacing={1}>
+                                 <Typography sx={{ fontSize: 14, fontWeight: 700, color: isOutOfStock ? colors.danger : colors.text }}>{item.name}</Typography>
+                                 <IconButton size="small" onClick={() => removeOrderItem(item.name)} sx={{ p: 0, color: colors.danger }}>
+                                   <ErrorIcon sx={{ fontSize: 14 }} />
+                                 </IconButton>
+                               </Stack>
                                
-                               {/* Quantity Controls */}
                                <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
                                  <IconButton 
                                    size="small" 
@@ -951,6 +1057,35 @@ export default function PatientPharmacies() {
                       );
                     })
                   )}
+                  
+                  {/* Manual Add Medicine Input */}
+                  <Box sx={{ pt: 1 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder={t.med_name_placeholder}
+                      value={newMedName}
+                      onChange={(e) => setNewMedName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddManualItem()}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Button 
+                              size="small" 
+                              onClick={handleAddManualItem}
+                              sx={{ minWidth: 0, p: 0.5, borderRadius: 1 }}
+                            >
+                              <AddBtnIcon />
+                            </Button>
+                          </InputAdornment>
+                        )
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    />
+                    <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {t.add_medicine}
+                    </Typography>
+                  </Box>
                 </Stack>
                 <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1019,7 +1154,44 @@ export default function PatientPharmacies() {
               )}
             </>
           ) : (
-             <Alert severity="warning">{t.no_rx_warning}</Alert>
+             <Box sx={{ mt: 2 }}>
+               <Alert severity="info" sx={{ mb: 2 }}>{t.no_rx_warning} {t.or} {t.upload_prescription}</Alert>
+               <Button 
+                 variant="outlined" 
+                 fullWidth 
+                 startIcon={<UploadIcon />}
+                 onClick={() => document.getElementById('prescription-upload').click()}
+                 sx={{ mb: 2, borderRadius: 2, textTransform: 'none' }}
+               >
+                 {t.upload_prescription}
+               </Button>
+               
+               {/* Manual Add Medicine Input in empty state */}
+               <Box sx={{ p: 2, bgcolor: colors.soft, borderRadius: 2 }}>
+                 <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>{t.manual_entry}</Typography>
+                 <TextField
+                   fullWidth
+                   size="small"
+                   placeholder={t.med_name_placeholder}
+                   value={newMedName}
+                   onChange={(e) => setNewMedName(e.target.value)}
+                   onKeyPress={(e) => e.key === 'Enter' && handleAddManualItem()}
+                   InputProps={{
+                     endAdornment: (
+                       <InputAdornment position="end">
+                         <Button size="small" onClick={handleAddManualItem} sx={{ minWidth: 0, p: 0.5 }}>
+                           <AddBtnIcon />
+                         </Button>
+                       </InputAdornment>
+                     )
+                   }}
+                   sx={{ bgcolor: '#fff', '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                 />
+                 <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                   Add names of medicines you want to order without a digital prescription.
+                 </Typography>
+               </Box>
+             </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: '#fcfcfc', borderTop: `1px solid ${colors.line}` }}>
