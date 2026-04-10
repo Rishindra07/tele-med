@@ -465,13 +465,26 @@ exports.doctorRescheduleAppointment = async (req, res) => {
     appointment.appointmentDate = normalizedDate;
     appointment.timeSlot = newTime;
     appointment.status = 'Scheduled'; // Ensure it's active
+    appointment.rescheduledByDoctor = true;
     await appointment.save();
 
+    // Notify patient via in-app notification
     await createNotification({
       userId: appointment.patient,
       title: 'Appointment Rescheduled',
-      message: `Dr. ${req.user.full_name || 'Your doctor'} has rescheduled your appointment to ${newDate} at ${newTime}.`
+      message: `Dr. ${req.user.full_name || 'Your doctor'} has rescheduled your appointment to ${newDate} at ${newTime}.`,
+      data: { appointmentId: appointment._id }
     });
+
+    // Notify patient via email
+    const patientUser = await User.findById(appointment.patient);
+    if (patientUser?.email) {
+      await sendEmail({
+        to: patientUser.email,
+        subject: "Appointment Rescheduled - Seva Telehealth",
+        text: `Hello ${patientUser.full_name || 'Patient'},\n\nDr. ${req.user.full_name || 'Your doctor'} has rescheduled your appointment to ${newDate} at ${newTime}.\n\nPlease check your dashboard for more details.\n\nBest regards,\nSeva Telehealth Team`
+      });
+    }
 
     return res.json({ success: true, appointment, message: 'Appointment rescheduled successfully' });
   } catch (error) {

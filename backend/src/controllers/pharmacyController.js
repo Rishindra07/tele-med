@@ -114,17 +114,23 @@ exports.getIncomingOrders = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const { orderId, status } = req.body;
+        const { orderId, status: rawStatus } = req.body;
+        
+        // Normalize status names from frontend to match schema enum
+        let status = rawStatus;
+        if (status === "Accepted") status = "Pharmacy Accepted";
+        if (status === "Ready") status = "Ready for Pickup";
+
         const validStatuses = ["Order Placed", "Pharmacy Accepted", "Packed", "Out for Delivery", "Delivered", "Cancelled", "Rejected", "Ready for Pickup"];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
+            return res.status(400).json({ message: `Invalid status: ${rawStatus}` });
         }
 
         const order = await PrescriptionOrder.findById(orderId).populate("pharmacy");
         if (!order) return res.status(404).json({ message: "Order not found" });
 
         // Security check: Only the pharmacy owner can update the status
-        if (order.pharmacy.user.toString() !== req.user._id.toString()) {
+        if (!order.pharmacy || order.pharmacy.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Unauthorized" });
         }
 

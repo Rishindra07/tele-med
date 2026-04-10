@@ -250,17 +250,26 @@ export default function DoctorDashboard() {
                                   {formatDate(appointment.appointmentDate, t.date_pending)} at {appointment.timeSlot}
                                 </Typography>
                               </Box>
-                              <Chip 
-                                label={dashStatus.toUpperCase()} 
-                                size="small" 
-                                sx={{ 
-                                  height: 20, 
-                                  fontSize: 10, 
-                                  fontWeight: 700,
-                                  bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'upcoming' ? c.primarySoft : dashStatus === 'missed' ? c.dangerSoft : c.soft,
-                                  color: dashStatus === 'ongoing' ? c.success : dashStatus === 'upcoming' ? c.primaryDark : dashStatus === 'missed' ? c.danger : c.muted 
-                                }} 
-                              />
+                              <Stack direction="column" spacing={0.5} alignItems="flex-end">
+                                <Chip 
+                                  label={dashStatus.toUpperCase()} 
+                                  size="small" 
+                                  sx={{ 
+                                    height: 20, 
+                                    fontSize: 10, 
+                                    fontWeight: 700,
+                                    bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'upcoming' ? c.primarySoft : dashStatus === 'missed' ? c.dangerSoft : c.soft,
+                                    color: dashStatus === 'ongoing' ? c.success : dashStatus === 'upcoming' ? c.primaryDark : dashStatus === 'missed' ? c.danger : c.muted 
+                                  }} 
+                                />
+                                {appointment.rescheduledByDoctor && (
+                                  <Chip 
+                                    label="RESCHEDULED" 
+                                    size="small" 
+                                    sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: c.warningSoft, color: c.warning }} 
+                                  />
+                                )}
+                              </Stack>
                             </Stack>
                             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                               {dashStatus === 'upcoming' && (
@@ -297,8 +306,8 @@ export default function DoctorDashboard() {
                               )}
                               {dashStatus === 'missed' && (
                                 <>
-                                  <Button onClick={() => navigate('/doctor/appointments')} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.reschedule}</Button>
-                                  <Button onClick={() => navigate('/doctor/appointments')} size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.book_again}</Button>
+                                  <Button onClick={() => handleOpenReschedule(appointment)} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.reschedule}</Button>
+                                  <Button onClick={() => handleOpenReschedule(appointment)} size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, fontSize: 11, textTransform: 'none' }}>{t.book_again}</Button>
                                 </>
                               )}
                             </Box>

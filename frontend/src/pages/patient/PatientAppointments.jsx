@@ -370,18 +370,27 @@ function PatientAppointments() {
                   {a.specialization}
                 </Typography>
               </Box>
-              <Chip
-                label={dashStatus === 'completed' ? t.chips.past : dashStatus === 'missed' ? t.chips.no_show : t.filters[dashStatus]?.toUpperCase() || dashStatus.toUpperCase()}
-                sx={{
-                  height: 24,
-                  bgcolor: sSoft,
-                  color: sColor,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  borderRadius: 1.5,
-                  letterSpacing: '0.5px'
-                }}
-              />
+              <Stack direction="column" spacing={0.5} alignItems="flex-end">
+                <Chip
+                  label={dashStatus === 'completed' ? t.chips.past : dashStatus === 'missed' ? t.chips.no_show : t.filters[dashStatus]?.toUpperCase() || dashStatus.toUpperCase()}
+                  sx={{
+                    height: 24,
+                    bgcolor: sSoft,
+                    color: sColor,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    borderRadius: 1.5,
+                    letterSpacing: '0.5px'
+                  }}
+                />
+                {a.rescheduledByDoctor && (
+                  <Chip 
+                    label="RESCHEDULED" 
+                    size="small" 
+                    sx={{ height: 18, fontSize: 9, fontWeight: 700, bgcolor: colors.warningSoft, color: colors.warning }} 
+                  />
+                )}
+              </Stack>
             </Stack>
 
             <Divider sx={{ my: 2.5, opacity: 0.5, borderStyle: 'dashed' }} />

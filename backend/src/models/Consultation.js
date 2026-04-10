@@ -113,6 +113,10 @@ const consultationSchema = new mongoose.Schema(
     duration: {
       type: Number,
       default: 0
+    },
+    rescheduledByDoctor: {
+      type: Boolean,
+      default: false
     }
   },
   {

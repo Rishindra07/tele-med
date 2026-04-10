@@ -134,3 +134,16 @@ export const cancelPayment = async (paymentId) => {
 export const checkPharmacyStock = async (stockData) => {
   return await API.post('pharmacy/check-stock', stockData);
 };
+
+// Notifications
+export const fetchMyNotifications = async () => {
+  return await API.get('notifications/my');
+};
+
+export const markNotificationRead = async (id) => {
+  return await API.patch(`notifications/${id}/read`);
+};
+
+export const markAllNotificationsRead = async () => {
+  return await API.patch('notifications/read-all');
+};

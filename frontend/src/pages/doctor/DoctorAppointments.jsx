@@ -181,13 +181,18 @@ export default function DoctorAppointments() {
               </Stack>
             </Stack>
           </Box>
-          <Chip label={dashStatus.toUpperCase()} size="small" sx={{ 
-              height: 20, 
-              fontSize: 10, 
-              fontWeight: 700,
-              bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'upcoming' ? c.primarySoft : dashStatus === 'missed' ? c.dangerSoft : c.soft,
-              color: dashStatus === 'ongoing' ? c.success : dashStatus === 'upcoming' ? c.primaryDark : dashStatus === 'missed' ? c.danger : c.muted 
-          }} />
+          <Stack direction="column" spacing={0.5} alignItems="flex-end">
+            <Chip label={dashStatus.toUpperCase()} size="small" sx={{ 
+                height: 20, 
+                fontSize: 10, 
+                fontWeight: 700,
+                bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'upcoming' ? c.primarySoft : dashStatus === 'missed' ? c.dangerSoft : c.soft,
+                color: dashStatus === 'ongoing' ? c.success : dashStatus === 'upcoming' ? c.primaryDark : dashStatus === 'missed' ? c.danger : c.muted 
+            }} />
+            {a.rescheduledByDoctor && (
+              <Chip label="RESCHEDULED" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: c.warningSoft, color: c.warning }} />
+            )}
+          </Stack>
         </Stack>
 
         <Box sx={{ mt: 2.5, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
@@ -248,8 +253,8 @@ export default function DoctorAppointments() {
           )}
           {dashStatus === 'missed' && (
             <>
-              <Button size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.reschedule}</Button>
-              <Button size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.book_again}</Button>
+              <Button onClick={() => handleOpenReschedule(a)} size="small" variant="outlined" sx={{ borderColor: c.line, color: c.text, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.reschedule}</Button>
+              <Button onClick={() => handleOpenReschedule(a)} size="small" variant="contained" sx={{ bgcolor: c.primary, borderRadius: 1.5, py: 0.8, px: 2, textTransform: 'none' }}>{tDash.book_again}</Button>
             </>
           )}
         </Box>

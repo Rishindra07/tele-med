@@ -46,7 +46,8 @@ import {
   fetchMyOrders,
   cancelMyOrder,
   createRazorpayOrder,
-  verifyRazorpayPayment
+  verifyRazorpayPayment,
+  fetchMyNotifications
 } from '../../api/patientApi';
 import { getConsultationStatus } from '../../utils/consultationUtils';
 import { useLanguage } from '../../context/LanguageContext';
@@ -121,6 +122,7 @@ function PatientDashboard() {
   const [records, setRecords] = useState([]);
   const [pharmacies, setPharmacies] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [statsLoading, setStatsLoading] = useState(false);
 
   const resetSelection = () => { setSelectedDoctor(null); setSelectedDate(''); setSlots([]); setSelectedSlot(''); };
@@ -143,16 +145,18 @@ function PatientDashboard() {
     const fetchStats = async () => {
       setStatsLoading(true);
       try {
-        const [apptsRes, recsRes, pharRes, ordsRes] = await Promise.all([
+        const [apptsRes, recsRes, pharRes, ordsRes, notifRes] = await Promise.all([
           fetchMyAppointments(),
           fetchMyRecords(),
           fetchPharmacies(),
-          fetchMyOrders()
+          fetchMyOrders(),
+          fetchMyNotifications()
         ]);
         if (apptsRes.success) setAppointments(apptsRes.appointments || []);
         if (recsRes.success) setRecords(recsRes.records || []);
         if (pharRes.success) setPharmacies(pharRes.pharmacies || []);
         if (ordsRes.success) setOrders(ordsRes.orders || []);
+        if (notifRes.success) setNotifications(notifRes.notifications || []);
       } catch (err) {
         console.error('Failed to fetch dashboard stats', err);
       } finally {
@@ -441,13 +445,18 @@ function PatientDashboard() {
                                   <Box sx={{ flex: 1 }}>
                                      <Stack direction="row" justifyContent="space-between">
                                         <Typography sx={{ fontSize: 15, fontWeight: 600 }}>Dr. {appt.doctor?.full_name || appt.doctor?.name || 'Doctor'}</Typography>
-                                        <Chip label={dashStatus.toUpperCase()} size="small" sx={{ 
-                                          height: 20, 
-                                          fontSize: 10, 
-                                          fontWeight: 700,
-                                          bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'missed' ? c.dangerSoft : dashStatus === 'completed' ? c.soft : c.primarySoft,
-                                          color: dashStatus === 'ongoing' ? c.success : dashStatus === 'missed' ? c.danger : dashStatus === 'completed' ? c.muted : c.primaryDark 
-                                        }} />
+                                        <Stack direction="column" spacing={0.5} alignItems="flex-end">
+                                           <Chip label={dashStatus.toUpperCase()} size="small" sx={{ 
+                                             height: 20, 
+                                             fontSize: 10, 
+                                             fontWeight: 700,
+                                             bgcolor: dashStatus === 'ongoing' ? c.successSoft : dashStatus === 'missed' ? c.dangerSoft : dashStatus === 'completed' ? c.soft : c.primarySoft,
+                                             color: dashStatus === 'ongoing' ? c.success : dashStatus === 'missed' ? c.danger : dashStatus === 'completed' ? c.muted : c.primaryDark 
+                                           }} />
+                                           {appt.rescheduledByDoctor && (
+                                             <Chip label="RESCHEDULED" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: c.warningSoft, color: c.warning }} />
+                                           )}
+                                        </Stack>
                                      </Stack>
                                      <Typography sx={{ fontSize: 13, color: c.muted }}>{appt.specialization} • {fmtDate(appt.appointmentDate.split('T')[0])} at {appt.timeSlot}</Typography>
                                   </Box>
@@ -498,16 +507,43 @@ function PatientDashboard() {
               )}
             </Box>
           </Grid>
+        </Grid>
+
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {/* Notifications Column */}
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)', height: '100%' }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+                <NotificationIcon sx={{ color: c.primary }} />
+                <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text }}>{t.notifications || 'Notifications'}</Typography>
+              </Stack>
+              <Stack spacing={1.5}>
+                {notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((notif) => (
+                    <Box key={notif._id} sx={{ p: 1.6, borderRadius: 1.5, border: `1px solid ${c.line}`, bgcolor: notif.status === 'unread' ? c.primarySoft : '#fff' }}>
+                       <Typography sx={{ fontSize: 14, fontWeight: 700, color: c.text }}>{notif.title}</Typography>
+                       <Typography sx={{ color: c.muted, fontSize: 13, mt: 0.5 }}>{notif.message}</Typography>
+                       <Typography sx={{ color: c.muted, fontSize: 11, mt: 0.5, textAlign: 'right' }}>{new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `1px dashed ${c.line}`, borderRadius: 2, bgcolor: c.soft }}>
+                    <Typography sx={{ color: c.muted, fontSize: 14 }}>{t.no_notifications || 'No recent notifications'}</Typography>
+                  </Box>
+                )}
+              </Stack>
+            </Box>
+          </Grid>
 
           {/* AI Checker Column */}
-          <Grid size={{ xs: 12, xl: 4 }}>
+          <Grid size={{ xs: 12, lg: 6 }}>
             <Box sx={{ p: 4, borderRadius: 2, bgcolor: c.text, color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', height: '100%' }}>
               <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.05)' }} />
               <Typography sx={{ fontSize: 20, fontWeight: 600, mb: 1.5, fontFamily: 'Inter, sans-serif' }}>{t.ai.title}</Typography>
               <Typography sx={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', mb: 1.5, lineHeight: 1.5 }}>
                 {t.ai.desc}
               </Typography>
-              <Button onClick={() => navigate('/symptom-checker')} sx={{ width: '100%', py: 1.25, borderRadius: 1.5, bgcolor: '#ffffff', color: c.text, textTransform: 'none', fontSize: 15, fontWeight: 600, '&:hover': { bgcolor: '#f0f0f0' } }}>
+              <Button onClick={() => navigate('/symptom-checker')} sx={{ width: '100%', py: 1.5, mt: 'auto', borderRadius: 1.5, bgcolor: '#ffffff', color: c.text, textTransform: 'none', fontSize: 15, fontWeight: 600, '&:hover': { bgcolor: '#f0f0f0' } }}>
                 {t.ai.start}
               </Button>
             </Box>

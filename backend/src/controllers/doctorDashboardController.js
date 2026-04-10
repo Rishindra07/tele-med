@@ -17,6 +17,7 @@ const serializeConsultation = (consultation) => ({
   specialization: consultation.specialization,
   consultationMode: consultation.consultationMode,
   followUpDate: consultation.followUpDate,
+  rescheduledByDoctor: consultation.rescheduledByDoctor,
   patient: consultation.patient
     ? {
         _id: consultation.patient._id,
