@@ -94,18 +94,18 @@ function DoctorAvailability() {
         </Stack>
 
         <Grid container spacing={4}>
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
             <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
               <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text, mb: 3 }}>{t.add_new}</Typography>
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={5}>
+                <Grid size={{ xs: 12, md: 5 }}>
                   <TextField label={t.choose_date} type="date" value={slotDate} onChange={(e) => setSlotDate(e.target.value)} InputLabelProps={{ shrink: true }} inputProps={{ min: new Date().toISOString().split('T')[0] }} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 </Grid>
-                <Grid item xs={12} md={5}>
+                <Grid size={{ xs: 12, md: 5 }}>
                   <TextField label={t.add_time} placeholder={t.time_placeholder} value={slotInput} onChange={(e) => setSlotInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSlot())} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
                 </Grid>
-                <Grid item xs={12} md={2}>
+                <Grid size={{ xs: 12, md: 2 }}>
                   <Button fullWidth variant="outlined" onClick={handleAddSlot} sx={{ height: '56px', borderRadius: 2, border: `1px solid ${c.line}`, color: c.text, fontWeight: 600, textTransform: 'none', fontSize: 16 }}>{t.add}</Button>
                 </Grid>
               </Grid>
@@ -137,7 +137,7 @@ function DoctorAvailability() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
             <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: c.text, color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2.5, fontFamily: 'Inter, sans-serif' }}>{t.notes_title}</Typography>
               <Stack spacing={3}>

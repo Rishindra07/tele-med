@@ -18,46 +18,47 @@ import { PHARMACY_SALES_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
   paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  red: '#d9635b',
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  red: '#d93025',
   redSoft: '#fdeaea',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  purple: '#8e44ad',
-  purpleSoft: '#f4f0f9',
-  graySoft: '#f1eee7'
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  purple: '#673ab7',
+  purpleSoft: '#f3e5f5',
+  graySoft: '#f1f3f4'
 };
 
 // Helper to format currency
 const fRs = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const StatCard = ({ title, value, sub, color }) => (
-  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0' }}>
+  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
       <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: color }} />
-      <Typography sx={{ fontSize: 13, color: colors.text, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{title}</Typography>
+      <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
     </Box>
-    <Typography sx={{ fontSize: 32, fontFamily: 'Georgia, serif' }}>{value}</Typography>
-    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: color === colors.purple ? colors.muted : color, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{sub}</Typography>
+    <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>{value}</Typography>
+    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: color === colors.purple ? colors.muted : color, fontWeight: 600 }}>{sub}</Typography>
   </Box>
 );
 
 const SectionHeader = ({ title, subtitle, action }) => (
   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
     <Box>
-      <Typography sx={{ fontSize: 18, lineHeight: 1.2 }}>{title}</Typography>
+      <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text, lineHeight: 1.2 }}>{title}</Typography>
       {subtitle && <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>{subtitle}</Typography>}
     </Box>
-    {action && <Box component="div" sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{action}</Box>}
+    {action && <Box component="div" sx={{ color: colors.primary, fontWeight: 700, fontSize: 13.5, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>{action}</Box>}
   </Stack>
 );
 
@@ -109,16 +110,16 @@ export default function PharmacySales() {
   if (loading && !data) return (
     <PharmacyLayout>
       <Box sx={{ p: 5, display: 'grid', placeItems: 'center', height: '100vh', bgcolor: colors.bg }}>
-        <CircularProgress size={40} sx={{ color: colors.green }} />
+        <CircularProgress size={40} sx={{ color: colors.primary }} />
       </Box>
     </PharmacyLayout>
   );
 
   const s = data?.summary || {};
   const STATS = [
-    { title: t.stats_revenue, value: fRs(s.todayRevenue), sub: `↑ ${s.revenueChange || 0}${t.vs_yesterday}`, color: colors.green },
-    { title: t.stats_month, value: fRs(s.monthRevenue), sub: `↑ ${s.monthChange || 0}${t.vs_last_month}`, color: colors.blue },
-    { title: t.bills_today, value: s.billsToday || 0, sub: `${t.avg_bill} ${fRs(s.avgBill)} ${t.per_bill}`, color: colors.amber },
+    { title: t.stats_revenue, value: fRs(s.todayRevenue), sub: `↑ ${s.revenueChange || 0}${t.vs_yesterday}`, color: colors.success },
+    { title: t.stats_month, value: fRs(s.monthRevenue), sub: `↑ ${s.monthChange || 0}${t.vs_last_month}`, color: colors.primary },
+    { title: t.bills_today, value: s.billsToday || 0, sub: `${t.avg_bill} ${fRs(s.avgBill)} ${t.per_bill}`, color: colors.warning },
     { title: t.gst_collected, value: fRs(s.gstCollected), sub: new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), color: colors.purple }
   ];
 
@@ -142,10 +143,10 @@ export default function PharmacySales() {
         {/* Header */}
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
               {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5 }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
@@ -164,7 +165,8 @@ export default function PharmacySales() {
             <Button 
               startIcon={<AddIcon />} 
               onClick={() => setBillModalOpen(true)}
-              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42 }}
+              variant="contained"
+              sx={{ bgcolor: colors.primary, color: '#fff', borderRadius: 2.5, px: 3, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, fontWeight: 700, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
             >
               {t.new_bill}
             </Button>
@@ -180,9 +182,9 @@ export default function PharmacySales() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' }, gap: 3, mb: 3 }}>
           
           {/* Revenue Trend */}
-          <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+          <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-              <Typography sx={{ fontSize: 18 }}>{t.revenue_trend}</Typography>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>{t.revenue_trend}</Typography>
               <Stack direction="row" spacing={1} sx={{ bgcolor: colors.soft, p: 0.5, borderRadius: 2 }}>
                 {[
                   { key: 'Daily', label: t.daily },
@@ -193,8 +195,8 @@ export default function PharmacySales() {
                     key={p.key}
                     onClick={() => setPeriod(p.key)}
                     sx={{
-                      px: 2, py: 0.5, borderRadius: 1.5, fontSize: 13, cursor: 'pointer',
-                      bgcolor: period === p.key ? colors.green : 'transparent',
+                      px: 2, py: 0.5, borderRadius: 1.5, fontSize: 13, cursor: 'pointer', fontWeight: 600,
+                      bgcolor: period === p.key ? colors.primary : 'transparent',
                       color: period === p.key ? '#fff' : colors.text
                     }}
                   >
@@ -210,9 +212,9 @@ export default function PharmacySales() {
                   key={i} 
                   sx={{ 
                     flex: 1,
-                    bgcolor: i === trend.length - 1 ? colors.greenDark : colors.greenSoft, 
+                    bgcolor: i === trend.length - 1 ? colors.primary : colors.primarySoft, 
                     height: `${Math.max(5, Math.min(100, (point.value / (Math.max(...trend.map(tp=>tp.value)) || 1000)) * 100))}%`, 
-                    borderRadius: '2px 2px 0 0',
+                    borderRadius: '4px 4px 0 0',
                     transition: 'height 0.5s ease-out'
                   }} 
                 />
@@ -224,14 +226,14 @@ export default function PharmacySales() {
               ))}
             </Stack>
 
-            <Typography sx={{ fontSize: 13, mb: 1.5 }}>{t.rev_split}</Typography>
-            <Box sx={{ height: 8, borderRadius: 4, bgcolor: colors.greenSoft, position: 'relative', mb: 1.5, overflow: 'hidden' }}>
-              <Box sx={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${data?.revenueSplit?.prescription || 60}%`, bgcolor: colors.green }} />
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mb: 1.5, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.rev_split}</Typography>
+            <Box sx={{ height: 8, borderRadius: 4, bgcolor: colors.primarySoft, position: 'relative', mb: 1.5, overflow: 'hidden' }}>
+              <Box sx={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${data?.revenueSplit?.prescription || 60}%`, bgcolor: colors.primary }} />
             </Box>
             <Stack direction="row" spacing={3} sx={{ mb: 4 }}>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.green }} />
-                <Typography sx={{ fontSize: 12, color: colors.muted }}>{t.pres_split} {data?.revenueSplit?.prescription || 60}%</Typography>
+                <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.primary }} />
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: colors.muted }}>{t.pres_split} {data?.revenueSplit?.prescription || 60}%</Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Box sx={{ width: 10, height: 10, borderRadius: 2, bgcolor: colors.greenSoft }} />
@@ -239,7 +241,7 @@ export default function PharmacySales() {
               </Stack>
             </Stack>
 
-            <Typography sx={{ fontSize: 13, mb: 1.5 }}>{t.payment_breakdown}</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, mb: 1.5, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.payment_breakdown}</Typography>
             <Box sx={{ height: 8, borderRadius: 4, display: 'flex', overflow: 'hidden', mb: 1.5 }}>
               {data?.paymentBreakdown?.map((p, i) => (
                 <Box 
@@ -264,7 +266,7 @@ export default function PharmacySales() {
           </Box>
 
           {/* Top Medicines Sold */}
-          <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+          <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
             <SectionHeader title={t.top_medicines} subtitle={t.top_meds_sub} />
             <Stack spacing={2.5}>
               {topMeds.map((m, i) => (
@@ -293,7 +295,7 @@ export default function PharmacySales() {
           <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <SectionHeader 
               title={t.tx_history} 
-              action={<Box onClick={handleExportPDF} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>{t.export_pdf} <PdfIcon sx={{ fontSize: 16 }} /></Box>} 
+              action={<Box onClick={handleExportPDF} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: colors.primary, fontWeight: 700 }}>{t.export_pdf} <PdfIcon sx={{ fontSize: 16 }} /></Box>} 
             />
             
             <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
@@ -307,9 +309,9 @@ export default function PharmacySales() {
                   key={f.val} 
                   onClick={() => setTxFilter(f.val)}
                   sx={{ 
-                    px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, 
-                    bgcolor: txFilter === f.val ? colors.green : 'transparent', 
-                    color: txFilter === f.val ? '#fff' : colors.text, 
+                    px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, fontWeight: 600,
+                    bgcolor: txFilter === f.val ? colors.primary : 'transparent', 
+                    color: txFilter === f.val ? '#fff' : colors.muted, 
                     cursor: 'pointer', transition: '0.2s'
                   }}
                 >
@@ -337,7 +339,7 @@ export default function PharmacySales() {
                     </Stack>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography sx={{ fontSize: 12.5, color: colors.muted }}>{t.details}</Typography>
-                      <Box sx={{ px: 1, py: 0.2, borderRadius: 1, bgcolor: t.method === 'UPI' ? colors.greenSoft : t.method === 'Cash' ? colors.graySoft : colors.blueSoft, color: t.method === 'UPI' ? colors.greenDark : t.method === 'Cash' ? colors.text : colors.blue, fontSize: 11 }}>
+                      <Box sx={{ px: 1, py: 0.2, borderRadius: 1, bgcolor: t.method === 'UPI' ? colors.primarySoft : t.method === 'Cash' ? colors.graySoft : colors.primarySoft, color: t.method === 'UPI' ? colors.primaryDark : t.method === 'Cash' ? colors.text : colors.primary, fontSize: 11 }}>
                         {t.method}
                       </Box>
                     </Stack>
@@ -353,7 +355,7 @@ export default function PharmacySales() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <SectionHeader 
                 title={`${t.gst_summary} ${new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`} 
-                action={<Box onClick={handleExportExcel} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>{t.download} <ExcelIcon sx={{ fontSize: 16 }} /></Box>} 
+                action={<Box onClick={handleExportExcel} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: colors.primary, fontWeight: 700 }}>{t.download} <ExcelIcon sx={{ fontSize: 16 }} /></Box>} 
               />
               
               <Typography sx={{ fontSize: 12, mb: 1, letterSpacing: 0.5 }}>GSTIN <b>03AABCA1234Z1Z5</b></Typography>
@@ -368,7 +370,7 @@ export default function PharmacySales() {
               </Stack>
 
               <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
-                <Button fullWidth onClick={() => handleQuickReport('GSTR-1')} sx={{ bgcolor: colors.green, color: '#fff', fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2, '&:hover': { bgcolor: colors.greenDark } }}>
+                <Button fullWidth onClick={() => handleQuickReport('GSTR-1')} sx={{ bgcolor: colors.primary, color: '#fff', fontSize: 12.5, fontWeight: 700, textTransform: 'none', py: 1.25, borderRadius: 2, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}>
                   {t.export_gstr1}
                 </Button>
                 <Button fullWidth onClick={handleExportExcel} sx={{ border: `1px solid ${colors.line}`, color: colors.text, fontSize: 12.5, textTransform: 'none', py: 1, borderRadius: 2 }}>
@@ -378,8 +380,8 @@ export default function PharmacySales() {
             </Box>
 
             {/* Quick Reports */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 2 }}>{t.quick_reports}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.quick_reports}</Typography>
               <Stack spacing={1.5}>
                 {[
                   [t.rep_daily, t.pdf],
@@ -393,7 +395,7 @@ export default function PharmacySales() {
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: colors.soft, cursor: 'pointer', transition: '0.2s', '&:hover': { bgcolor: colors.line } }}
                   >
                     <Typography sx={{ fontSize: 13, lineHeight: 1.2 }}>{label}</Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600, textAlign: 'right' }}>{type} →</Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.primary, fontWeight: 700, textAlign: 'right' }}>{type} →</Typography>
                   </Box>
                 ))}
               </Stack>

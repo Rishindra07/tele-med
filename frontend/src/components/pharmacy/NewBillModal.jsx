@@ -17,13 +17,18 @@ import {
 import { searchPatients, createBill, fetchInventory } from '../../api/pharmacyApi';
 
 const colors = {
-  green: '#26a37c',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
   paper: '#ffffff',
-  bg: '#f9f9f9',
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  warning: '#f9ab00',
+  red: '#d93025'
 };
 
 export default function NewBillModal({ open, onClose, onSuccess }) {
@@ -138,8 +143,8 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={{ sx: { borderRadius: 3 } }}>
       <DialogTitle sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <BillIcon sx={{ color: colors.green }} />
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Create New Bill</Typography>
+          <BillIcon sx={{ color: colors.primary }} />
+          <Typography sx={{ fontSize: 20, fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>Create New Bill</Typography>
         </Stack>
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
@@ -149,7 +154,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
           <Grid item xs={12} md={5}>
             <Stack spacing={3}>
               <Box>
-                <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 600 }}>1. CUSTOMER ASSOCIATION</Typography>
+                <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 700, letterSpacing: 0.5 }}>1. CUSTOMER ASSOCIATION</Typography>
                 <Autocomplete
                   options={patients}
                   getOptionLabel={(option) => `${option.full_name} (${option.phone})`}
@@ -163,6 +168,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
                       size="small"
                       InputProps={{
                         ...params.InputProps,
+                        sx: { borderRadius: 2 },
                         startAdornment: (
                           <InputAdornment position="start">
                             <UserIcon sx={{ color: colors.muted, fontSize: 18 }} />
@@ -183,7 +189,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
               </Box>
 
               <Box>
-                <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 600 }}>2. PAYMENT MODE</Typography>
+                <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 700, letterSpacing: 0.5 }}>2. PAYMENT MODE</Typography>
                 <Stack direction="row" spacing={1}>
                   {['UPI', 'Cash', 'Credit', 'Card'].map(m => (
                     <Chip 
@@ -191,9 +197,9 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
                       onClick={() => setPaymentMethod(m)}
                       sx={{ 
                         borderRadius: 1.5,
-                        bgcolor: paymentMethod === m ? colors.green : colors.soft,
+                        bgcolor: paymentMethod === m ? colors.primary : colors.soft,
                         color: paymentMethod === m ? '#fff' : colors.text,
-                        fontWeight: paymentMethod === m ? 600 : 400
+                        fontWeight: 700
                       }} 
                     />
                   ))}
@@ -201,7 +207,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
               </Box>
 
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.soft }}>
-                <Typography sx={{ fontSize: 14, mb: 2, fontWeight: 600 }}>Summary</Typography>
+                <Typography sx={{ fontSize: 14, mb: 2, fontWeight: 700 }}>Summary</Typography>
                 <Stack spacing={1}>
                   <Stack direction="row" justifyContent="space-between">
                     <Typography sx={{ fontSize: 13, color: colors.muted }}>Subtotal</Typography>
@@ -213,8 +219,8 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
                   </Stack>
                   <Divider sx={{ my: 1 }} />
                   <Stack direction="row" justifyContent="space-between">
-                    <Typography sx={{ fontSize: 15, fontWeight: 600 }}>Payable</Typography>
-                    <Typography sx={{ fontSize: 18, color: colors.green, fontWeight: 700 }}>₹{totals.total.toLocaleString()}</Typography>
+                    <Typography sx={{ fontSize: 15, fontWeight: 700 }}>Payable</Typography>
+                    <Typography sx={{ fontSize: 18, color: colors.primary, fontWeight: 800 }}>₹{totals.total.toLocaleString()}</Typography>
                   </Stack>
                 </Stack>
               </Box>
@@ -222,7 +228,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
           </Grid>
 
           <Grid item xs={12} md={7}>
-            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 600 }}>3. SCAN OR ADD MEDICINES</Typography>
+            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1, fontWeight: 700, letterSpacing: 0.5 }}>3. SCAN OR ADD MEDICINES</Typography>
             <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
               <Autocomplete
                 fullWidth
@@ -230,7 +236,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
                 getOptionLabel={(option) => option.medicineName}
                 onChange={(e, val) => setSelectedMed(val)}
                 value={selectedMed}
-                renderInput={(params) => <TextField {...params} placeholder="Select medicine..." size="small" />}
+                renderInput={(params) => <TextField {...params} placeholder="Select medicine..." size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />}
                 renderOption={(props, option) => (
                   <li {...props}>
                     <Box sx={{ width: '100%' }}>
@@ -247,7 +253,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
               />
               <Button 
                 variant="contained" onClick={addToCart} disabled={!selectedMed}
-                sx={{ bgcolor: colors.green, minWidth: 42, px: 0 }}
+                sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark }, minWidth: 42, px: 0, borderRadius: 2 }}
               >
                 <AddIcon />
               </Button>
@@ -301,7 +307,7 @@ export default function NewBillModal({ open, onClose, onSuccess }) {
         <Button onClick={onClose} sx={{ color: '#666', textTransform: 'none' }}>Cancel</Button>
         <Button 
           variant="contained" onClick={handleSave} disabled={!cart.length || submitting}
-          sx={{ bgcolor: colors.green, px: 4, textTransform: 'none' }}
+          sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark }, px: 4, textTransform: 'none', borderRadius: 2, fontWeight: 700 }}
         >
           {submitting ? 'Creating...' : 'Confirm Bill'}
         </Button>

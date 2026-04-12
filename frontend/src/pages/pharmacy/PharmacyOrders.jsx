@@ -32,18 +32,20 @@ import { useLanguage } from '../../context/LanguageContext';
 import { PHARMACY_ORDERS_TRANSLATIONS } from '../../utils/translations/pharmacy';
 
 const colors = {
-  bg: '#f5f1e8',
-  sidebarBg: '#fcfbf7',
-  line: '#d8d0c4',
-  muted: '#6f6a62',
-  text: '#252525',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
+  bg: '#f8f9fa',
+  paper: '#ffffff',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
   warning: '#f9ab00',
-  warningSoft: '#fef7e0',
-  danger: '#d93025',
-  dangerSoft: '#fce8e6'
+  red: '#d93025',
+  redSoft: '#fce8e6'
 };
 
 const statuses = ["Order Placed", "Pharmacy Accepted", "Packed", "Out for Delivery", "Delivered", "Cancelled", "Rejected", "Ready for Pickup"];
@@ -105,27 +107,31 @@ export default function PharmacyOrders() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Delivered': return colors.green;
-      case 'Accepted': return colors.greenDark;
-      case 'Ready': return '#1a73e8';
+      case 'Delivered': return colors.success;
+      case 'Accepted':
+      case 'Pharmacy Accepted': return colors.primary;
+      case 'Ready':
+      case 'Ready for Pickup': return colors.primaryDark;
       case 'Order Placed':
       case 'Pending': return colors.warning;
       case 'Rejected':
-      case 'Cancelled': return colors.danger;
+      case 'Cancelled': return colors.red;
       default: return colors.muted;
     }
   };
 
   const getStatusSoft = (status) => {
     switch (status) {
-      case 'Delivered': return colors.greenSoft;
-      case 'Accepted': return '#e8f5e9';
-      case 'Ready': return '#e8f0fe';
+      case 'Delivered': return colors.successSoft;
+      case 'Accepted':
+      case 'Pharmacy Accepted': return colors.primarySoft;
+      case 'Ready':
+      case 'Ready for Pickup': return colors.primarySoft;
       case 'Order Placed':
-      case 'Pending': return colors.warningSoft;
+      case 'Pending': return '#fff7e6';
       case 'Rejected':
-      case 'Cancelled': return colors.dangerSoft;
-      default: return '#f0f0f0';
+      case 'Cancelled': return colors.redSoft;
+      default: return '#f5f5f5';
     }
   };
 
@@ -136,17 +142,17 @@ export default function PharmacyOrders() {
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: 32, fontWeight: 700, color: colors.text, fontFamily: 'Georgia, serif' }}>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, color: colors.text, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px' }}>
               {t.title}
             </Typography>
-            <Typography sx={{ color: colors.muted, fontSize: 16 }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
           <Button 
             startIcon={<RefreshIcon />} 
             onClick={loadOrders}
-            sx={{ color: colors.greenDark, fontWeight: 600, textTransform: 'none' }}
+            sx={{ color: colors.primary, fontWeight: 700, textTransform: 'none', px: 3, py: 1.25, borderRadius: 2.5, bgcolor: '#fff', border: `1px solid ${colors.line}`, '&:hover': { bgcolor: colors.primarySoft } }}
           >
             {t.refresh}
           </Button>
@@ -179,8 +185,8 @@ export default function PharmacyOrders() {
 
         {loading ? (
              <Box sx={{ py: 10, textAlign: 'center' }}>
-                <CircularProgress sx={{ color: colors.green }} />
-                <Typography sx={{ mt: 2, color: colors.muted }}>{t.fetching}</Typography>
+                <CircularProgress sx={{ color: colors.primary }} />
+                <Typography sx={{ mt: 2, color: colors.muted, fontWeight: 600 }}>{t.fetching}</Typography>
              </Box>
         ) : filteredOrders.length === 0 ? (
             <Card sx={{ p: 6, textAlign: 'center', borderRadius: 4, border: `1px dashed ${colors.line}`, bgcolor: 'transparent', boxShadow: 'none' }}>
@@ -196,12 +202,12 @@ export default function PharmacyOrders() {
                             <Grid container spacing={3} alignItems="center">
                                 <Grid size={{ xs: 12, md: 4 }}>
                                     <Stack direction="row" spacing={2} alignItems="center">
-                                        <Avatar sx={{ bgcolor: colors.greenSoft, color: colors.greenDark }}>
+                                        <Avatar sx={{ bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700 }}>
                                             <PatientIcon />
                                         </Avatar>
                                         <Box>
-                                            <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{order.patient?.full_name || t.patient}</Typography>
-                                            <Typography sx={{ fontSize: 12, color: colors.muted }}>{order.patient?.phone || order.patient?.email}</Typography>
+                                            <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.text }}>{order.patient?.full_name || t.patient}</Typography>
+                                            <Typography sx={{ fontSize: 13, color: colors.muted }}>{order.patient?.phone || order.patient?.email}</Typography>
                                         </Box>
                                     </Stack>
                                 </Grid>
@@ -234,14 +240,14 @@ export default function PharmacyOrders() {
                             </Grid>
                         </Box>
 
-                        <Box sx={{ p: 3, bgcolor: '#fcfbf7' }}>
+                        <Box sx={{ p: 3, bgcolor: '#fcfcfc' }}>
                             <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ md: 'center' }} spacing={2}>
                                 <Stack direction="row" spacing={4}>
                                     <Box>
-                                        <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1, mb: 1 }}>{t.prescription_details}</Typography>
+                                        <Typography sx={{ fontSize: 12, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: 700, mb: 1 }}>{t.prescription_details}</Typography>
                                         <Stack direction="row" spacing={1} alignItems="center">
-                                            <PrescriptionIcon sx={{ color: colors.green, fontSize: 18 }} />
-                                            <Typography sx={{ fontSize: 14 }}>
+                                            <PrescriptionIcon sx={{ color: colors.primary, fontSize: 18 }} />
+                                            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
                                                {order.prescription?.medications?.length || 0} {t.items_prescribed}
                                             </Typography>
                                         </Stack>
@@ -264,7 +270,7 @@ export default function PharmacyOrders() {
                                             onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
                                             fullWidth
                                             disabled={updating === order._id || order.status === 'Delivered' || order.status === 'Cancelled'}
-                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#fff' } }}
+                                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#fff', fontSize: 14, fontWeight: 500 } }}
                                         >
                                             {statuses.map((status) => (
                                                 <MenuItem key={status} value={status}>{status}</MenuItem>
@@ -285,13 +291,14 @@ export default function PharmacyOrders() {
                                   const pid = order.prescription?.prescriptionId || order.prescription?._id || order.prescription;
                                   window.open(`/view-prescription/${pid}`, '_blank');
                                 }}
-                                sx={{ color: colors.primary || '#138762', fontWeight: 600, textTransform: 'none' }}
+                                sx={{ color: colors.primary, fontWeight: 700, textTransform: 'none', px: 2, borderRadius: 2, '&:hover': { bgcolor: colors.primarySoft } }}
                              >
                                  {t.view_prescription || 'View Prescription'}
                              </Button>
                              <Button 
                                 size="small" 
-                                sx={{ color: colors.greenDark, fontWeight: 600, textTransform: 'none' }}
+                                variant="contained"
+                                sx={{ bgcolor: colors.primary, color: '#fff', fontWeight: 700, textTransform: 'none', px: 3, py: 1, borderRadius: 2, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
                                 startIcon={<CheckIcon />}
                                 disabled={order.status === 'Delivered' || order.status === 'Cancelled' || order.status === 'Rejected'}
                                 onClick={() => {

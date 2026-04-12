@@ -16,18 +16,18 @@ import { PHARMACY_PRESCRIPTIONS_TRANSLATIONS } from '../../utils/translations/ph
 
 const colors = {
   paper: '#ffffff',
-  line: '#ebe9e0',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  red: '#d9635b',
-  redSoft: '#fdeaea',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe'
+  line: '#e1e3e1',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  red: '#d93025',
+  redSoft: '#fce8e6'
 };
 
 const statusOptions = ['all', 'Pending', 'Ready', 'Partially Available', 'Completed'];
@@ -76,10 +76,10 @@ export default function PharmacyPrescriptions() {
   return (
     <PharmacyLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
-        <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+        <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
           {t.title}
         </Typography>
-        <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, mb: 4 }}>
+        <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16, mb: 4 }}>
           {t.subtitle}
         </Typography>
 
@@ -116,7 +116,7 @@ export default function PharmacyPrescriptions() {
 
         {loading ? (
           <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
-            <CircularProgress sx={{ color: colors.green }} />
+            <CircularProgress sx={{ color: colors.primary }} />
           </Box>
         ) : error ? (
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
@@ -126,21 +126,22 @@ export default function PharmacyPrescriptions() {
               <Box
                 key={item._id}
                 sx={{
-                  p: 2.5,
+                  p: 3,
                   bgcolor: colors.paper,
-                  borderRadius: 3,
+                  borderRadius: 4,
                   border: `1px solid ${colors.line}`,
-                  borderLeft: `3px solid ${
-                    item.fulfillmentStatus === 'Completed' ? colors.blue :
-                    item.fulfillmentStatus === 'Ready' ? colors.green :
-                    item.fulfillmentStatus === 'Partially Available' ? colors.amber :
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+                  borderLeft: `4px solid ${
+                    item.fulfillmentStatus === 'Completed' ? colors.primary :
+                    item.fulfillmentStatus === 'Ready' ? colors.success :
+                    item.fulfillmentStatus === 'Partially Available' ? colors.warning :
                     colors.red
                   }`
                 }}
               >
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.text }}>
                       {item.patient?.full_name || t.patient}
                     </Typography>
                     <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5 }}>
@@ -155,15 +156,16 @@ export default function PharmacyPrescriptions() {
                     sx={{
                       alignSelf: 'flex-start',
                       bgcolor:
-                        item.fulfillmentStatus === 'Completed' ? colors.blueSoft :
-                        item.fulfillmentStatus === 'Ready' ? colors.greenSoft :
-                        item.fulfillmentStatus === 'Partially Available' ? colors.amberSoft :
+                        item.fulfillmentStatus === 'Completed' ? colors.primarySoft :
+                        item.fulfillmentStatus === 'Ready' ? colors.successSoft :
+                        item.fulfillmentStatus === 'Partially Available' ? colors.warningSoft :
                         colors.redSoft,
                       color:
-                        item.fulfillmentStatus === 'Completed' ? colors.blue :
-                        item.fulfillmentStatus === 'Ready' ? colors.greenDark :
-                        item.fulfillmentStatus === 'Partially Available' ? colors.amber :
-                        colors.red
+                        item.fulfillmentStatus === 'Completed' ? colors.primary :
+                        item.fulfillmentStatus === 'Ready' ? colors.success :
+                        item.fulfillmentStatus === 'Partially Available' ? colors.warning :
+                        colors.red,
+                      fontWeight: 700
                     }}
                   />
                 </Stack>

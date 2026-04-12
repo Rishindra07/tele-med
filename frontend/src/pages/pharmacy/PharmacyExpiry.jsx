@@ -19,20 +19,23 @@ import { PHARMACY_EXPIRY_TRANSLATIONS } from '../../utils/translations/pharmacy'
 
 const colors = {
   paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  red: '#d9635b',
-  redSoft: '#fdeaea',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  graySoft: '#f1eee7'
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  red: '#d93025',
+  redSoft: '#fce8e6',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  graySoft: '#f1f3f4'
 };
 
 // Helper for currency
@@ -46,13 +49,13 @@ const LOSSES = (t) => [
 ];
 
 const StatCard = ({ title, value, sub, color }) => (
-  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0' }}>
+  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
       <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: color }} />
-      <Typography sx={{ fontSize: 13, color: colors.text, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{title}</Typography>
+      <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
     </Box>
-    <Typography sx={{ fontSize: 32, fontFamily: 'Georgia, serif' }}>{value}</Typography>
-    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: colors.muted, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{sub}</Typography>
+    <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>{value}</Typography>
+    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: colors.muted, fontWeight: 600 }}>{sub}</Typography>
   </Box>
 );
 
@@ -116,7 +119,7 @@ export default function PharmacyExpiry() {
   if (loading && !alerts.length) return (
     <PharmacyLayout>
       <Box sx={{ p: 5, display: 'grid', placeItems: 'center', height: '100vh', bgcolor: colors.bg }}>
-        <CircularProgress size={40} sx={{ color: colors.green }} />
+        <CircularProgress size={40} sx={{ color: colors.primary }} />
       </Box>
     </PharmacyLayout>
   );
@@ -129,8 +132,8 @@ export default function PharmacyExpiry() {
 
   const STATS = [
     { title: t.stats_7, value: alerts.filter(a => a.daysRemaining < 7).length, sub: t.stats_7_sub, color: colors.red },
-    { title: t.stats_30, value: summary?.critical || 0, sub: t.stats_30_sub, color: colors.amber },
-    { title: t.stats_90, value: summary?.warning || 0, sub: t.stats_90_sub, color: colors.blue },
+    { title: t.stats_30, value: summary?.critical || 0, sub: t.stats_30_sub, color: colors.warning },
+    { title: t.stats_90, value: summary?.warning || 0, sub: t.stats_90_sub, color: colors.primary },
     { title: t.loss, value: fRs(summary?.totalLoss), sub: t.loss_sub, color: colors.red }
   ];
 
@@ -141,10 +144,10 @@ export default function PharmacyExpiry() {
         {/* Header */}
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
               {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
@@ -162,7 +165,8 @@ export default function PharmacyExpiry() {
             </IconButton>
             <Button 
               onClick={() => setSnackbar({ open: true, message: 'Return list generated for April 2026', severity: 'success' })}
-              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, whiteSpace: 'pre-line', lineHeight: 1.2, minWidth: 100 }}
+              variant="contained"
+              sx={{ bgcolor: colors.primary, color: '#fff', borderRadius: 2.5, px: 3, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, fontWeight: 700, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
             >
               {t.create_list}
             </Button>
@@ -206,8 +210,8 @@ export default function PharmacyExpiry() {
           {/* Left Column: Expiry List */}
           <Box>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-              <Typography sx={{ fontSize: 16 }}>{t.expiry_list}</Typography>
-              <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{t.export_list}</Typography>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.text }}>{t.expiry_list}</Typography>
+              <Typography sx={{ color: colors.primary, fontWeight: 700, fontSize: 13.5, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>{t.export_list}</Typography>
             </Stack>
             
             <Stack spacing={2.5}>
@@ -215,18 +219,18 @@ export default function PharmacyExpiry() {
                 <Box key={idx} sx={{ 
                   display: 'grid', gridTemplateColumns: '70px 1fr 160px', 
                   bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, 
-                  borderLeft: `3px solid ${item.status === 'Critical' ? colors.red : item.status === 'Warning' ? colors.amber : colors.blue}`, overflow: 'hidden'
+                  borderLeft: `4px solid ${item.status === 'Critical' ? colors.red : item.status === 'Warning' ? colors.warning : colors.primary}`, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
                 }}>
-                  <Box sx={{ display: 'grid', placeItems: 'center', bgcolor: item.status === 'Critical' ? colors.redSoft : item.status === 'Warning' ? colors.amberSoft : colors.blueSoft, opacity: 0.8 }}>
-                    {item.status === 'Critical' ? <ErrorIcon sx={{ color: colors.red }} /> : item.status === 'Warning' ? <WarningIcon sx={{ color: colors.amber }} /> : <ClockIcon sx={{ color: colors.blue }} />}
+                  <Box sx={{ display: 'grid', placeItems: 'center', bgcolor: item.status === 'Critical' ? colors.redSoft : item.status === 'Warning' ? colors.warningSoft : colors.primarySoft, opacity: 0.8 }}>
+                    {item.status === 'Critical' ? <ErrorIcon sx={{ color: colors.red }} /> : item.status === 'Warning' ? <WarningIcon sx={{ color: colors.warning }} /> : <ClockIcon sx={{ color: colors.primary }} />}
                   </Box>
                   <Box sx={{ p: 3 }}>
-                    <Typography sx={{ fontSize: 16, fontWeight: 500, mb: 1 }}>{item.medicineName} — Batch {item.batchNumber}</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 1, color: colors.text }}>{item.medicineName} — Batch {item.batchNumber}</Typography>
                     <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.4, mb: 2 }}>
                       {t.expires} {new Date(item.expiryDate).toLocaleDateString()} • {item.daysRemaining} {t.days_remaining} • {item.quantity} {t.units} • {t.supplier} {item.category}
                     </Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap">
-                      <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: item.status === 'Critical' ? colors.redSoft : colors.amberSoft, color: item.status === 'Critical' ? colors.red : colors.amber, fontSize: 11, fontWeight: 500 }}>
+                      <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: item.status === 'Critical' ? colors.redSoft : item.status === 'Warning' ? colors.warningSoft : colors.primarySoft, color: item.status === 'Critical' ? colors.red : item.status === 'Warning' ? colors.warning : colors.primary, fontSize: 11, fontWeight: 700 }}>
                         {item.status === 'Critical' ? t.filter_critical : item.status === 'Warning' ? t.filter_warning : t.filter_watch} — {item.daysRemaining} {t.days_dynamic}
                       </Box>
                       <Box sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.text, fontSize: 11, fontWeight: 500 }}>
@@ -241,7 +245,7 @@ export default function PharmacyExpiry() {
                       { key: 'dispose', label: t.mark_dispose },
                       { key: 'view', label: t.view_stock }
                     ].map(btn => (
-                      <Button key={btn.key} onClick={() => handleAction(btn.key, item)} fullWidth sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, fontSize: 12.5, textTransform: 'none', py: 0.6 }}>
+                      <Button key={btn.key} onClick={() => handleAction(btn.key, item)} fullWidth sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, fontSize: 12.5, textTransform: 'none', py: 0.6, fontWeight: 600, '&:hover': { bgcolor: colors.soft } }}>
                         {btn.label}
                       </Button>
                     ))}
@@ -256,7 +260,7 @@ export default function PharmacyExpiry() {
           <Stack spacing={3}>
             
             {/* Calendar Placeholder */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
               <SectionTitle title={`${t.cal_title} April 2026`} />
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, textAlign: 'center', mb: 2 }}>
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <Typography key={d} sx={{ fontSize: 10, color: colors.muted }}>{d}</Typography>)}
@@ -273,17 +277,17 @@ export default function PharmacyExpiry() {
               <Stack spacing={1}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: colors.red }} />
-                  <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.critical_expiry}</Typography>
+                  <Typography sx={{ fontSize: 11, color: colors.muted, fontWeight: 600 }}>{t.critical_expiry}</Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: colors.amber }} />
-                  <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.warning}</Typography>
+                  <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: colors.warning }} />
+                  <Typography sx={{ fontSize: 11, color: colors.muted, fontWeight: 600 }}>{t.warning}</Typography>
                 </Stack>
               </Stack>
             </Box>
 
             {/* Estimated Loss */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
               <SectionTitle title={t.loss_title} />
               <Stack spacing={2}>
                 {LOSSES(t).map(l => (
@@ -301,7 +305,7 @@ export default function PharmacyExpiry() {
             </Box>
 
             {/* Alert Settings */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
               <SectionTitle title={t.alert_settings} />
               <Stack spacing={3}>
                 <Box>
@@ -310,7 +314,7 @@ export default function PharmacyExpiry() {
                       <Typography sx={{ fontSize: 13 }}>{t.sms}</Typography>
                       <Typography sx={{ fontSize: 11, color: colors.muted }}>+91 98140 56872</Typography>
                     </Box>
-                    <Switch checked={settings.smsAlert} onChange={(e) => handleUpdateSettings({ smsAlert: e.target.checked })} size="small" />
+                    <Switch checked={settings.smsAlert} onChange={(e) => handleUpdateSettings({ smsAlert: e.target.checked })} size="small" color="primary" />
                   </Stack>
                 </Box>
                 <Box>
@@ -319,7 +323,7 @@ export default function PharmacyExpiry() {
                       <Typography sx={{ fontSize: 13 }}>{t.auto_return}</Typography>
                       <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.auto_return_sub}</Typography>
                     </Box>
-                    <Switch checked={settings.autoReturn} onChange={(e) => handleUpdateSettings({ autoReturn: e.target.checked })} size="small" />
+                    <Switch checked={settings.autoReturn} onChange={(e) => handleUpdateSettings({ autoReturn: e.target.checked })} size="small" color="primary" />
                   </Stack>
                 </Box>
                 <Box>
@@ -328,11 +332,11 @@ export default function PharmacyExpiry() {
                     value={settings.alertDays} 
                     onChange={(_, v) => handleUpdateSettings({ alertDays: v })} 
                     max={90} min={7} 
-                    sx={{ color: colors.blue }} 
+                    sx={{ color: colors.primary }} 
                   />
                   <Stack direction="row" justifyContent="space-between">
                     <Typography sx={{ fontSize: 10, color: colors.muted }}>{t.days_7}</Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600 }}>{settings.alertDays} {t.days_dynamic}</Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.primary, fontWeight: 700 }}>{settings.alertDays} {t.days_dynamic}</Typography>
                     <Typography sx={{ fontSize: 10, color: colors.muted }}>{t.days_90}</Typography>
                   </Stack>
                 </Box>
@@ -356,6 +360,6 @@ export default function PharmacyExpiry() {
 
 function SectionTitle({ title }) {
   return (
-    <Typography sx={{ fontSize: 16, mb: 2.5, lineHeight: 1.2 }}>{title}</Typography>
+    <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 2.5, lineHeight: 1.2, color: colors.text }}>{title}</Typography>
   );
 }

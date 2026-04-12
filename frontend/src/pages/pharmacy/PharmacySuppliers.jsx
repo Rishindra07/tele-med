@@ -14,28 +14,32 @@ import { PHARMACY_SUPPLIERS_TRANSLATIONS } from '../../utils/translations/pharma
 
 const colors = {
   paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  graySoft: '#f1eee7',
-  red: '#d9635b'
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  red: '#d93025',
+  redSoft: '#fdeaea',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  graySoft: '#f1f3f4'
 };
 
 const getStatusTheme = (status, t) => {
   switch (status) {
-    case 'In transit': case t.status_in_transit: return { color: colors.green, bg: colors.greenSoft };
-    case 'Confirmed': case t.status_confirmed: return { color: colors.amber, bg: colors.amberSoft };
-    case 'Ordered': case t.status_ordered: return { color: colors.blue, bg: colors.blueSoft };
+    case 'In transit': case t.status_in_transit: return { color: colors.success, bg: colors.successSoft };
+    case 'Confirmed': case t.status_confirmed: return { color: colors.warning, bg: colors.warningSoft };
+    case 'Ordered': case t.status_ordered: return { color: colors.primary, bg: colors.primarySoft };
     case 'Draft': case t.status_draft: return { color: colors.muted, bg: colors.graySoft };
-    case 'Delivered': case t.status_delivered: return { color: colors.green, bg: colors.greenSoft };
+    case 'Delivered': case t.status_delivered: return { color: colors.success, bg: colors.successSoft };
     default: return { color: colors.muted, bg: colors.graySoft };
   }
 };
@@ -49,20 +53,20 @@ const getInitials = (name) =>
     .join('') || 'SP';
 
 const StatCard = ({ title, value, sub, color }) => (
-  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0' }}>
+  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
       <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: color }} />
-      <Typography sx={{ fontSize: 13, color: colors.text, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{title}</Typography>
+      <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
     </Box>
-    <Typography sx={{ fontSize: 32, fontFamily: 'Georgia, serif' }}>{value}</Typography>
-    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: colors.green, whiteSpace: 'pre-line', lineHeight: 1.3 }}>{sub}</Typography>
+    <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>{value}</Typography>
+    <Typography sx={{ mt: 0.5, fontSize: 12.5, color, fontWeight: 600 }}>{sub}</Typography>
   </Box>
 );
 
 const SectionTitle = ({ title, action }) => (
   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-    <Typography sx={{ fontSize: 18 }}>{title}</Typography>
-    {action && <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{action}</Typography>}
+    <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>{title}</Typography>
+    {action && <Typography sx={{ color: colors.primary, fontWeight: 700, fontSize: 13.5, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>{action}</Typography>}
   </Stack>
 );
 
@@ -135,19 +139,21 @@ export default function PharmacySuppliers() {
     { key: 'Draft', label: t.filter_draft }
   ];
 
-  if (loading) return <PharmacyLayout><Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.green }} /></Box></PharmacyLayout>;
+  if (loading) return <PharmacyLayout><Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.primary }} /></Box></PharmacyLayout>;
 
   return (
     <PharmacyLayout>
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+          <Box>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
               {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
+          </Box>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1.1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
@@ -158,7 +164,11 @@ export default function PharmacySuppliers() {
                 <BellIcon sx={{ color: '#5f5a52' }} />
               </Badge>
             </IconButton>
-            <Button sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', color: colors.text, borderRadius: 2.5, px: 2, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, whiteSpace: 'pre-line', lineHeight: 1.2 }}>
+            <Button 
+              startIcon={<AddIcon />}
+              variant="contained"
+              sx={{ bgcolor: colors.primary, color: '#fff', borderRadius: 2.5, px: 3, py: 1, textTransform: 'none', fontSize: 14.5, height: 42, fontWeight: 700, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
+            >
               {t.new_order}
             </Button>
           </Stack>
@@ -175,7 +185,7 @@ export default function PharmacySuppliers() {
               {FILTERS.map(f => (
                 <Box key={f.key} 
                   onClick={() => setActiveFilter(f.label)}
-                  sx={{ px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, cursor: 'pointer', bgcolor: activeFilter === f.label ? colors.green : 'transparent', color: activeFilter === f.label ? '#fff' : colors.text }}>
+                  sx={{ px: 2, py: 0.6, borderRadius: 99, border: `1px solid ${colors.line}`, fontSize: 13, fontWeight: 600, cursor: 'pointer', bgcolor: activeFilter === f.label ? colors.primary : 'transparent', color: activeFilter === f.label ? '#fff' : colors.muted }}>
                   {f.label}
                 </Box>
               ))}
@@ -195,11 +205,11 @@ export default function PharmacySuppliers() {
                 if (o.status === 'Delivered') transStatus = t.status_delivered;
 
                 return (
-                  <Box key={o._id} sx={{ display: 'flex', gap: 2.5, p: 3, bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, borderLeft: `3px solid ${theme.color}` }}>
+                  <Box key={o._id} sx={{ display: 'flex', gap: 2.5, p: 3, bgcolor: colors.paper, borderRadius: 4, border: `1px solid ${colors.line}`, borderLeft: `4px solid ${theme.color}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                     <Avatar sx={{ width: 48, height: 48, bgcolor: colors.soft, color: colors.muted, fontSize: 16 }}>{init}</Avatar>
                     <Box sx={{ flex: 1 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{o.supplier?.name || 'Supplier'} — {o.orderId}</Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.text }}>{o.supplier?.name || 'Supplier'} — {o.orderId}</Typography>
                         <Box sx={{ px: 1.5, py: 0.4, borderRadius: 1.5, bgcolor: theme.bg, color: theme.color, fontSize: 11, fontWeight: 600 }}>{transStatus}</Box>
                       </Stack>
                       <Typography sx={{ fontSize: 13, color: colors.muted, mb: 2 }}>{o.items?.length || 0} {t.items} • ₹{(o.totalAmount || 0).toLocaleString()} • {t.placed} {o.placedDate ? new Date(o.placedDate).toLocaleDateString() : 'N/A'}</Typography>
@@ -207,8 +217,8 @@ export default function PharmacySuppliers() {
                         {(o.items || []).slice(0, 3).map((it, idx) => <Box key={idx} sx={{ px: 1.2, py: 0.4, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.muted, fontSize: 11 }}>{it.medicineName} × {it.quantity}</Box>)}
                       </Stack>
                       <Stack direction="row" spacing={1.5}>
-                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>{t.view_items}</Button>
-                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontSize: 13 }}>{t.call_supplier}</Button>
+                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, py: 1, textTransform: 'none', fontSize: 13, fontWeight: 600, '&:hover': { bgcolor: colors.soft } }}>{t.view_items}</Button>
+                        <Button sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, px: 2, py: 1, textTransform: 'none', fontSize: 13, fontWeight: 600, '&:hover': { bgcolor: colors.soft } }}>{t.call_supplier}</Button>
                       </Stack>
                     </Box>
                   </Box>
@@ -219,8 +229,8 @@ export default function PharmacySuppliers() {
 
           <Stack spacing={3}>
             {/* Auto-reorder suggestions */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.suggestions_title}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.suggestions_title}</Typography>
               <Stack spacing={2}>
                 {suggestions.length > 0 ? suggestions.map((s, idx) => (
                   <Box key={idx} sx={{ p: 1.5, borderRadius: 2.5, bgcolor: s.priority === 'High' ? colors.amberSoft : colors.soft, border: `1px solid ${s.priority === 'High' ? colors.amber : 'transparent'}` }}>
@@ -229,7 +239,7 @@ export default function PharmacySuppliers() {
                         <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>{s.medicineName}</Typography>
                         <Typography sx={{ fontSize: 11, color: colors.muted }}>{t.supplier} {s.reason} • {t.stock} {s.currentStock}</Typography>
                       </Box>
-                      <Button size="small" sx={{ color: colors.green, fontSize: 11.5, textTransform: 'none', minWidth: 0, p: 0 }}>{t.add}</Button>
+                      <Button size="small" sx={{ color: colors.primary, fontSize: 11.5, textTransform: 'none', minWidth: 0, p: 0, fontWeight: 700 }}>{t.add}</Button>
                     </Stack>
                   </Box>
                 )) : (
@@ -238,8 +248,8 @@ export default function PharmacySuppliers() {
               </Stack>
             </Box>
 
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.directory_title}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.directory_title}</Typography>
               <Stack spacing={3}>
                 {suppliers.slice(0, 5).map(s => (
                   <Box key={s._id} sx={{ display: 'flex', gap: 1.5 }}>
@@ -252,11 +262,11 @@ export default function PharmacySuppliers() {
                   </Box>
                 ))}
               </Stack>
-              <Button fullWidth startIcon={<AddIcon />} sx={{ mt: 3, border: `1px dashed ${colors.line}`, color: colors.green, borderRadius: 2, textTransform: 'none', py: 1.1, fontSize: 13 }}>{t.add_supplier}</Button>
+              <Button fullWidth startIcon={<AddIcon />} sx={{ mt: 3, border: `1px dashed ${colors.line}`, color: colors.primary, borderRadius: 2, textTransform: 'none', py: 1.1, fontSize: 13, fontWeight: 600 }}>{t.add_supplier}</Button>
             </Box>
 
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 16, mb: 3 }}>{t.pending_payments}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.pending_payments}</Typography>
               <Stack spacing={2}>
                 {orders.filter(o => o.paymentStatus === 'Pending').slice(0, 3).map(o => (
                   <Stack key={o._id} direction="row" justifyContent="space-between">

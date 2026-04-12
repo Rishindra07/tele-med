@@ -221,7 +221,7 @@ export default function DoctorPatients() {
                   <Typography sx={{ fontSize: 18, fontWeight: 600, color: c.text, mb: 3 }}>{t.contact_info}</Typography>
                   <Grid container spacing={3}>
                     {[[t.email, selected.email], [t.phone, selected.phone || t.not_provided]].map(([label, value]) => (
-                      <Grid item xs={12} md={6} key={label}>
+                      <Grid size={{ xs: 12, md: 6 }} key={label}>
                         <Typography sx={{ fontSize: 12, fontWeight: 600, color: c.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</Typography>
                         <Typography sx={{ mt: 1, fontSize: 16, color: c.text }}>{value}</Typography>
                         <Divider sx={{ mt: 1, borderColor: c.soft }} />

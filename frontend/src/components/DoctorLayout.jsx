@@ -9,8 +9,9 @@ import {
   PersonOutlineRounded as PersonIcon,
   SettingsOutlined as SettingsIcon
 } from '@mui/icons-material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage, useTranslation } from '../context/LanguageContext';
+import { ChevronRightRounded as ChevronRightIcon } from '@mui/icons-material';
 
 const colors = {
   bg: '#f8f9fa',
@@ -37,7 +38,9 @@ const initials = (name) =>
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'DR';
 
-function DoctorLayout({ children }) {
+const settingsSectionKeys = ['account', 'preferences', 'security', 'danger'];
+
+function DoctorLayout({ children, activeSettingSection = '' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const doctor = useMemo(() => {
@@ -51,6 +54,10 @@ function DoctorLayout({ children }) {
   const profileImage = doctor?.profileImage || doctor?.avatar || doctor?.image || '';
   const { language, setLanguage } = useLanguage();
   const t = useTranslation();
+  const [searchParams] = useSearchParams();
+  const currentSection = activeSettingSection || searchParams.get('section') || '';
+  const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith('/doctor/settings'));
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -91,7 +98,81 @@ function DoctorLayout({ children }) {
           <Stack spacing={1}>
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = location.pathname === item.path;
+              const active = item.path === '/doctor/settings' 
+                ? location.pathname.startsWith('/doctor/settings')
+                : location.pathname === item.path;
+
+              if (item.path === '/doctor/settings') {
+                return (
+                  <Box key={item.path}>
+                    <Button
+                      onClick={() => {
+                        setSettingsOpen(!settingsOpen);
+                        if (!location.pathname.startsWith('/doctor/settings')) {
+                            navigate('/doctor/settings?section=account');
+                        }
+                      }}
+                      sx={{
+                        width: '100%',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        px: 2.5,
+                        py: 1.5,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontSize: 16,
+                        fontWeight: active ? 600 : 500,
+                        color: active ? colors.primaryDark : '#3c4043',
+                        bgcolor: active ? colors.primarySoft : 'transparent',
+                        '&:hover': { bgcolor: active ? colors.primarySoft : '#f1f3f4' }
+                      }}
+                    >
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Icon sx={{ fontSize: 22 }} />
+                        <Box>{t[item.textKey]}</Box>
+                      </Stack>
+                      <ChevronRightIcon sx={{ transform: settingsOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: '0.2s' }} />
+                    </Button>
+                    
+                    {settingsOpen && (
+                      <Stack spacing={0.5} sx={{ mt: 0.5, pl: 5.5 }}>
+                        {settingsSectionKeys.map(key => {
+                            const sectionLabels = {
+                                account: 'Doctor Profile',
+                                preferences: 'Clinical Workflow',
+                                security: 'Security & Access',
+                                danger: 'Account Actions'
+                            };
+                            const isActive = currentSection === key || (key === 'account' && !currentSection && location.pathname === '/doctor/settings');
+                            return (
+                                <Button
+                                    key={key}
+                                    onClick={() => navigate(`/doctor/settings?section=${key}`)}
+                                    sx={{
+                                        justifyContent: 'flex-start',
+                                        gap: 1.5,
+                                        px: 1.5,
+                                        py: 0.8,
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        fontSize: 14.5,
+                                        fontWeight: isActive ? 600 : 500,
+                                        color: key === 'danger' ? '#d93025' : isActive ? colors.primaryDark : colors.muted,
+                                        bgcolor: isActive ? colors.primarySoft : 'transparent',
+                                        '&:hover': { bgcolor: isActive ? colors.primarySoft : '#f1f3f4' }
+                                    }}
+                                >
+                                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: key === 'danger' ? '#f0a2a2' : isActive ? colors.primary : '#bdbdbd' }} />
+                                    {sectionLabels[key]}
+                                </Button>
+                            );
+                        })}
+                      </Stack>
+                    )}
+                  </Box>
+                );
+              }
+
               return (
                 <Button
                   key={item.textKey}

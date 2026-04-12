@@ -16,16 +16,18 @@ import PharmacyLayout from '../../components/PharmacyLayout';
 import { fetchPharmacyProfile, updatePharmacyProfile, updatePharmacySettings } from '../../api/pharmacyApi';
 
 const colors = {
-  bg: '#fcfbf7',
+  bg: '#f8f9fa',
   paper: '#ffffff',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
-  red: '#d9635b'
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  red: '#d93025'
 };
 
 export default function PharmacySettings() {
@@ -98,7 +100,7 @@ export default function PharmacySettings() {
     { id: 'security', label: 'Security & Access', icon: <SecurityIcon /> }
   ];
 
-  if (loading) return <PharmacyLayout><Box sx={{ p: 10, textAlign: 'center' }}><CircularProgress color="success" /></Box></PharmacyLayout>;
+  if (loading) return <PharmacyLayout><Box sx={{ p: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.primary }} /></Box></PharmacyLayout>;
 
   return (
     <PharmacyLayout>
@@ -106,15 +108,15 @@ export default function PharmacySettings() {
         
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 6 }}>
           <Box>
-            <Typography variant="h3" sx={{ fontFamily: 'Georgia, serif', fontWeight: 700 }}>Pharmacy Settings</Typography>
-            <Typography sx={{ color: colors.muted, mt: 1 }}>Manage your inventory thresholds, billing details, and staff access</Typography>
+            <Typography sx={{ fontSize: { xs: 32, md: 38 }, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '-0.5px', color: colors.text }}>Pharmacy Settings</Typography>
+            <Typography sx={{ color: colors.muted, mt: 1, fontSize: 16 }}>Manage your inventory thresholds, billing details, and staff access</Typography>
           </Box>
           <Button 
             variant="contained" 
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ bgcolor: colors.green, px: 4, py: 1.5, borderRadius: 3, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.greenDark } }}
+            sx={{ bgcolor: colors.primary, px: 4, py: 1.5, borderRadius: 3, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
           >
             {saving ? 'Saving...' : 'Apply Changes'}
           </Button>
@@ -135,8 +137,8 @@ export default function PharmacySettings() {
                   textTransform: 'none',
                   fontSize: 15,
                   fontWeight: 700,
-                  bgcolor: activeTab === tab.id ? colors.greenSoft : 'transparent',
-                  color: activeTab === tab.id ? colors.greenDark : colors.text,
+                  bgcolor: activeTab === tab.id ? colors.primarySoft : 'transparent',
+                  color: activeTab === tab.id ? colors.primary : colors.text,
                   '&:hover': { bgcolor: colors.soft }
                 }}
               >
@@ -149,7 +151,7 @@ export default function PharmacySettings() {
             
             {activeTab === 'store' && (
               <Stack spacing={4}>
-                <Typography variant="h6" fontWeight={800}>General Store Info</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>General Store Info</Typography>
                 <TextField label="Pharmacy Name" fullWidth value={profile.pharmacyName} onChange={e => setProfile({...profile, pharmacyName: e.target.value})} />
                 <TextField label="Owner Name" fullWidth value={profile.ownerName} onChange={e => setProfile({...profile, ownerName: e.target.value})} />
                 <TextField label="Store Address" fullWidth multiline rows={2} value={profile.address} onChange={e => setProfile({...profile, address: e.target.value})} />
@@ -172,12 +174,12 @@ export default function PharmacySettings() {
 
             {activeTab === 'inventory' && (
               <Stack spacing={5}>
-                <Typography variant="h6" fontWeight={800}>Inventory & Stock Logic</Typography>
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>Inventory & Stock Logic</Typography>
                 <Box>
                     <Typography sx={{ fontWeight: 700, mb: 1 }}>Critical Stock Threshold</Typography>
                     <Typography sx={{ color: colors.muted, fontSize: 13, mb: 3 }}>Notify me when medicine units drop below this number</Typography>
-                    <Slider value={toggles.threshold} onChange={(_,v) => setToggles({...toggles, threshold: v})} min={10} max={200} step={10} sx={{ color: colors.green }} valueLabelDisplay="auto" />
-                    <Typography sx={{ textAlign: 'right', fontWeight: 800, color: colors.green }}>{toggles.threshold} Units</Typography>
+                    <Slider value={toggles.threshold} onChange={(_,v) => setToggles({...toggles, threshold: v})} min={10} max={200} step={10} sx={{ color: colors.primary }} valueLabelDisplay="auto" />
+                    <Typography sx={{ textAlign: 'right', fontWeight: 800, color: colors.primary }}>{toggles.threshold} Units</Typography>
                 </Box>
                 <Divider />
                 <Stack spacing={3}>
@@ -186,14 +188,14 @@ export default function PharmacySettings() {
                             <Typography sx={{ fontWeight: 700 }}>Auto-Alert Expiry</Typography>
                             <Typography sx={{ color: colors.muted, fontSize: 13 }}>Flag medicines reaching expiry within 90 days</Typography>
                         </Box>
-                        <Switch checked={toggles.autoAlertExpiry} onChange={() => setToggles({...toggles, autoAlertExpiry: !toggles.autoAlertExpiry})} color="success" />
+                        <Switch checked={toggles.autoAlertExpiry} onChange={() => setToggles({...toggles, autoAlertExpiry: !toggles.autoAlertExpiry})} color="primary" />
                     </Stack>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
                             <Typography sx={{ fontWeight: 700 }}>Low Stock SMS</Typography>
                             <Typography sx={{ color: colors.muted, fontSize: 13 }}>Send SMS alerts for critical stock outages</Typography>
                         </Box>
-                        <Switch checked={toggles.lowStockSms} onChange={() => setToggles({...toggles, lowStockSms: !toggles.lowStockSms})} color="success" />
+                        <Switch checked={toggles.lowStockSms} onChange={() => setToggles({...toggles, lowStockSms: !toggles.lowStockSms})} color="primary" />
                     </Stack>
                 </Stack>
               </Stack>
@@ -201,7 +203,7 @@ export default function PharmacySettings() {
 
             {activeTab === 'billing' && (
                 <Stack spacing={4}>
-                    <Typography variant="h6" fontWeight={800}>Taxation & Invoicing</Typography>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>Taxation & Invoicing</Typography>
                     <TextField label="GSTIN Number" fullWidth value={profile.gstin} onChange={e => setProfile({...profile, gstin: e.target.value})} />
                     <FormControl fullWidth>
                         <Typography sx={{ fontWeight: 700, mb: 1, fontSize: 14 }}>Default Tax Type</Typography>
@@ -215,13 +217,13 @@ export default function PharmacySettings() {
 
             {activeTab === 'security' && (
                 <Stack spacing={4}>
-                    <Typography variant="h6" fontWeight={800}>User Access Control</Typography>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text }}>User Access Control</Typography>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 3, border: `1px solid ${colors.line}`, borderRadius: 3 }}>
                          <Box>
                             <Typography sx={{ fontWeight: 700 }}>Staff PIN Access</Typography>
                             <Typography sx={{ color: colors.muted, fontSize: 13 }}>Require 4-digit PIN for sales staff login</Typography>
                          </Box>
-                         <Switch checked={toggles.staffPin} onChange={() => setToggles({...toggles, staffPin: !toggles.staffPin})} color="success" />
+                          <Switch checked={toggles.staffPin} onChange={() => setToggles({...toggles, staffPin: !toggles.staffPin})} color="primary" />
                     </Stack>
                     <Button variant="outlined" sx={{ borderRadius: 2.5, py: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', fontWeight: 700 }}>Update Owner Password</Button>
                     <Button variant="contained" color="error" sx={{ borderRadius: 2.5, py: 1.5, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }}>Danger: Request Account Deactivation</Button>

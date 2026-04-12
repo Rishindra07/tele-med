@@ -203,7 +203,7 @@ export default function DoctorDashboard() {
           <>
             <Grid container spacing={3} sx={{ mb: 4 }}>
               {summaryCards.map(([title, value, subtext, dotColor, path]) => (
-                <Grid key={title} item xs={12} sm={6} md={3}>
+                <Grid key={title} size={{ xs: 12, sm: 6, md: 3 }}>
                   <Box 
                     onClick={() => navigate(path)}
                     sx={{ 
@@ -226,7 +226,7 @@ export default function DoctorDashboard() {
             </Grid>
 
             <Grid container spacing={3}>
-              <Grid item xs={12} xl={5.5}>
+              <Grid size={{ xs: 12, xl: 5.5 }}>
                 <Box sx={{ h: '100%', p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                     <CalendarIcon sx={{ color: c.primary }} />
@@ -324,7 +324,7 @@ export default function DoctorDashboard() {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} xl={3.5}>
+              <Grid size={{ xs: 12, xl: 3.5 }}>
                 <Box sx={{ h: '100%', p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                     <PeopleIcon sx={{ color: c.primary }} />
@@ -349,7 +349,7 @@ export default function DoctorDashboard() {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} xl={3}>
+              <Grid size={{ xs: 12, xl: 3 }}>
                 <Stack spacing={3} sx={{ height: '100%' }}>
                   <Box sx={{ p: 3, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                     <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>

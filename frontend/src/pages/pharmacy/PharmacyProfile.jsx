@@ -19,24 +19,27 @@ import { PHARMACY_PROFILE_TRANSLATIONS } from '../../utils/translations/pharmacy
 
 const colors = {
   paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#1e8061',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  purple: '#8e44ad',
-  purpleSoft: '#f4f0f9',
-  tan: '#9b7b4b',
-  tanSoft: '#f7f1e8',
-  graySoft: '#f1eee7',
-  red: '#d9635b'
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  warningSoft: '#fef7e0',
+  red: '#d93025',
+  redSoft: '#fdeaea',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  purple: '#673ab7',
+  purpleSoft: '#f3e5f5',
+  tan: '#795548',
+  tanSoft: '#efebe9',
+  graySoft: '#f1f3f4'
 };
 
 // TABS will be mapped dynamically later
@@ -48,9 +51,9 @@ const InfoRow = ({ label, value, verified, t }) => (
       <Stack direction="row" spacing={1} alignItems="center">
         <Typography sx={{ fontSize: 13, color: colors.text }}>{value || '--'}</Typography>
         {verified && value && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: colors.greenSoft, px: 0.8, py: 0.2, borderRadius: 1.5 }}>
-            <VerifiedIcon sx={{ fontSize: 12, color: colors.green }} />
-            <Typography sx={{ fontSize: 10, color: colors.green, fontWeight: 600 }}>{t?.verified || 'Verified'}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: colors.successSoft, px: 0.8, py: 0.2, borderRadius: 1.5 }}>
+            <VerifiedIcon sx={{ fontSize: 12, color: colors.success }} />
+            <Typography sx={{ fontSize: 10, color: colors.success, fontWeight: 700 }}>{t?.verified || 'Verified'}</Typography>
           </Box>
         )}
       </Stack>
@@ -105,7 +108,7 @@ export default function PharmacyProfile() {
   const stats = profile?.stats || {};
   const u = profile?.user || {};
 
-  if (loading) return <PharmacyLayout><Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.green }} /></Box></PharmacyLayout>;
+  if (loading) return <PharmacyLayout><Box sx={{ py: 10, textAlign: 'center' }}><CircularProgress sx={{ color: colors.primary }} /></Box></PharmacyLayout>;
 
   return (
     <PharmacyLayout>
@@ -114,11 +117,11 @@ export default function PharmacyProfile() {
         {/* Header */}
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1.5 }}>{t.home} › {t.settings} › <Typography component="span" sx={{ color: colors.green }}>{t.profile}</Typography></Typography>
-            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1.5, fontWeight: 600 }}>{t.home} › {t.settings} › <Typography component="span" sx={{ color: colors.primary, fontWeight: 700 }}>{t.profile}</Typography></Typography>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
               {t.profile}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
@@ -138,36 +141,36 @@ export default function PharmacyProfile() {
         <Box sx={{ p: 4, borderRadius: 5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} alignItems={{ xs: 'center', md: 'flex-start' }}>
             <Box sx={{ position: 'relative' }}>
-              <Avatar sx={{ width: 80, height: 80, bgcolor: colors.greenSoft, color: colors.greenDark, fontSize: 24, fontWeight: 600 }}>
+              <Avatar sx={{ width: 80, height: 80, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 24, fontWeight: 700 }}>
                 {p.pharmacyName?.[0] || 'P'}
               </Avatar>
-              <IconButton size="small" sx={{ position: 'absolute', bottom: -4, right: -4, bgcolor: colors.green, color: '#fff', border: '2px solid #fff', '&:hover': { bgcolor: colors.greenDark } }}>
+              <IconButton size="small" sx={{ position: 'absolute', bottom: -4, right: -4, bgcolor: colors.primary, color: '#fff', border: '2px solid #fff', '&:hover': { bgcolor: colors.primaryDark } }}>
                 <CameraIcon sx={{ fontSize: 14 }} />
               </IconButton>
             </Box>
             <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
-              <Typography sx={{ fontSize: 28, fontFamily: 'Georgia, serif', mb: 1 }}>{p.pharmacyName}</Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text, mb: 1 }}>{p.pharmacyName}</Typography>
               <Typography sx={{ fontSize: 13.5, color: colors.muted, mb: 3 }}>
                 {p.address ? `${p.address} — ${p.pincode || ''}` : `${p.city || t.loc_pending}`}
               </Typography>
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.greenSoft, color: colors.greenDark, fontSize: 12, fontWeight: 500 }}>{t.linked}</Box>
-                {p.isJanAushadhi && <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.purpleSoft, color: colors.purple, fontSize: 12, fontWeight: 500 }}>{t.jan_aushadhi}</Box>}
-                {p.isGstinVerified && <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12, fontWeight: 500 }}>{t.gstin_ver}</Box>}
-                <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.tanSoft, color: colors.tan, fontSize: 12, fontWeight: 500 }}>{t.drug_lic_val}</Box>
+                <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.successSoft, color: colors.success, fontSize: 12, fontWeight: 700 }}>{t.linked}</Box>
+                {p.isJanAushadhi && <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.purpleSoft, color: colors.purple, fontSize: 12, fontWeight: 700 }}>{t.jan_aushadhi}</Box>}
+                {p.isGstinVerified && <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.primarySoft, color: colors.primary, fontSize: 12, fontWeight: 700 }}>{t.gstin_ver}</Box>}
+                <Box sx={{ px: 1.5, py: 0.6, borderRadius: 1.5, bgcolor: colors.tanSoft, color: colors.tan, fontSize: 12, fontWeight: 700 }}>{t.drug_lic_val}</Box>
               </Stack>
             </Box>
             <Stack direction="row" spacing={6} sx={{ pt: { xs: 2, md: 4 } }}>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 22, fontWeight: 500 }}>{stats.stockCount || 0}</Typography>
+                 <Typography sx={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{stats.stockCount || 0}</Typography>
                 <Typography sx={{ fontSize: 12, color: colors.muted }}>{t.stats_sku}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 22, fontWeight: 500 }}>{stats.staffCount || 1}</Typography>
+                 <Typography sx={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{stats.staffCount || 1}</Typography>
                 <Typography sx={{ fontSize: 12, color: colors.muted }}>{t.stats_staff}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 22, fontWeight: 500 }}>{stats.yearsOnSeva || 1}</Typography>
+                 <Typography sx={{ fontSize: 22, fontWeight: 700, color: colors.text }}>{stats.yearsOnSeva || 1}</Typography>
                 <Typography sx={{ fontSize: 12, color: colors.muted }}>{t.stats_yrs}</Typography>
               </Box>
             </Stack>
@@ -181,10 +184,10 @@ export default function PharmacyProfile() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               sx={{
-                textTransform: 'none', borderRadius: 2, px: 2.5, py: 0.8, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap',
-                bgcolor: activeTab === tab ? colors.green : 'transparent',
-                color: activeTab === tab ? '#fff' : colors.text,
-                '&:hover': { bgcolor: activeTab === tab ? colors.greenDark : colors.soft }
+                 textTransform: 'none', borderRadius: 99, px: 3, py: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', fontWeight: 600,
+                 bgcolor: activeTab === tab ? colors.primary : 'transparent',
+                 color: activeTab === tab ? '#fff' : colors.muted,
+                 '&:hover': { bgcolor: activeTab === tab ? colors.primaryDark : colors.soft }
               }}
             >
               {tab}
@@ -199,11 +202,11 @@ export default function PharmacyProfile() {
           <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: 16 }}>{t.basic_info}</Typography>
-              {editingSection === 'basic' ? (
-                <Button size="small" variant="contained" onClick={() => handleSave('basic')} sx={{ bgcolor: colors.green, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_save}</Button>
-              ) : (
-                <Button size="small" onClick={() => setEditingSection('basic')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_edit}</Button>
-              )}
+               {editingSection === 'basic' ? (
+                 <Button size="small" variant="contained" onClick={() => handleSave('basic')} sx={{ bgcolor: colors.primary, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 700 }}>{t.btn_save}</Button>
+               ) : (
+                 <Button size="small" onClick={() => setEditingSection('basic')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_edit}</Button>
+               )}
             </Stack>
             {editingSection === 'basic' ? (
               <Stack spacing={2}>
@@ -232,11 +235,11 @@ export default function PharmacyProfile() {
           <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: 16 }}>{t.licences}</Typography>
-              {editingSection === 'licences' ? (
-                <Button size="small" variant="contained" onClick={() => handleSave('licences')} sx={{ bgcolor: colors.green, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_save}</Button>
-              ) : (
-                <Button size="small" onClick={() => setEditingSection('licences')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_edit}</Button>
-              )}
+               {editingSection === 'licences' ? (
+                 <Button size="small" variant="contained" onClick={() => handleSave('licences')} sx={{ bgcolor: colors.primary, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 700 }}>{t.btn_save}</Button>
+               ) : (
+                 <Button size="small" onClick={() => setEditingSection('licences')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_edit}</Button>
+               )}
             </Stack>
             {editingSection === 'licences' ? (
               <Stack spacing={2}>
@@ -263,7 +266,7 @@ export default function PharmacyProfile() {
           <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: 16 }}>{t.seva_link}</Typography>
-              <Button size="small" sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_settings}</Button>
+               <Button size="small" sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_settings}</Button>
             </Stack>
             <Table size="small">
               <TableBody>
@@ -285,7 +288,7 @@ export default function PharmacyProfile() {
           <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: 16 }}>{t.s_acc}</Typography>
-              <Button startIcon={<AddIcon />} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_add_staff}</Button>
+               <Button startIcon={<AddIcon />} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_add_staff}</Button>
             </Stack>
             
             <Stack spacing={3} sx={{ mb: 4 }}>
@@ -293,14 +296,14 @@ export default function PharmacyProfile() {
                 <Avatar sx={{ width: 44, height: 44, bgcolor: colors.soft, color: colors.muted, fontSize: 15 }}>{p.ownerName?.[0] || u.full_name?.[0]}</Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>{p.ownerName || u.full_name}</Typography>
-                    <Typography sx={{ fontSize: 10, color: colors.green, bgcolor: colors.greenSoft, px: 1, py: 0.2, borderRadius: 1 }}>{t.r_owner}</Typography>
+                     <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: colors.text }}>{p.ownerName || u.full_name}</Typography>
+                     <Typography sx={{ fontSize: 10, color: colors.success, bgcolor: colors.successSoft, px: 1, py: 0.2, borderRadius: 1, fontWeight: 700 }}>{t.r_owner}</Typography>
                   </Stack>
                   <Typography sx={{ fontSize: 12.5, color: colors.muted }}>{p.phone || u.phone} • {p.email || u.email}</Typography>
                 </Box>
-                <Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: colors.graySoft, color: colors.muted, fontSize: 11, fontWeight: 500 }}>
-                  {t.r_owner}
-                </Box>
+                 <Box sx={{ px: 1.5, py: 0.5, borderRadius: 1.5, bgcolor: colors.soft, color: colors.muted, fontSize: 11, fontWeight: 700 }}>
+                   {t.r_owner}
+                 </Box>
               </Box>
             </Stack>
 
@@ -308,11 +311,11 @@ export default function PharmacyProfile() {
             <Typography sx={{ fontSize: 14.5, mb: 2 }}>{t.r_perms}</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.graySoft }}>
-                <Typography sx={{ fontSize: 11, color: colors.green, fontWeight: 600, mb: 0.5 }}>{t.p_o}</Typography>
+                 <Typography sx={{ fontSize: 11, color: colors.success, fontWeight: 700, mb: 0.5 }}>{t.p_o}</Typography>
                 <Typography sx={{ fontSize: 12.5, color: colors.muted }}>{t.p_o_desc}</Typography>
               </Box>
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.graySoft }}>
-                <Typography sx={{ fontSize: 11, color: colors.blue, fontWeight: 600, mb: 0.5 }}>{t.p_p}</Typography>
+                 <Typography sx={{ fontSize: 11, color: colors.primary, fontWeight: 700, mb: 0.5 }}>{t.p_p}</Typography>
                 <Typography sx={{ fontSize: 12.5, color: colors.muted }}>{t.p_p_desc}</Typography>
               </Box>
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.graySoft }}>
@@ -329,11 +332,11 @@ export default function PharmacyProfile() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Stack direction="row" justifyContent="space-between" sx={{ mb: 2.5 }}>
                 <Typography sx={{ fontSize: 16 }}>{t.op_hours}</Typography>
-                {editingSection === 'hours' ? (
-                  <Button size="small" variant="contained" onClick={() => handleSave('hours')} sx={{ bgcolor: colors.green, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_save}</Button>
-                ) : (
-                  <Button size="small" onClick={() => setEditingSection('hours')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_edit}</Button>
-                )}
+                 {editingSection === 'hours' ? (
+                   <Button size="small" variant="contained" onClick={() => handleSave('hours')} sx={{ bgcolor: colors.primary, color: '#fff', textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 700 }}>{t.btn_save}</Button>
+                 ) : (
+                   <Button size="small" onClick={() => setEditingSection('hours')} sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_edit}</Button>
+                 )}
               </Stack>
               {editingSection === 'hours' ? (
                 <TextField 
@@ -359,8 +362,9 @@ export default function PharmacyProfile() {
                     setTempProfile({ ...tempProfile, is24Hour: val });
                     updatePharmacyProfile({ is24Hour: val });
                   }}
-                  size="small" 
-                />
+                   size="small"
+                   color="primary"
+                 />
               </Stack>
             </Box>
 
@@ -368,7 +372,7 @@ export default function PharmacyProfile() {
             <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
                 <Typography sx={{ fontSize: 16 }}>{t.notif_set}</Typography>
-                <Button size="small" sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5 }}>{t.btn_edit}</Button>
+                 <Button size="small" sx={{ border: `1px solid ${colors.line}`, color: colors.text, textTransform: 'none', px: 2, borderRadius: 1.5, fontWeight: 600 }}>{t.btn_edit}</Button>
               </Stack>
               <Stack spacing={2.5}>
                 {[
@@ -381,7 +385,7 @@ export default function PharmacyProfile() {
                       <Typography sx={{ fontSize: 13 }}>{n.title}</Typography>
                       <Typography sx={{ fontSize: 11, color: colors.muted }}>{n.sub}</Typography>
                     </Box>
-                    <Switch defaultChecked size="small" color="success" />
+                     <Switch defaultChecked size="small" color="primary" />
                   </Stack>
                 ))}
               </Stack>

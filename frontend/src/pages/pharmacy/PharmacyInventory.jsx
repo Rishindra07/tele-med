@@ -18,21 +18,22 @@ import { PHARMACY_INVENTORY_TRANSLATIONS } from '../../utils/translations/pharma
 
 const colors = {
   paper: '#ffffff',
-  bg: '#f9f9f9',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#1e8363',
-  amber: '#d18a1f',
-  amberSoft: '#fbefdc',
-  red: '#d9635b',
+  bg: '#f8f9fa',
+  line: '#e1e3e1',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#174ea6',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  red: '#d93025',
   redSoft: '#fdeaea',
-  blue: '#4a90e2',
-  blueSoft: '#e7f0fe',
-  graySoft: '#f1eee7'
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  graySoft: '#f1f3f4'
 };
 
 const formatDate = (value) => {
@@ -50,24 +51,24 @@ const getCategoryStyle = (cat) => {
     'Antihypert.': { bg: colors.blueSoft, col: colors.blue },
     'Antidiabetic': { bg: colors.blueSoft, col: colors.blue },
     'Vitamin': { bg: colors.graySoft, col: colors.text },
-    'Jan Aushadhi': { bg: colors.greenSoft, col: colors.green },
+    'Jan Aushadhi': { bg: colors.successSoft, col: colors.success },
     'OTC': { bg: colors.graySoft, col: colors.text }
   };
   return categories[cat] || { bg: colors.graySoft, col: colors.text };
 };
 
 const StatCard = ({ title, value, sub, color, textColor }) => (
-  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', minWidth: 140 }}>
+  <Box sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, flex: '1 1 0', minWidth: 140, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
       <Box sx={{ width: 8, height: 8, borderRadius: 4, bgcolor: color }} />
-      <Typography sx={{ fontSize: 13, color: colors.text, whiteSpace: 'pre-line', lineHeight: 1.3 }}>
+      <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {title}
       </Typography>
     </Box>
-    <Typography sx={{ fontSize: 32, fontWeight: 400, fontFamily: 'Georgia, serif' }}>
+    <Typography sx={{ fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>
       {value}
     </Typography>
-    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: textColor, whiteSpace: 'pre-line', lineHeight: 1.3 }}>
+    <Typography sx={{ mt: 0.5, fontSize: 12.5, color: textColor, fontWeight: 600 }}>
       {sub}
     </Typography>
   </Box>
@@ -77,14 +78,15 @@ const PillFilter = ({ label, count, active, color }) => (
   <Button sx={{ 
     textTransform: 'none', 
     borderRadius: 99, 
-    px: 1.8, 
-    py: 0.6, 
+    px: 2, 
+    py: 0.75, 
     fontSize: 13,
-    bgcolor: active ? colors.green : 'transparent',
+    fontWeight: 600,
+    bgcolor: active ? colors.primary : 'transparent',
     color: active ? '#fff' : colors.text,
-    border: `1px solid ${active ? colors.green : colors.line}`,
+    border: `1px solid ${active ? colors.primary : colors.line}`,
     minWidth: 0,
-    '&:hover': { bgcolor: active ? colors.greenDark : colors.graySoft }
+    '&:hover': { bgcolor: active ? colors.primaryDark : colors.graySoft }
   }}>
     {label}{count !== undefined && (
       <Box component="span" sx={{ 
@@ -94,8 +96,8 @@ const PillFilter = ({ label, count, active, color }) => (
         borderRadius: 99, 
         fontSize: 11, 
         bgcolor: active ? '#fff' : colors.graySoft, 
-        color: active ? colors.greenDark : (color || colors.text),
-        fontWeight: color ? 600 : 400
+        color: active ? colors.primaryDark : (color || colors.text),
+        fontWeight: 700
       }}>
         {count}
       </Box>
@@ -192,9 +194,9 @@ export default function PharmacyInventory() {
   const displayedCategories = Object.entries(categoriesCount).map(([label, count]) => ({ label, count }));
 
   const STATS = [
-    { title: t.stats_all_skus, value: totalSkus, sub: t.stats_all_skus_sub, color: colors.green, textColor: colors.green },
-    { title: t.filter_in_stock, value: inStock, sub: `${Math.round(totalSkus > 0 ? inStock/totalSkus*100 : 0)}${t.stats_in_stock_sub1}`, color: colors.green, textColor: colors.green },
-    { title: t.filter_low_stock, value: lowStock, sub: t.stats_low_stock_sub, color: colors.amber, textColor: colors.amber },
+    { title: t.stats_all_skus, value: totalSkus, sub: t.stats_all_skus_sub, color: colors.primary, textColor: colors.primary },
+    { title: t.filter_in_stock, value: inStock, sub: `${Math.round(totalSkus > 0 ? inStock/totalSkus*100 : 0)}${t.stats_in_stock_sub1}`, color: colors.success, textColor: colors.success },
+    { title: t.filter_low_stock, value: lowStock, sub: t.stats_low_stock_sub, color: colors.warning, textColor: colors.warning },
     { title: t.filter_out, value: outOfStock, sub: t.stats_out_sub, color: colors.red, textColor: colors.red }
   ];
 
@@ -213,10 +215,10 @@ export default function PharmacyInventory() {
         {/* Header */}
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 32, md: 36 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px', color: colors.text }}>
               {t.title}
             </Typography>
-            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 14.5, whiteSpace: 'pre-line' }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
@@ -238,7 +240,7 @@ export default function PharmacyInventory() {
         </Stack>
 
         {/* Filters */}
-        <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4 }}>
+        <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mb: 4, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
             <TextField 
               placeholder={t.search} 
@@ -267,7 +269,7 @@ export default function PharmacyInventory() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' }, gap: 3 }}>
           
           {/* Left Col: Stock List */}
-          <Box sx={{ borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
+          <Box sx={{ borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontSize: 16 }}>{t.stock_list}</Typography>
               <Typography sx={{ color: colors.green, fontSize: 13.5, cursor: 'pointer' }}>{t.export_csv}</Typography>
@@ -305,7 +307,7 @@ export default function PharmacyInventory() {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Typography sx={{ fontSize: 13, color: statusColor, fontWeight: 600 }}>{item.quantity} {t.units}</Typography>
+                          <Typography sx={{ fontSize: 13, color: statusColor, fontWeight: 700 }}>{item.quantity} {t.units}</Typography>
                         </TableCell>
                         <TableCell>
                           <Box sx={{ width: 32, height: 6, borderRadius: 3, bgcolor: colors.line, position: 'relative' }}>
@@ -338,8 +340,8 @@ export default function PharmacyInventory() {
           <Stack spacing={3}>
             
             {/* Quick add medicine */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.quick_add}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.quick_add}</Typography>
               <Stack spacing={1.5}>
                 <TextField 
                   placeholder={t.placeholder_name} size="small" fullWidth
@@ -417,13 +419,13 @@ export default function PharmacyInventory() {
                   <Button 
                     disabled={isSaving}
                     onClick={handleSave}
-                    sx={{ bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark }, whiteSpace: 'pre-line', lineHeight: 1.2 }}
+                    sx={{ bgcolor: colors.primary, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1.25, fontWeight: 700, fontSize: 14.5, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}
                   >
                     {isSaving ? t.saving : t.save}
                   </Button>
                   <Button 
                     startIcon={<ScanIcon />}
-                    sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1, whiteSpace: 'pre-line', lineHeight: 1.2 }}
+                    sx={{ border: `1px solid ${colors.line}`, color: colors.text, borderRadius: 2, textTransform: 'none', py: 1.25, fontWeight: 600, fontSize: 14.5, bgcolor: '#fff', '&:hover': { bgcolor: colors.graySoft } }}
                   >
                     {t.scan}
                   </Button>
@@ -432,12 +434,12 @@ export default function PharmacyInventory() {
             </Box>
 
             {/* Stock by category */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.stock_category}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.stock_category}</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                 {displayedCategories.map(c => (
                   <Box key={c.label} sx={{ p: 1.5, borderRadius: 2, bgcolor: colors.soft }}>
-                    <Typography sx={{ fontSize: 18, fontFamily: 'Georgia, serif' }}>{c.count}</Typography>
+                    <Typography sx={{ fontSize: 18, fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>{c.count}</Typography>
                     <Typography sx={{ fontSize: 11, color: colors.muted, whiteSpace: 'pre-line', lineHeight: 1.2, mt: 0.5 }}>{c.label}</Typography>
                   </Box>
                 ))}
@@ -446,8 +448,8 @@ export default function PharmacyInventory() {
             </Box>
 
             {/* Reorder alerts */}
-            <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-              <Typography sx={{ fontSize: 15, mb: 2 }}>{t.reorder_alerts}</Typography>
+            <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 700, mb: 3 }}>{t.reorder_alerts}</Typography>
               <Stack spacing={2.5}>
                 {items.filter(i => i.quantity <= i.lowStockThreshold).map((item, i) => (
                   <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
@@ -466,7 +468,7 @@ export default function PharmacyInventory() {
                   <Typography sx={{ color: colors.muted, fontSize: 13.5 }}>{t.optimal}</Typography>
                 )}
               </Stack>
-              <Button fullWidth sx={{ mt: 3, bgcolor: colors.green, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1, '&:hover': { bgcolor: colors.greenDark } }}>
+              <Button fullWidth sx={{ mt: 3, bgcolor: colors.primary, color: '#fff', borderRadius: 2, textTransform: 'none', py: 1.25, fontWeight: 700, '&:hover': { bgcolor: colors.primaryDark }, boxShadow: `0 4px 12px ${colors.primary}30` }}>
                 {t.create_reorder}
               </Button>
             </Box>

@@ -16,21 +16,21 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
-  bg: '#f5f1e8',
-  sidebarBg: '#fcfbf7',
-  line: '#d8d0c4',
-  muted: '#6f6a62',
-  text: '#252525',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
-  red: '#d9635b'
+  bg: '#f8f9fa',
+  sidebarBg: '#ffffff',
+  line: '#e0e0e0',
+  muted: '#5f6368',
+  text: '#202124',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  red: '#d93025'
 };
 
 const mainNavItems = [
   { textKey: 'dashboard', icon: DashboardIcon, path: '/pharmacy' },
-  { textKey: 'orders', icon: OrderIcon, path: '/pharmacy/orders', badge: 3, badgeColor: colors.green },
-  { textKey: 'prescriptions', icon: PrescriptionsIcon, path: '/pharmacy/prescriptions', badge: 5, badgeColor: colors.green },
+  { textKey: 'orders', icon: OrderIcon, path: '/pharmacy/orders', badge: 3, badgeColor: colors.primary },
+  { textKey: 'prescriptions', icon: PrescriptionsIcon, path: '/pharmacy/prescriptions', badge: 5, badgeColor: colors.primary },
   { textKey: 'inventory', icon: InventoryIcon, path: '/pharmacy/inventory' },
   { textKey: 'sales_reports', icon: SalesIcon, path: '/pharmacy/sales' },
   { textKey: 'expiry_alerts', icon: ExpiryIcon, path: '/pharmacy/expiry', badge: 3, badgeColor: colors.red },
@@ -91,9 +91,9 @@ function PharmacyLayout({ children }) {
           borderRadius: 2.5,
           textTransform: 'none',
           fontSize: 15.5,
-          color: active ? colors.greenDark : '#3d3d3d',
-          bgcolor: active ? colors.greenSoft : 'transparent',
-          '&:hover': { bgcolor: active ? colors.greenSoft : '#f3eee4' },
+          color: active ? colors.primaryDark : '#3c4043',
+          bgcolor: active ? colors.primarySoft : 'transparent',
+          '&:hover': { bgcolor: active ? colors.primarySoft : '#f1f3f4' },
           position: 'relative',
           width: '100%'
         }}
@@ -143,7 +143,7 @@ function PharmacyLayout({ children }) {
         }}
       >
         <Box sx={{ px: 3, py: 4, borderBottom: `1px solid ${colors.line}` }}>
-          <Typography sx={{ fontSize: 22, fontWeight: 700, color: colors.green, fontFamily: 'Georgia, serif' }}>
+          <Typography sx={{ fontSize: 24, fontWeight: 700, color: colors.primary, fontFamily: 'Inter, sans-serif' }}>
             Seva TeleHealth
           </Typography>
           <Typography sx={{ mt: 0.3, color: colors.muted, fontSize: 14 }}>
@@ -156,7 +156,7 @@ function PharmacyLayout({ children }) {
             {mainNavItems.map(renderNavItem)}
           </Stack>
 
-          <Typography sx={{ mt: 4, mb: 1.5, px: 2, fontSize: 12, fontWeight: 600, color: '#a39c93', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Typography sx={{ mt: 4, mb: 1.5, px: 2, fontSize: 13, fontWeight: 700, color: '#9aa0a6', textTransform: 'uppercase', letterSpacing: 1.2 }}>
             Settings
           </Typography>
           <Stack spacing={0.5}>
@@ -182,9 +182,9 @@ function PharmacyLayout({ children }) {
                   px: 1.5,
                   py: 0.5,
                   borderRadius: 999,
-                  border: `1px solid ${language === lang.code ? colors.green : '#bcb4aa'}`,
-                  bgcolor: language === lang.code ? colors.greenSoft : 'transparent',
-                  color: language === lang.code ? colors.greenDark : '#5f5a52',
+                  border: `1px solid ${language === lang.code ? colors.primary : '#dadce0'}`,
+                  bgcolor: language === lang.code ? colors.primarySoft : 'transparent',
+                  color: language === lang.code ? colors.primaryDark : '#5f6368',
                   textTransform: 'none',
                   fontSize: 13,
                   fontWeight: language === lang.code ? 600 : 400
@@ -196,7 +196,7 @@ function PharmacyLayout({ children }) {
           </Stack>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Avatar src={profileImage} alt={pharmacyName} sx={{ width: 42, height: 42, bgcolor: '#d8efe8', color: colors.greenDark, fontWeight: 700, fontSize: 15 }}>
+            <Avatar src={profileImage} alt={pharmacyName} sx={{ width: 44, height: 44, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700, fontSize: 15 }}>
               {initials(pharmacyName)}
             </Avatar>
             <Box>
@@ -220,7 +220,7 @@ function PharmacyLayout({ children }) {
               textTransform: 'none',
               fontSize: 14.5,
               fontWeight: 500,
-              '&:hover': { bgcolor: '#f7f3ea' }
+              '&:hover': { bgcolor: '#f8f9fa' }
             }}
           >
             Logout

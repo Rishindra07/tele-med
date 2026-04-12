@@ -29,16 +29,18 @@ import { PHARMACY_DASHBOARD_TRANSLATIONS } from '../../utils/translations/pharma
 
 const colors = {
   paper: '#ffffff',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#252525',
-  muted: '#6f6a62',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  greenDark: '#176d57',
-  amber: '#d18a1f',
-  red: '#d9635b',
-  blue: '#4a90e2'
+  line: '#e0e0e0',
+  soft: '#f1f3f4',
+  text: '#202124',
+  muted: '#5f6368',
+  primary: '#1a73e8',
+  primarySoft: '#e8f0fe',
+  primaryDark: '#1557b0',
+  success: '#1e8e3e',
+  successSoft: '#e6f4ea',
+  warning: '#f9ab00',
+  danger: '#d93025',
+  blue: '#1a73e8'
 };
 
 export default function PharmacyDashboard() {
@@ -92,10 +94,10 @@ export default function PharmacyDashboard() {
   const stats = useMemo(() => {
     const summary = data?.summary || {};
     return [
-      [t.rx_today, summary.prescriptionsToday || 0, t.incoming_queue, colors.green],
-      [t.pending, summary.pendingPrescriptions || 0, t.awaiting_stock, colors.amber],
-      [t.ready, summary.readyPrescriptions || 0, t.ready_pickup, colors.blue],
-      [t.low_stock, summary.lowStockCount || 0, t.needs_reorder, colors.red]
+      [t.rx_today, summary.prescriptionsToday || 0, t.incoming_queue, colors.success],
+      [t.pending, summary.pendingPrescriptions || 0, t.awaiting_stock, colors.warning],
+      [t.ready, summary.readyPrescriptions || 0, t.ready_pickup, colors.primary],
+      [t.low_stock, summary.lowStockCount || 0, t.needs_reorder, colors.danger]
     ];
   }, [data, t]);
 
@@ -104,10 +106,10 @@ export default function PharmacyDashboard() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1400, mx: 'auto' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 32, md: 38 }, fontFamily: 'Georgia, serif', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: { xs: 32, md: 38 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text, letterSpacing: '-0.5px' }}>
               {t.hello}, {pharmacyName}
             </Typography>
-            <Typography sx={{ mt: 1.5, color: colors.muted, fontSize: 14.5 }}>
+            <Typography sx={{ mt: 1, color: colors.muted, fontSize: 16 }}>
               {t.subtitle}
             </Typography>
           </Box>
@@ -131,7 +133,7 @@ export default function PharmacyDashboard() {
 
         {loading ? (
           <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
-            <CircularProgress sx={{ color: colors.green }} />
+            <CircularProgress sx={{ color: colors.primary }} />
           </Box>
         ) : error ? (
           <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
@@ -139,17 +141,17 @@ export default function PharmacyDashboard() {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 2, mb: 4 }}>
               {stats.map(([title, value, sub, color]) => (
-                <Box key={title} sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 13, color: colors.text }}>{title}</Typography>
-                  <Typography sx={{ mt: 1, fontSize: 32, fontFamily: 'Georgia, serif' }}>{value}</Typography>
-                  <Typography sx={{ mt: 0.5, fontSize: 12.5, color }}>{sub}</Typography>
+                <Box key={title} sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
+                  <Typography sx={{ mt: 1, fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>{value}</Typography>
+                  <Typography sx={{ mt: 0.5, fontSize: 12.5, color, fontWeight: 600 }}>{sub}</Typography>
                 </Box>
               ))}
             </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.1fr 0.9fr' }, gap: 3 }}>
-              <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                <Typography sx={{ fontSize: 18, mb: 3 }}>{t.fulfillment_orders}</Typography>
+              <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text, mb: 3 }}>{t.fulfillment_orders}</Typography>
                 <Stack spacing={2}>
                   {(data?.orders || []).length ? (
                     data.orders.map((item) => (
@@ -167,7 +169,7 @@ export default function PharmacyDashboard() {
                             size="small" 
                             label={item.deliveryType === 'HOME' ? 'Home Delivery' : 'Store Pickup'} 
                             icon={item.deliveryType === 'HOME' ? <DeliveryIcon sx={{ fontSize: 14 }} /> : <PickupIcon sx={{ fontSize: 14 }} />}
-                            sx={{ bgcolor: item.deliveryType === 'HOME' ? colors.greenSoft : '#fff', color: item.deliveryType === 'HOME' ? colors.greenDark : colors.text, border: `1px solid ${colors.line}` }} 
+                            sx={{ bgcolor: item.deliveryType === 'HOME' ? colors.primarySoft : '#fff', color: item.deliveryType === 'HOME' ? colors.primaryDark : colors.text, border: `1px solid ${colors.line}`, fontWeight: 600 }} 
                           />
                         </Stack>
 
@@ -187,7 +189,7 @@ export default function PharmacyDashboard() {
                                 size="small" 
                                 startIcon={<AcceptIcon />}
                                 onClick={() => handleUpdateStatus(item._id, 'Accepted')}
-                                sx={{ bgcolor: colors.green, '&:hover': { bgcolor: colors.greenDark }, textTransform: 'none', borderRadius: 2 }}
+                                sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark }, textTransform: 'none', borderRadius: 2, fontWeight: 700, py: 1 }}
                               >
                                 {t.accept}
                               </Button>
@@ -204,7 +206,7 @@ export default function PharmacyDashboard() {
                             </>
                           ) : (
                             <Box sx={{ width: '100%', p: 1, textAlign: 'center', borderRadius: 2, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
-                              <Typography sx={{ fontSize: 13, fontWeight: 700, color: item.status === 'Accepted' || item.status === 'Ready' ? colors.green : colors.muted }}>
+                              <Typography sx={{ fontSize: 13, fontWeight: 700, color: item.status === 'Accepted' || item.status === 'Ready' ? colors.primary : colors.muted }}>
                                 {t.status} {item.status.toUpperCase()}
                               </Typography>
                             </Box>
@@ -220,7 +222,7 @@ export default function PharmacyDashboard() {
                                   const pid = item.prescription?.prescriptionId;
                                   window.open(`/view-prescription/${pid}`, '_blank');
                                 }}
-                                sx={{ color: colors.blue, fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: colors.soft } }}
+                                sx={{ color: colors.primary, fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: colors.primarySoft } }}
                              >
                                  {t.view_prescription || 'View Prescription'}
                              </Button>
@@ -234,8 +236,8 @@ export default function PharmacyDashboard() {
               </Box>
 
               <Stack spacing={3}>
-                <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 18, mb: 3 }}>{t.low_stock_items}</Typography>
+                <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                  <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text, mb: 3 }}>{t.low_stock_items}</Typography>
                   <Stack spacing={1.5}>
                     {(data?.lowStockItems || []).length ? (
                       data.lowStockItems.map((stock) => (
@@ -246,7 +248,7 @@ export default function PharmacyDashboard() {
                               {t.threshold} {stock.lowStockThreshold}
                             </Typography>
                           </Box>
-                          <Typography sx={{ fontSize: 14, color: colors.amber, fontWeight: 600 }}>
+                          <Typography sx={{ fontSize: 14, color: colors.warning, fontWeight: 700 }}>
                             {stock.quantity}
                           </Typography>
                         </Box>
@@ -257,8 +259,8 @@ export default function PharmacyDashboard() {
                   </Stack>
                 </Box>
 
-                <Box sx={{ p: 3, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
-                  <Typography sx={{ fontSize: 18, mb: 3 }}>{t.notifications}</Typography>
+                <Box sx={{ p: 4, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                  <Typography sx={{ fontSize: 18, fontWeight: 700, color: colors.text, mb: 3 }}>{t.notifications}</Typography>
                   <Stack spacing={1.5}>
                     {(data?.notifications || []).slice(0, 5).map((item) => (
                       <Box key={item._id}>
