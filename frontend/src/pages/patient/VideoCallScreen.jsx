@@ -89,7 +89,10 @@ export default function VideoCallScreen() {
   // Network stats state
   const [networkQuality, setNetworkQuality] = useState('good'); // good, fair, poor
   const [lowBandwidthMode, setLowBandwidthMode] = useState(false);
+  const [networkStats, setNetworkStats] = useState({ rtt: 0, loss: 0 });
   const statsIntervalRef = useRef(null);
+  const poorCounterRef = useRef(0);
+  const goodCounterRef = useRef(0);
 
   const streamRef = useRef(null);
 
@@ -244,35 +247,55 @@ export default function VideoCallScreen() {
     statsIntervalRef.current = setInterval(async () => {
       if (pc && pc.connectionState === 'connected') {
         const stats = await pc.getStats();
+        let currentLoss = 0;
+        let currentRtt = 0;
+        let currentJitter = 0;
+
         stats.forEach(report => {
           if (report.type === 'remote-inbound-rtp' || report.type === 'inbound-rtp') {
-            const jitter = report.jitter || 0;
-            const packetsLost = report.packetsLost || 0;
-            const rtt = report.roundTripTime || 0;
-            
-            // Logic to determine quality
-            if (packetsLost > 50 || rtt > 0.5 || jitter > 0.1) {
-              setNetworkQuality('poor');
-              // Auto turn off video if poor for a while
-              if (!lowBandwidthMode && videoEnabled) {
-                setLowBandwidthMode(true);
-                // We'll turn off local video automatically
-                const videoTrack = stream.getVideoTracks()[0];
-                if (videoTrack) {
-                  videoTrack.enabled = false;
-                  setVideoEnabled(false);
-                  socket.emit('toggle-media', { roomId, type: 'video', enabled: false });
-                }
-              }
-            } else if (packetsLost > 10 || rtt > 0.2) {
-              setNetworkQuality('fair');
-            } else {
-              setNetworkQuality('good');
-            }
+             currentJitter = Math.max(currentJitter, report.jitter || 0);
+             currentLoss = Math.max(currentLoss, report.packetsLost || 0);
+             currentRtt = Math.max(currentRtt, report.roundTripTime || 0);
+          }
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+             currentRtt = Math.max(currentRtt, report.currentRoundTripTime || 0);
           }
         });
+
+        setNetworkStats({ rtt: currentRtt * 1000, loss: currentLoss });
+
+        // Logic to determine quality
+        if (currentLoss > 50 || currentRtt > 0.4 || currentJitter > 0.08) {
+          poorCounterRef.current++;
+          goodCounterRef.current = 0;
+          if (poorCounterRef.current >= 2) {
+            setNetworkQuality('poor');
+            // Auto turn off video if poor for a while
+            if (!lowBandwidthMode && videoEnabled) {
+              setLowBandwidthMode(true);
+              const videoTrack = stream.getVideoTracks()[0];
+              if (videoTrack) {
+                videoTrack.enabled = false;
+                setVideoEnabled(false);
+                socket.emit('toggle-media', { roomId, type: 'video', enabled: false });
+              }
+            }
+          }
+        } else if (currentLoss > 10 || currentRtt > 0.15) {
+          setNetworkQuality('fair');
+          poorCounterRef.current = 0;
+          goodCounterRef.current = 0;
+        } else {
+          goodCounterRef.current++;
+          poorCounterRef.current = 0;
+          if (goodCounterRef.current >= 3) {
+            setNetworkQuality('good');
+            // If we were in low bandwidth mode and connection is now strong, maybe alert?
+            // (We won't auto-on back to avoid flickering/surprises, but mark as good)
+          }
+        }
       }
-    }, 5000);
+    }, 4000);
 
     return () => {
       socket.disconnect();
@@ -649,18 +672,29 @@ export default function VideoCallScreen() {
            
            <Divider orientation="vertical" flexItem sx={{ bgcolor: 'rgba(255,255,255,0.1)', height: 20 }} />
            
-           <Tooltip title={`Network Stats: Latency/Jitter monitoring active`}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                 <SignalIcon 
-                    sx={{ 
-                       fontSize: 18, 
-                       color: networkQuality === 'good' ? '#22C55E' : networkQuality === 'fair' ? '#EAB308' : '#EF4444' 
-                    }} 
-                 />
-                 <Typography sx={{ color: networkQuality === 'good' ? '#22C55E' : networkQuality === 'fair' ? '#EAB308' : '#EF4444', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {networkQuality}
-                 </Typography>
-                 {networkQuality === 'poor' && <LowBandwidthIcon sx={{ fontSize: 18, color: '#EF4444' }} />}
+           <Tooltip title={`Latency: ${networkStats.rtt.toFixed(0)}ms | Loss: ${networkStats.loss} pkts`}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, bgcolor: 'rgba(255,255,255,0.05)', px: 2, py: 1, borderRadius: 2, border: '1px solid rgba(255,255,255,0.1)' }}>
+                 <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.4, height: 16 }}>
+                    {[1, 2, 3, 4].map(i => (
+                       <Box key={i} sx={{ 
+                          width: 3, 
+                          borderRadius: 0.5,
+                          height: i * 4,
+                          bgcolor: (
+                            (networkQuality === 'good') || 
+                            (networkQuality === 'fair' && i <= 3) ||
+                            (networkQuality === 'poor' && i <= 1)
+                          ) ? (networkQuality === 'good' ? '#22C55E' : networkQuality === 'fair' ? '#EAB308' : '#EF4444') : 'rgba(255,255,255,0.15)'
+                       }} />
+                    ))}
+                 </Box>
+                 <Box>
+                   <Typography sx={{ color: networkQuality === 'good' ? '#22C55E' : networkQuality === 'fair' ? '#EAB308' : '#EF4444', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', lineHeight: 1 }}>
+                      {networkQuality}
+                   </Typography>
+                   {networkQuality === 'poor' && <Typography sx={{ color: '#EF4444', fontSize: 9, fontWeight: 600 }}>Unstable</Typography>}
+                 </Box>
+                 {networkQuality === 'poor' && <LowBandwidthIcon sx={{ fontSize: 16, color: '#EF4444' }} />}
               </Box>
            </Tooltip>
         </Stack>

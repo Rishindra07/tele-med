@@ -1,9 +1,9 @@
 const axios = require("axios");
 
 const DEFAULT_OPENROUTER_MODELS = [
+  "mistralai/mistral-7b-instruct:free",
   "mistralai/mistral-small-3.2-24b-instruct",
-  "mistralai/mistral-small-24b-instruct-2501",
-  "mistralai/mistral-7b-instruct:free"
+  "mistralai/mistral-small-24b-instruct-2501"
 ];
 
 /* ---------------- NORMALIZERS ---------------- */
@@ -68,45 +68,63 @@ Return ONLY valid JSON:
       throw new Error("OPENROUTER_API_KEY missing");
     }
 
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        models,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.1,
-        max_tokens: 300
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:5000",
-          "X-Title": "Seva TeleHealth"
-        },
-        timeout: 7000
-      }
-    );
+    let lastError = null;
 
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("EMPTY_CLOUD_RESPONSE");
+    for (const model of models) {
+      try {
+        console.log(`AI: Trying model ${model}...`);
+        const response = await axios.post(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.1,
+            max_tokens: 300
+          },
+          {
+            headers: {
+              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY.trim()}`,
+              "Content-Type": "application/json"
+            },
+            timeout: 10000
+          }
+        );
+
+        const content = response.data?.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new Error("EMPTY_CLOUD_RESPONSE");
+        }
+
+        const parsed = safeParse(content);
+
+        return {
+          source: "cloud",
+          data: {
+            conditions: parsed.conditions || [],
+            severity: normalizeSeverity(parsed.severity),
+            advice: parsed.advice || "Consult doctor if symptoms persist",
+            suggestedSpecialization: parsed.suggestedSpecialization || "General Physician"
+          }
+        };
+      } catch (err) {
+        const errorData = err.response?.data;
+        const errorStatus = err.response?.status;
+        lastError = errorData || err.message;
+
+        console.warn(`AI: Model ${model} failed (Status: ${errorStatus})`, JSON.stringify(lastError));
+
+        if (errorStatus === 401) {
+          console.error("AI: AUTH ERROR - Your OPENROUTER_API_KEY is likely invalid or deactivated.");
+        }
+        // Continue to next model if available
+      }
     }
 
-    const parsed = safeParse(content);
-
-    return {
-      source: "cloud",
-      data: {
-        conditions: parsed.conditions || [],
-        severity: normalizeSeverity(parsed.severity),
-        advice: parsed.advice || "Consult doctor if symptoms persist",
-        suggestedSpecialization: parsed.suggestedSpecialization || "General Physician"
-      }
-    };
+    throw new Error(JSON.stringify(lastError));
   } catch (err) {
     console.error("CLOUD AI ERROR:", {
       models,
-      error: err.response?.data || err.message
+      error: err.message
     });
     throw new Error("CLOUD_FAILED");
   }
@@ -127,7 +145,8 @@ async function getLocalDiagnosis(symptoms) {
       data: {
         conditions: response.data.conditions || [],
         severity: normalizeSeverity(response.data.severity),
-        advice: response.data.advice || "Consult doctor"
+        advice: response.data.advice || "Consult doctor",
+        suggestedSpecialization: "General Physician"
       }
     };
   } catch (err) {
