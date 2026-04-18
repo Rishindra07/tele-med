@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Button, Divider,
-  Avatar, Switch, CircularProgress, Alert, Snackbar
+  Avatar, Switch, CircularProgress, Alert, Snackbar,
+  Select, MenuItem, FormControl, InputLabel, TextField
 } from '@mui/material';
 import {
   SettingsRounded as SettingsIcon,
@@ -11,7 +12,7 @@ import {
   TranslateRounded as LangIcon
 } from '@mui/icons-material';
 import AdminLayout from '../../components/AdminLayout';
-import { updateAdminSettings } from '../../api/adminApi';
+import { fetchAdminSettings, updateAdminSettings } from '../../api/adminApi';
 
 const colors = {
   bg: '#fcfbf7',
@@ -55,17 +56,23 @@ export default function AdminSettings() {
   const [adminUser, setAdminUser] = useState({});
 
   useEffect(() => {
-    try {
-      const usr = JSON.parse(localStorage.getItem('user') || '{}');
-      setAdminUser(usr);
-      if (usr.settings) {
-        setToggles(prev => ({ ...prev, ...usr.settings }));
+    const loadSettings = async () => {
+      try {
+        const usr = JSON.parse(localStorage.getItem('user') || '{}');
+        setAdminUser(usr);
+        
+        const res = await fetchAdminSettings();
+        if (res.data.success) {
+          setToggles(res.data.settings);
+        }
+      } catch (err) {
+        console.error(err);
+        setSnackbar({ open: true, severity: 'error', message: 'Failed to load settings' });
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    };
+    loadSettings();
   }, []);
 
   const handleSave = async () => {
@@ -123,8 +130,9 @@ export default function AdminSettings() {
                 startIcon={tab.icon}
                 sx={{
                   justifyContent: 'flex-start',
-                  px: 3, py: 2,
-                  borderRadius: 3,
+                  px: 2,
+                  py: 1.4,
+                  borderRadius: 4,
                   textTransform: 'none',
                   fontSize: 15,
                   fontWeight: 700,
@@ -138,31 +146,47 @@ export default function AdminSettings() {
             ))}
           </Stack>
 
-          <Box sx={{ p: 5, borderRadius: 5, bgcolor: colors.paper, border: `1px solid ${colors.line}`, boxShadow: '0 4px 30px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ p: 5, borderRadius: '48px', bgcolor: colors.paper, border: `1px solid ${colors.line}`, boxShadow: '0 4px 30px rgba(0,0,0,0.02)' }}>
             
             {activeTab === 'general' && (
               <Stack spacing={4}>
                 <Typography variant="h6" fontWeight={800}>Administrative Profile</Typography>
-                <Stack direction="row" spacing={3} alignItems="center" sx={{ p: 3, borderRadius: 4, bgcolor: colors.soft }}>
+                <Stack direction="row" spacing={3} alignItems="center" sx={{ p: 3, borderRadius: '32px', bgcolor: colors.soft }}>
                     <Avatar sx={{ width: 64, height: 64, bgcolor: colors.blue, fontWeight: 700 }}>
                         {adminUser.full_name?.charAt(0) || 'A'}
                     </Avatar>
                     <Box>
-                        <Typography variant="subtitle1" fontWeight={800}>{adminUser.full_name || 'Admin'}</Typography>
-                        <Typography variant="body2" color="colors.muted">{adminUser.email}</Typography>
+                        <Typography variant="subtitle1" fontWeight={800}>{adminUser.full_name || 'Admin Tester'}</Typography>
+                        <Typography variant="body2" sx={{ color: colors.muted }}>{adminUser.email || 'admin.test@seva.local'}</Typography>
                     </Box>
                     <Button variant="outlined" size="small" sx={{ ml: 'auto', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>Change Photo</Button>
                 </Stack>
                 <SettingRow label="Global Language" desc="Default display language for new users" action={
-                    <Select size="small" value="en" sx={{ minWidth: 160 }}>
-                        <MenuItem value="en">English</MenuItem>
-                        <MenuItem value="hi">हिन्दी (Hindi)</MenuItem>
-                        <MenuItem value="pa">ਪੰਜਾਬੀ (Punjabi)</MenuItem>
-                        <MenuItem value="ta">தமிழ் (Tamil)</MenuItem>
-                        <MenuItem value="te">తెలుగు (Telugu)</MenuItem>
+                    <Select 
+                      size="small" 
+                      value={toggles.globalLanguage || 'en'} 
+                      sx={{ minWidth: 200 }}
+                      onChange={(e) => setToggles({...toggles, globalLanguage: e.target.value})}
+                    >
+                        <MenuItem value="en">English (en)</MenuItem>
+                        <MenuItem value="hi">हिन्दी (hi)</MenuItem>
+                        <MenuItem value="pa">ਪੰਜਾਬੀ (pa)</MenuItem>
+                        <MenuItem value="ta">தமிழ் (ta)</MenuItem>
+                        <MenuItem value="te">తెలుగు (te)</MenuItem>
                     </Select>
                 } />
-                <SettingRow label="System Timezone" desc="Used for appointment scheduling synchronization" action={<Typography fontWeight={700}>(GMT+05:30) IST</Typography>} />
+                <SettingRow label="System Timezone" desc="Used for appointment scheduling synchronization" action={
+                    <Select 
+                      size="small" 
+                      value={toggles.systemTimezone || 'IST'} 
+                      sx={{ minWidth: 200 }}
+                      onChange={(e) => setToggles({...toggles, systemTimezone: e.target.value})}
+                    >
+                        <MenuItem value="IST">(GMT+05:30) IST</MenuItem>
+                        <MenuItem value="UTC">(GMT+00:00) UTC</MenuItem>
+                        <MenuItem value="GMT">(GMT+00:00) GMT</MenuItem>
+                    </Select>
+                } />
               </Stack>
             )}
 
@@ -179,7 +203,16 @@ export default function AdminSettings() {
                     desc="Allow new patients to register without referral" 
                     action={<Switch checked={toggles.openRegistration} onChange={() => setToggles({...toggles, openRegistration: !toggles.openRegistration})} color="success" />} 
                 />
-                <SettingRow label="Minimum Consultation Fee" desc="Global floor for consultation pricing" action={<Typography fontWeight={800}>₹100</Typography>} />
+                <SettingRow label="Minimum Consultation Fee" desc="Global floor for consultation pricing" action={
+                    <TextField 
+                      size="small" 
+                      type="number"
+                      value={toggles.minConsultationFee || 100}
+                      onChange={(e) => setToggles({...toggles, minConsultationFee: e.target.value})}
+                      sx={{ width: 100 }}
+                      InputProps={{ startAdornment: <Typography sx={{mr: 0.5, fontWeight: 700}}>₹</Typography> }}
+                    />
+                } />
                 <SettingRow 
                     label="New Pharmacy Enrollment" 
                     desc="Allow pharmacies to request account creation" 

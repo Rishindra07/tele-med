@@ -181,7 +181,7 @@ export default function DoctorDashboard() {
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.muted, fontSize: 15, fontWeight: 500 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.muted, fontSize: 15, fontWeight: 500 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button sx={{ minWidth: 44, width: 44, height: 44, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.text, position: 'relative' }}>

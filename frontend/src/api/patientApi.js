@@ -80,8 +80,8 @@ export const cancelMyOrder = async (orderId) => {
   return await API.delete(`patient/prescriptions/orders/${orderId}`);
 };
 
-export const fetchPharmacies = async () => {
-  return await API.get('patient/pharmacies');
+export const fetchPharmacies = async (params = {}) => {
+  return await API.get('patient/pharmacies', { params });
 };
 
 export const fetchPharmacyStock = async (id) => {

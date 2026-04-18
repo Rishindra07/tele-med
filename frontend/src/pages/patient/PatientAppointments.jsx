@@ -322,7 +322,7 @@ function PatientAppointments() {
         key={a.id}
         sx={{
           p: { xs: 2.5, sm: 3 },
-          borderRadius: 3,
+          borderRadius: '16px',
           border: `1px solid ${colors.line}`,
           bgcolor: '#fff',
           position: 'relative',
@@ -347,7 +347,7 @@ function PatientAppointments() {
           <Avatar sx={{ 
             width: 60, 
             height: 60, 
-            borderRadius: 2, 
+            borderRadius: '12px', 
             bgcolor: sSoft, 
             color: sColor, 
             fontSize: 20,
@@ -379,7 +379,7 @@ function PatientAppointments() {
                     color: sColor,
                     fontSize: 10,
                     fontWeight: 800,
-                    borderRadius: 1.5,
+                    borderRadius: '8px',
                     letterSpacing: '0.5px'
                   }}
                 />
@@ -413,7 +413,7 @@ function PatientAppointments() {
                     bgcolor: sSoft, 
                     px: 1.5, 
                     py: 0.5, 
-                    borderRadius: 99
+                    borderRadius: '20px'
                   }}>
                     {callLabel}
                   </Typography>
@@ -429,7 +429,7 @@ function PatientAppointments() {
                       onClick={() => handleStartPayment(a)} 
                       variant="contained" 
                       disabled={payingId === a.id}
-                      sx={{ bgcolor: colors.warning, color: '#fff', borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#e89b00' } }}
+                      sx={{ bgcolor: colors.warning, color: '#fff', borderRadius: '12px', px: 2.5, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#e89b00' } }}
                     >
                       {payingId === a.id ? <CircularProgress size={20} color="inherit" /> : 'Pay Now'}
                     </Button>
@@ -438,11 +438,11 @@ function PatientAppointments() {
                     onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a } })} 
                     variant="contained" 
                     startIcon={<VideoIcon />} 
-                    sx={{ bgcolor: colors.primary, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}
+                    sx={{ bgcolor: colors.primary, borderRadius: '12px', px: 3, py: 1, textTransform: 'none', fontWeight: 600 }}
                   >
                     {t.actions.join}
                   </Button>
-                  <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2.5, textTransform: 'none', fontWeight: 600 }}>{t.actions.reschedule}</Button>
+                  <Button onClick={() => handleRescheduleOpen(a)} variant="outlined" sx={{ borderColor: colors.line, color: colors.text, borderRadius: '12px', px: 2.5, textTransform: 'none', fontWeight: 600 }}>{t.actions.reschedule}</Button>
                   <Button onClick={() => handleCancel(a.id)} variant="text" sx={{ color: colors.danger, textTransform: 'none', fontWeight: 600 }}>{t.actions.cancel}</Button>
                 </>
               )}
@@ -452,7 +452,7 @@ function PatientAppointments() {
                     onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a } })} 
                     variant="contained" 
                     startIcon={<OngoingIcon />} 
-                    sx={{ bgcolor: colors.success, borderRadius: 2, px: 3, py: 1, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: colors.success } }}
+                    sx={{ bgcolor: colors.success, borderRadius: '12px', px: 3, py: 1, textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: colors.success } }}
                   >
                     {t.actions.join_now}
                   </Button>
@@ -460,7 +460,7 @@ function PatientAppointments() {
                     onClick={() => navigate('/patient/video-call', { state: { appointment: a.raw || a, openChat: true } })} 
                     variant="outlined" 
                     startIcon={<ChatIcon />} 
-                    sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}
+                    sx={{ borderColor: colors.line, color: colors.text, borderRadius: '12px', px: 2, textTransform: 'none', fontWeight: 600 }}
                   >
                     {t.actions.chat}
                   </Button>
@@ -468,13 +468,13 @@ function PatientAppointments() {
               )}
               {dashStatus === 'completed' && (
                 <>
-                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.prescription}</Button>
-                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.records}</Button>
+                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<PrescriptionIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: '12px', px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.prescription}</Button>
+                  <Button onClick={() => navigate('/patient/records')} variant="outlined" startIcon={<ViewIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: '12px', px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.records}</Button>
                   <Button variant="text" sx={{ color: colors.primary, textTransform: 'none', fontWeight: 600 }} onClick={() => navigate(`/patient?doctor=${a.doctorId}`)}>{t.actions.book_again}</Button>
                 </>
               )}
               {dashStatus === 'cancelled' && (
-                <Button onClick={() => navigate(`/patient?doctor=${a.doctorId}`)} variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: 2, px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.rebook_now}</Button>
+                <Button onClick={() => navigate(`/patient?doctor=${a.doctorId}`)} variant="outlined" startIcon={<HistoryIcon />} sx={{ borderColor: colors.line, color: colors.text, borderRadius: '12px', px: 2, textTransform: 'none', fontWeight: 600 }}>{t.actions.rebook_now}</Button>
               )}
               {dashStatus === 'missed' && (
                 <>
@@ -507,16 +507,16 @@ function PatientAppointments() {
               <Typography sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 800, color: colors.text, fontFamily: 'Georgia, serif' }}>
                 {t.title}
               </Typography>
-              <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ mt: 0.5, color: colors.muted, fontSize: 16, display: 'flex', alignItems: 'center', gap: 1 }}>
                 {t.subtitle} <Chip label={`${normalizedAppointments.length} ${t.total}`} size="small" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: colors.soft }} />
-              </Typography>
+              </Box>
             </Box>
             <Button 
               onClick={() => navigate('/patient')} 
               variant="contained"
               startIcon={<AddIcon />}
               sx={{ 
-                px: 3.5, py: 1.5, borderRadius: 2.5, bgcolor: colors.primary, color: '#fff', 
+                px: 3.5, py: 1.5, borderRadius: '16px', bgcolor: colors.primary, color: '#fff', 
                 textTransform: 'none', fontWeight: 700, fontSize: 16, 
                 boxShadow: `0 8px 16px ${colors.primary}30`,
                 '&:hover': { bgcolor: colors.primaryDark, transform: 'scale(1.02)' },
@@ -527,7 +527,7 @@ function PatientAppointments() {
             </Button>
           </Stack>
 
-        <Box sx={{ bgcolor: colors.paper, p: 3, borderRadius: 2, border: `1px solid ${colors.line}`, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+        <Box sx={{ bgcolor: colors.paper, p: 3, borderRadius: '20px', border: `1px solid ${colors.line}`, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 4 }} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                {[['all', t.filters.all], ['upcoming', t.filters.upcoming], ['ongoing', t.filters.ongoing], ['completed', t.filters.completed], ['missed', t.filters.missed], ['cancelled', t.filters.cancelled]].map(([value, label]) => (
@@ -535,7 +535,7 @@ function PatientAppointments() {
                    key={value}
                    onClick={() => setActiveFilter(value)}
                    sx={{
-                     px: 2.5, py: 0.8, borderRadius: 2, cursor: 'pointer',
+                     px: 2.5, py: 0.8, borderRadius: '12px', cursor: 'pointer',
                      bgcolor: activeFilter === value ? colors.primary : 'transparent',
                      color: activeFilter === value ? '#fff' : colors.muted,
                      border: `1px solid ${activeFilter === value ? colors.primary : colors.line}`,

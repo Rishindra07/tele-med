@@ -9,6 +9,7 @@ const Prescription = require("../models/Prescription.js");
 const SymptomLog = require("../models/SymptomLog.js");
 const SystemLog = require("../models/SystemLog.js");
 const User = require("../models/User.js");
+const GlobalSetting = require("../models/GlobalSetting.js");
 
 const startOfDay = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 const startOfMonth = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
@@ -1683,5 +1684,59 @@ exports.exportReport = async (req, res) => {
   } catch (error) {
     console.error("[ADMIN] export failed", error);
     res.status(500).json({ message: "Failed to export report" });
+  }
+};
+
+exports.getGlobalSettings = async (req, res) => {
+  try {
+    const settingsList = await GlobalSetting.find({});
+    const settingsObj = settingsList.reduce((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+    
+    const defaults = {
+      doctorVerification: true,
+      openRegistration: true,
+      newPharmacyEnrollment: true,
+      twoFactor: false,
+      autoBackup: true,
+      globalLanguage: 'en',
+      minConsultationFee: 100
+    };
+
+    res.json({
+      success: true,
+      settings: { ...defaults, ...settingsObj }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load global settings" });
+  }
+};
+
+exports.updateGlobalSettings = async (req, res) => {
+  try {
+    const { settings } = req.body;
+    if (!settings || typeof settings !== 'object') {
+      return res.status(400).json({ message: "Invalid settings payload" });
+    }
+
+    const updatePromises = Object.entries(settings).map(([key, value]) => {
+      return GlobalSetting.findOneAndUpdate(
+        { key },
+        { key, value, updatedBy: req.user._id, category: 'general' },
+        { upsert: true, new: true }
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    res.json({
+      success: true,
+      message: "Global settings updated successfully",
+      settings
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update global settings" });
   }
 };

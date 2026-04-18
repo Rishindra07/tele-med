@@ -483,27 +483,27 @@ export default function MedicineOrderFlow() {
                   {deliveryType === 'HOME' && (
                     <Box sx={{ p: 2, mb: 1, borderRadius: 2, border: '1px solid #eee', bgcolor: paymentMethod === 'COD' ? colors.primarySoft : '#fff' }}>
                       <FormControlLabel value="COD" control={<Radio />} label={
-                        <Box>
-                          <Typography fontWeight={700}>{t.cod}</Typography>
-                          <Typography variant="caption" color="textSecondary">Pay when you receive the medicine</Typography>
+                        <Box component="span" sx={{ display: 'block' }}>
+                          <Typography component="span" sx={{ fontWeight: 700, display: 'block' }}>{t.cod}</Typography>
+                          <Typography component="span" variant="caption" color="textSecondary" sx={{ display: 'block' }}>Pay when you receive the medicine</Typography>
                         </Box>
                       } />
                     </Box>
                   )}
                   <Box sx={{ p: 2, mb: 1, borderRadius: 2, border: '1px solid #eee', bgcolor: paymentMethod === 'UPI' ? colors.primarySoft : '#fff' }}>
                     <FormControlLabel value="UPI" control={<Radio />} label={
-                      <Box>
-                        <Typography fontWeight={700}>Pay Online (UPI/Card)</Typography>
-                        <Typography variant="caption" color="textSecondary">Secure online payment with instant confirmation</Typography>
+                      <Box component="span" sx={{ display: 'block' }}>
+                        <Typography component="span" sx={{ fontWeight: 700, display: 'block' }}>Pay Online (UPI/Card)</Typography>
+                        <Typography component="span" variant="caption" color="textSecondary" sx={{ display: 'block' }}>Secure online payment with instant confirmation</Typography>
                       </Box>
                     } />
                   </Box>
                   {deliveryType === 'PICKUP' && (
                     <Box sx={{ p: 2, mb: 1, borderRadius: 2, border: '1px solid #eee', bgcolor: paymentMethod === 'OFFLINE' ? colors.primarySoft : '#fff' }}>
                       <FormControlLabel value="OFFLINE" control={<Radio />} label={
-                        <Box>
-                          <Typography fontWeight={700}>Pay at Store</Typography>
-                          <Typography variant="caption" color="textSecondary">Pay offline when visiting the pharmacy</Typography>
+                        <Box component="span" sx={{ display: 'block' }}>
+                          <Typography component="span" sx={{ fontWeight: 700, display: 'block' }}>Pay at Store</Typography>
+                          <Typography component="span" variant="caption" color="textSecondary" sx={{ display: 'block' }}>Pay offline when visiting the pharmacy</Typography>
                         </Box>
                       } />
                     </Box>

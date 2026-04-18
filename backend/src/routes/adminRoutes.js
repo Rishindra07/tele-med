@@ -17,6 +17,8 @@ const {
   getPharmaciesDirectory,
   getRecordsOverview,
   getSystemLogs,
+  getGlobalSettings,
+  updateGlobalSettings,
   resolveComplaint
 } = require("../controllers/adminController.js");
 
@@ -34,5 +36,7 @@ router.post("/complaints", protect, allowRoles("patient", "doctor", "pharmacist"
 router.patch("/complaints/:id/resolve", protect, allowRoles("admin"), resolveComplaint);
 router.get("/logs", protect, allowRoles("admin"), getSystemLogs);
 router.get("/reports/export", protect, allowRoles("admin"), exportReport);
+router.get("/settings", protect, allowRoles("admin"), getGlobalSettings);
+router.put("/settings", protect, allowRoles("admin"), updateGlobalSettings);
 
 module.exports = router;

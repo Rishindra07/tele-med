@@ -125,6 +125,7 @@ export default function OrderTracking() {
   const t = ORDER_TRACKING_TRANSLATIONS[language] || ORDER_TRACKING_TRANSLATIONS['en'];
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
 
   const loadOrders = async () => {
@@ -157,6 +158,28 @@ export default function OrderTracking() {
     loadOrders();
   }, []);
 
+  const filteredOrders = orders.filter(order => {
+    if (filter === 'all') return true;
+    const s = order.status.toLowerCase();
+    if (filter === 'accepted') return s.includes('accepted');
+    if (filter === 'packed') return s.includes('packed');
+    if (filter === 'shipped') return s.includes('delivery') || s.includes('shipped') || s.includes('pickup') || s.includes('ready');
+    if (filter === 'delivered') return s.includes('delivered');
+    return true;
+  });
+
+  const getStatusCount = (targetFilter) => {
+     if (targetFilter === 'all') return orders.length;
+     return orders.filter(o => {
+        const s = o.status.toLowerCase();
+        if (targetFilter === 'accepted') return s.includes('accepted');
+        if (targetFilter === 'packed') return s.includes('packed');
+        if (targetFilter === 'shipped') return s.includes('delivery') || s.includes('shipped') || s.includes('pickup') || s.includes('ready');
+        if (targetFilter === 'delivered') return s.includes('delivered');
+        return false;
+     }).length;
+  };
+
   return (
     <PatientShell activeItem="orders">
       <Box sx={{ px: { xs: 2, md: 4, xl: 6 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
@@ -178,6 +201,45 @@ export default function OrderTracking() {
             </Typography>
           </Box>
         </Stack>
+
+        {/* Filter Tabs */}
+        {!loading && orders.length > 0 && (
+          <Box sx={{ mb: 4, overflowX: 'auto', pb: 1 }}>
+            <Stack direction="row" spacing={1.5} sx={{ minWidth: 'max-content' }}>
+              {[
+                { id: 'all', label: 'All Orders' },
+                { id: 'accepted', label: 'Accepted' },
+                { id: 'packed', label: 'Packed' },
+                { id: 'shipped', label: 'Shipped' },
+                { id: 'delivered', label: 'Delivered' }
+              ].map((item) => {
+                const count = getStatusCount(item.id);
+                const isActive = filter === item.id;
+                
+                return (
+                  <Chip
+                    key={item.id}
+                    label={`${item.label} (${count})`}
+                    onClick={() => setFilter(item.id)}
+                    sx={{
+                      px: 2,
+                      py: 2.2,
+                      borderRadius: 2,
+                      border: `1px solid ${isActive ? colors.primary : colors.line}`,
+                      bgcolor: isActive ? colors.primary : '#fff',
+                      color: isActive ? '#fff' : colors.text,
+                      fontWeight: 600,
+                      fontSize: 14,
+                      transition: 'all 0.2s',
+                      boxShadow: isActive ? '0 4px 12px rgba(26,115,232,0.2)' : 'none',
+                      '&:hover': { bgcolor: isActive ? colors.primary : colors.primarySoft }
+                    }}
+                  />
+                );
+              })}
+            </Stack>
+          </Box>
+        )}
 
         {loading ? (
           <Box sx={{ py: 10, textAlign: 'center' }}>
@@ -201,9 +263,16 @@ export default function OrderTracking() {
               {t.go_prescriptions}
             </Button>
           </Card>
+        ) : filteredOrders.length === 0 ? (
+          <Box sx={{ py: 8, textAlign: 'center' }}>
+             <Typography sx={{ color: colors.muted, fontSize: 16 }}>
+               No orders found for the selected status.
+             </Typography>
+             <Button variant="text" onClick={() => setFilter('all')} sx={{ mt: 1, textTransform: 'none' }}>Show all</Button>
+          </Box>
         ) : (
           <Stack spacing={4}>
-            {orders.map((order) => {
+            {filteredOrders.map((order) => {
               const activeStep = getActiveStep(order.status);
               const isFailed = order.status === 'Rejected' || order.status === 'Cancelled';
               
@@ -278,7 +347,7 @@ export default function OrderTracking() {
                         {steps.map((label, index) => (
                           <Step key={label}>
                             <StepLabel StepIconComponent={ColorlibStepIcon}>
-                              <Typography sx={{ 
+                              <Box sx={{ 
                                 mt: 1, 
                                 fontSize: 14, 
                                 fontWeight: activeStep === index ? 700 : 500,
@@ -288,7 +357,7 @@ export default function OrderTracking() {
                                 {activeStep === index && order.status !== 'Delivered' && (
                                   <Box component="span" sx={{ display: 'block', fontSize: 10, color: colors.primary, mt: 0.5 }}>{t.current_status}</Box>
                                 )}
-                              </Typography>
+                              </Box>
                             </StepLabel>
                           </Step>
                         ))}

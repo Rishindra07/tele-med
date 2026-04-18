@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const Patient = require("../models/Patient.js");
 const RefreshToken = require("../models/RefreshToken.js");
+const GlobalSetting = require("../models/GlobalSetting.js");
 const { sendEmail } = require("../services/notificationService.js");
 const {
   createAccessToken,
@@ -38,6 +39,20 @@ const registerUser = async (req, res) => {
 
     if (!REGISTRATION_ROLES.includes(role)) {
       return res.status(400).json({ message: "Invalid role selected" });
+    }
+
+    if (role === 'pharmacist') {
+      const pharmEnrollSetting = await GlobalSetting.findOne({ key: 'newPharmacyEnrollment' });
+      if (pharmEnrollSetting && pharmEnrollSetting.value === false) {
+        return res.status(403).json({ message: "Pharmacy enrollment is currently closed by administration." });
+      }
+    }
+
+    if (role === 'patient') {
+      const openRegSetting = await GlobalSetting.findOne({ key: 'openRegistration' });
+      if (openRegSetting && openRegSetting.value === false) {
+        return res.status(403).json({ message: "Public patient registration is currently restricted. Please contact our support team for a referral." });
+      }
     }
 
     const existingUser = await User.findOne({ email: normalizedEmail });
@@ -91,7 +106,17 @@ const loginUser = async (req, res) => {
     }
 
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
-      return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
+      const docVerifySetting = await GlobalSetting.findOne({ key: 'doctorVerification' });
+      const isMandatory = docVerifySetting ? docVerifySetting.value !== false : true;
+      
+      if (isMandatory) {
+        return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
+      } else {
+        // Auto-approve if verification is not mandatory
+        user.is_approved = true;
+        user.approved_at = new Date();
+        await user.save();
+      }
     }
 
     user.last_login_at = new Date();

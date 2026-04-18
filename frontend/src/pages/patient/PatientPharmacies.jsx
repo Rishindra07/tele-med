@@ -137,9 +137,9 @@ export default function PatientPharmacies() {
   const [patientProfile, setPatientProfile] = useState(null);
   
   // New state for View Mode and Location
-  const [viewMode, setViewMode] = useState('list');
-  const [userLocation, setUserLocation] = useState([17.3850, 78.4867]); // Default: Hyderabad
-  const [mapCenter, setMapCenter] = useState([17.3850, 78.4867]);
+  const [viewMode, setViewMode] = useState('map'); // Default to map for 'wow' factor
+  const [userLocation, setUserLocation] = useState([31.2240, 75.7712]); // Default: Phagwara, Punjab
+  const [mapCenter, setMapCenter] = useState([31.2240, 75.7712]);
   const [orderStockInfo, setOrderStockInfo] = useState([]);
   const [isCheckingOrderStock, setIsCheckingOrderStock] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
@@ -147,28 +147,35 @@ export default function PatientPharmacies() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [newMedName, setNewMedName] = useState('');
 
-  const loadData = async () => {
+  const loadData = async (coords = null) => {
     setLoading(true);
     try {
-      // Get user location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setUserLocation([lat, lng]);
-            setMapCenter([lat, lng]);
-          },
-          (err) => console.warn("Location access denied or failed", err),
-          { timeout: 5000 }
-        );
+      let lat = coords ? coords[0] : userLocation[0];
+      let lng = coords ? coords[1] : userLocation[1];
+
+      // Get user's actual location if not provided and first time
+      if (!coords && navigator.geolocation) {
+        // We use a promise wrapper to ensure we get the location before fetching if possible, 
+        // but we don't want to block the UI indefinitely if it fails.
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+          setUserLocation([lat, lng]);
+          setMapCenter([lat, lng]);
+        } catch (e) {
+          console.warn("Geolocation failed or denied, using defaults.");
+        }
       }
 
       const [pharRes, recRes, profRes] = await Promise.all([
-        fetchPharmacies(),
+        fetchPharmacies({ lat, lng }),
         fetchMyRecords(),
         fetchPatientProfile()
       ]);
+
       if (pharRes.success) setPharmacies(pharRes.pharmacies || []);
       if (recRes.success) setRecords(recRes.records || []);
       if (profRes.success) {
@@ -176,7 +183,7 @@ export default function PatientPharmacies() {
         setDeliveryAddress(profRes.profile?.address || '');
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error loading pharmacies data:", err);
     } finally {
       setLoading(false);
     }
@@ -239,11 +246,24 @@ export default function PatientPharmacies() {
       p.user?.full_name?.toLowerCase().includes(query.toLowerCase()) || 
       p.address?.toLowerCase().includes(query.toLowerCase());
     
-    // Filter by open/closed if applicable (mocked for now or based on data)
+    // Filter logic
     const openMatch = filter === 'open' ? isPharmacyOpen(p) : true;
     const janMatch = filter === 'jan' ? p.isJanAushadhi : true;
+    const h24Match = filter === '24h' ? (p.openTime === '00:00 AM' && p.closeTime === '11:59 PM') || p.is24h : true;
+    const nearbyMatch = filter === 'nearby' ? (p.distanceKm <= 10) : true;
     
-    return nameMatch && openMatch && janMatch;
+    return nameMatch && openMatch && janMatch && h24Match && nearbyMatch;
+  }).sort((a, b) => {
+    if (sort === 'nearest') {
+      return (a.distanceKm || 999) - (b.distanceKm || 999);
+    }
+    if (sort === 'open') {
+      const aOpen = isPharmacyOpen(a);
+      const bOpen = isPharmacyOpen(b);
+      if (aOpen === bOpen) return (a.distanceKm || 999) - (b.distanceKm || 999);
+      return aOpen ? -1 : 1;
+    }
+    return 0;
   });
 
   const handleOpenSend = (pharmacy) => {
@@ -514,6 +534,7 @@ export default function PatientPharmacies() {
   const handleMapClick = (e) => {
     const { lat, lng } = e.latlng;
     setUserLocation([lat, lng]);
+    loadData([lat, lng]); // Re-fetch pharmacies for this new location
     setSnackbar({ open: true, message: t.snack_location, severity: 'success' });
   };
 
@@ -584,6 +605,7 @@ export default function PatientPharmacies() {
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
               {[
                 ['all', t.filter_all],
+                ['nearby', t.filter_nearby],
                 ['open', t.filter_open],
                 ['jan', t.filter_jan],
                 ['24h', t.filter_24h]
@@ -607,6 +629,21 @@ export default function PatientPharmacies() {
                 />
               ))}
             </Stack>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.primary, mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>
+                {t.emergency_helpline || "Emergency Support"}
+              </Typography>
+              <Button 
+                fullWidth 
+                variant="outlined" 
+                color="error" 
+                startIcon={<CallIcon />}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, borderStyle: 'dashed' }}
+              >
+                108 - Medical Emergency
+              </Button>
+            </Box>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 4 }}>
               <TextField
@@ -699,70 +736,137 @@ export default function PatientPharmacies() {
                  </Box>
                )
             ) : (
-              <Box sx={{ height: 600, borderRadius: 2, overflow: 'hidden', border: `1px solid ${colors.line}`, position: 'relative' }}>
-                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' />
-                  
-                  <LocationPicker onLocationSelect={handleMapClick} />
-
-                  {/* User Location Marker */}
-                  <Marker position={userLocation} icon={L.divIcon({
-                    html: `<div style="background-color: #4285F4; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
-                    className: '',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
-                  })}>
-                    <Popup>{t.your_location_popup}</Popup>
-                  </Marker>
-
-                  {/* Pharmacy Markers */}
-                  {filteredPharmacies.map(p => (
-                    <Marker 
-                      key={p._id} 
-                      position={[p.location?.lat || 17.3850, p.location?.lng || 78.4867]} 
-                      icon={createPharmacyIcon(p.isJanAushadhi ? colors.warning : colors.primary)}
-                    >
-                      <Popup>
-                        <Box sx={{ p: 1, minWidth: 200 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}>{p.pharmacyName}</Typography>
-                          {p.deliveryAvailable && (
-                            <Typography sx={{ fontSize: 11, color: colors.success, fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              🚚 {t.delivery_available}
-                            </Typography>
-                          )}
-                          <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2 }}>{p.address}</Typography>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, height: { xs: 800, lg: 650 }, borderRadius: 3, overflow: 'hidden', border: `1px solid ${colors.line}`, bgcolor: '#fff', boxShadow: '0 12px 40px rgba(0,0,0,0.08)' }}>
+                {/* Nearby Sidebar for Map */}
+                <Box sx={{ width: { xs: '100%', lg: 320 }, borderRight: `1px solid ${colors.line}`, display: 'flex', flexDirection: 'column', bgcolor: '#fff' }}>
+                  <Box sx={{ p: 2, borderBottom: `1px solid ${colors.line}`, bgcolor: colors.bg }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: colors.text, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LocationIcon color="primary" sx={{ fontSize: 18 }} /> {t.nearby_pharmacies || "NEARBY PHARMACIES"}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      {filteredPharmacies.length} {t.found_in_area || "pharmacies found in your area"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5 }}>
+                    <Stack spacing={1.5}>
+                      {filteredPharmacies.map(p => (
+                        <Box 
+                          key={p._id} 
+                          onClick={() => setMapCenter([p.location?.lat || 26.8467, p.location?.lng || 80.9462])}
+                          sx={{ 
+                            p: 2, borderRadius: 2, cursor: 'pointer', border: `1px solid ${selectedPharmacy?._id === p._id ? colors.primary : 'transparent'}`,
+                            bgcolor: selectedPharmacy?._id === p._id ? colors.primarySoft : '#fcfcfc',
+                            transition: 'all 0.2s',
+                            '&:hover': { bgcolor: colors.soft }
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{p.pharmacyName}</Typography>
+                          <Typography variant="caption" sx={{ color: colors.muted, display: 'block', mb: 1 }}>{p.address}</Typography>
                           <Stack direction="row" spacing={1}>
-                            {p.phone && (
-                              <Button 
-                                size="small" 
-                                variant="outlined" 
-                                href={`tel:${p.phone}`} 
-                                sx={{ minWidth: 32, p: 0.5, borderRadius: 1.5 }}
-                              >
-                                📞
-                              </Button>
-                            )}
-                            <Button size="small" variant="outlined" onClick={() => handleViewStock(p)} sx={{ fontSize: 11, py: 0.5 }}>{t.view_stock}</Button>
-                            <Button size="small" variant="contained" onClick={() => handleOpenSend(p)} sx={{ fontSize: 11, py: 0.5, bgcolor: colors.primary, color: '#fff' }}>{t.stock_send_rx}</Button>
+                            <Button 
+                              size="small" 
+                              variant="contained" 
+                              onClick={(e) => { e.stopPropagation(); handleOpenSend(p); }}
+                              sx={{ fontSize: 10, px: 2, py: 0.5, borderRadius: 1.5, bgcolor: colors.primary, textTransform: 'none' }}
+                            >
+                              {t.order_now || "Order Now"}
+                            </Button>
+                            <Button 
+                              size="small" 
+                              variant="outlined" 
+                              onClick={(e) => { e.stopPropagation(); handleViewStock(p); }}
+                              sx={{ fontSize: 10, px: 1, py: 0.5, borderRadius: 1.5, textTransform: 'none' }}
+                            >
+                              {t.view_stock}
+                            </Button>
                           </Stack>
                         </Box>
-                      </Popup>
+                      ))}
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* Map Interface */}
+                <Box sx={{ flex: 1, position: 'relative' }}>
+                  <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+                    <TileLayer 
+                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" 
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' 
+                    />
+                    
+                    <LocationPicker onLocationSelect={handleMapClick} />
+
+                    {/* User Location Marker */}
+                    <Marker position={userLocation} icon={L.divIcon({
+                      html: `<div style="background-color: #4285F4; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(66, 133, 244, 0.5); position: relative;">
+                               <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background-color: #4285F4; opacity: 0.3; animation: pulse 2s infinite;"></div>
+                             </div>`,
+                      className: '',
+                      iconSize: [24, 24],
+                      iconAnchor: [12, 12]
+                    })}>
+                      <Popup>{t.your_location_popup}</Popup>
                     </Marker>
-                  ))}
+
+                    {/* Pharmacy Markers */}
+                    {filteredPharmacies.map(p => (
+                      <Marker 
+                        key={p._id} 
+                        position={[p.location?.lat || 26.8467, p.location?.lng || 80.9462]} 
+                        icon={createPharmacyIcon(p.isJanAushadhi ? colors.warning : colors.primary)}
+                        eventHandlers={{
+                          click: () => setSelectedPharmacy(p)
+                        }}
+                      >
+                        <Popup className="premium-map-popup">
+                          <Box sx={{ p: 1, minWidth: 220 }}>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                              <Box sx={{ width: 32, height: 32, borderRadius: 1, bgcolor: colors.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.primary }}>
+                                <PharmacyIcon sx={{ fontSize: 18 }} />
+                              </Box>
+                              <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{p.pharmacyName}</Typography>
+                            </Stack>
+                            
+                            {p.deliveryAvailable && (
+                              <Chip 
+                                label={t.delivery_available} 
+                                size="small" 
+                                color="success" 
+                                sx={{ height: 20, fontSize: 10, fontWeight: 700, mb: 1.5, px: 0.5 }} 
+                              />
+                            )}
+                            
+                            <Typography sx={{ fontSize: 12, color: colors.muted, mb: 2, lineHeight: 1.4 }}>{p.address}</Typography>
+                            
+                            <Divider sx={{ mb: 2 }} />
+                            
+                            <Stack direction="row" spacing={1}>
+                              <Button 
+                                fullWidth
+                                variant="contained" 
+                                onClick={() => handleOpenSend(p)} 
+                                sx={{ borderRadius: 1.5, py: 0.75, fontSize: 11, fontWeight: 700, bgcolor: colors.primary, color: '#fff', textTransform: 'none' }}
+                              >
+                                {t.stock_send_rx}
+                              </Button>
+                            </Stack>
+                          </Box>
+                        </Popup>
+                      </Marker>
+                    ))}
+                    
+                    <MapUpdater center={mapCenter} />
+                  </MapContainer>
                   
-                  <MapUpdater center={mapCenter} />
-                </MapContainer>
-                
-                {/* Floating Map Controls */}
-                <Box sx={{ position: 'absolute', bottom: 20, right: 20, zIndex: 1000 }}>
-                  <Button 
-                    variant="contained" 
-                    onClick={() => setMapCenter(userLocation)}
-                    startIcon={<LocationIcon />}
-                    sx={{ bgcolor: '#fff', color: colors.text, '&:hover': { bgcolor: colors.soft } }}
-                  >
-                    {t.recenter}
-                  </Button>
+                  {/* Floating Map Controls */}
+                  <Box sx={{ position: 'absolute', top: 20, right: 20, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <IconButton 
+                      onClick={() => setMapCenter(userLocation)}
+                      sx={{ bgcolor: '#fff', color: colors.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', '&:hover': { bgcolor: colors.soft } }}
+                    >
+                      <LocationIcon />
+                    </IconButton>
+                  </Box>
                 </Box>
               </Box>
             )}
@@ -1109,6 +1213,13 @@ export default function PatientPharmacies() {
                 </Box>
               </Box>
 
+              {/* Out of Stock Restriction */}
+              {orderStockInfo.some(i => i.available === 0) && (
+                <Alert severity="error" sx={{ mb: 2, borderRadius: 2, '& .MuiAlert-message': { fontSize: 13 } }}>
+                  <strong>Cannot Place Order.</strong> Some items are out of stock at this pharmacy. Please try another nearby pharmacy on the map.
+                </Alert>
+              )}
+
               {deliveryType === 'HOME' ? (
                 <TextField
                   fullWidth
@@ -1205,15 +1316,26 @@ export default function PatientPharmacies() {
                 handleSendToPharmacy();
               }
             }} 
-            disabled={sending || isPaying || activePrescriptions.length === 0 || (deliveryType === 'HOME' && !deliveryAddress.trim()) || isCheckingOrderStock} 
+            disabled={
+              sending || 
+              isPaying || 
+              activePrescriptions.length === 0 || 
+              (deliveryType === 'HOME' && !deliveryAddress.trim()) || 
+              isCheckingOrderStock ||
+              orderStockInfo.some(i => i.available === 0)
+            } 
             sx={{ 
-              bgcolor: colors.primary, color: '#fff', px: 4, py: 1.25, borderRadius: 2, 
+              bgcolor: orderStockInfo.some(i => i.available === 0) ? colors.gray : colors.primary, 
+              color: '#fff', px: 4, py: 1.25, borderRadius: 2, 
               textTransform: 'none', fontWeight: 700, fontSize: 15,
               boxShadow: '0 4px 12px rgba(26,115,232,0.2)',
               '&:hover': { bgcolor: colors.primaryDark, boxShadow: '0 6px 16px rgba(26,115,232,0.3)' }
             }}
           >
-            {isPaying ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : sending ? t.sending : paymentMethod === 'UPI' ? 'Pay Securely' : 'Place Order'}
+            {isPaying ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 
+             sending ? t.sending : 
+             paymentMethod === 'UPI' ? 'Pay Securely' : 
+             orderStockInfo.some(i => i.available === 0) ? 'Out of Stock' : 'Place Order'}
           </Button>
         </DialogActions>
       </Dialog>

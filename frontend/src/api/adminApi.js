@@ -56,4 +56,6 @@ export const exportAdminReport = async (type = "overview") => {
   return API.get("admin/reports/export", { params: { type } });
 };
 
-export const updateAdminSettings = (settings) => API.put("users/settings", { settings });
+export const fetchAdminSettings = () => API.get("admin/settings");
+
+export const updateAdminSettings = (settings) => API.put("admin/settings", { settings });

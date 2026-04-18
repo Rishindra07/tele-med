@@ -5,28 +5,62 @@ const PrescriptionOrder = require("../models/PrescriptionOrder");
 
 exports.getAllPharmacies = async (req, res) => {
     try {
+        const { lat, lng } = req.query;
+        const userLat = parseFloat(lat);
+        const userLng = parseFloat(lng);
+
         const pharmaciesRaw = await Pharmacy.find({})
             .populate('user', 'full_name email phone');
 
-        // Ensure all pharmacies have some default location data for map
-        const pharmacies = pharmaciesRaw.map(p => {
+        // Helper to calculate distance in KM
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+            const R = 6371; // Radius of the earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            const d = R * c; // Distance in km
+            return Math.round(d * 10) / 10;
+        };
+
+        const pharmaciesMapped = pharmaciesRaw.map(p => {
           const ph = p.toObject();
+          
+          if (ph.location && ph.location.coordinates && Array.isArray(ph.location.coordinates)) {
+            ph.location.lng = ph.location.coordinates[0];
+            ph.location.lat = ph.location.coordinates[1];
+          }
+
           if (!ph.location || !ph.location.lat) {
-            // Mock coordinates near some central location or based on their pincode
-            // Default center around a city for demo: [17.3850, 78.4867] Hyderabad
-            // We'll generate a small random offset for each
-            const baseLat = 17.3850 + (Math.random() - 0.5) * 0.1;
-            const baseLng = 78.4867 + (Math.random() - 0.5) * 0.1;
+            // Mock coordinates near Lucknow if missing
+            const baseLat = 26.8467 + (Math.random() - 0.5) * 0.1;
+            const baseLng = 80.9462 + (Math.random() - 0.5) * 0.1;
             ph.location = { ...ph.location, lat: baseLat, lng: baseLng };
           }
+
+          // Calculate dynamic distance if user location provided
+          if (!isNaN(userLat) && !isNaN(userLng)) {
+            ph.distanceKm = calculateDistance(userLat, userLng, ph.location.lat, ph.location.lng);
+          }
+
           return ph;
         });
 
+        // Sort by distance if user location provided
+        if (!isNaN(userLat) && !isNaN(userLng)) {
+          pharmaciesMapped.sort((a, b) => (a.distanceKm || 999) - (b.distanceKm || 999));
+        }
+
         res.json({
             success: true,
-            pharmacies
+            pharmacies: pharmaciesMapped
         });
     } catch (error) {
+        console.error("Fetch Pharmacies Error:", error);
         res.status(500).json({ message: "Failed to fetch pharmacies" });
     }
 };

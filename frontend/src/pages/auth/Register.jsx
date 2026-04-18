@@ -93,7 +93,7 @@ export default function Register() {
           alignItems: "center"
         }}
       >
-        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, width: "100%", borderRadius: 2 }}>
+        <Paper elevation={6} sx={{ p: { xs: 3, sm: 5 }, width: "100%", borderRadius: '16px' }}>
           <Typography
             component="h1"
             variant="h4"
@@ -197,7 +197,7 @@ export default function Register() {
               />
             </Stack>
 
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 4, mb: 2, py: 1.5 }} disabled={loading}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 4, mb: 2, py: 1.5, borderRadius: '12px', fontWeight: 'bold' }} disabled={loading}>
               {loading ? "Creating Account..." : "Register"}
             </Button>
 

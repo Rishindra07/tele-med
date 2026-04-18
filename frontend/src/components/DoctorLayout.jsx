@@ -180,9 +180,9 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
                   sx={{
                     justifyContent: 'flex-start',
                     gap: 2,
-                    px: 2.5,
-                    py: 1.5,
-                    borderRadius: 2,
+                    px: 2,
+                    py: 1.4,
+                    borderRadius: 4,
                     textTransform: 'none',
                     fontSize: 16,
                     fontWeight: active ? 600 : 500,
@@ -231,7 +231,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
             ))}
           </Stack>
 
-          <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ mt: 3, p: 2, borderRadius: 6, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar src={profileImage} alt={doctorName} sx={{ width: 44, height: 44, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700 }}>
               {initials(doctorName)}
             </Avatar>
@@ -248,8 +248,8 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
               mt: 2,
               width: '100%',
               justifyContent: 'center',
-              py: 1,
-              borderRadius: 2,
+              p: 1.25,
+              borderRadius: 4.5,
               border: `1px solid #dadce0`,
               bgcolor: '#fff',
               color: '#3c4043',
