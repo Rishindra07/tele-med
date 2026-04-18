@@ -139,7 +139,7 @@ export default function PatientPayments() {
 
   return (
     <PatientShell activeItem="payments">
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
+      <Box sx={{ p: { xs: 2, md: 4, xl: 6 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
           
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }} spacing={2}>

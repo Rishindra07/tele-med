@@ -501,7 +501,7 @@ function PatientAppointments() {
 
   return (
     <PatientShell activeItem="appointments">
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 6 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', lg: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
               <Typography sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 800, color: colors.text, fontFamily: 'Georgia, serif' }}>

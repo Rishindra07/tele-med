@@ -671,7 +671,7 @@ export default function MedicineOrderFlow() {
 
   return (
     <PatientShell activeItem="pharmacies">
-      <Box sx={{ px: { xs: 2, md: 5 }, py: 5, bgcolor: colors.bg, minHeight: '100vh' }}>
+      <Box sx={{ px: { xs: 2, md: 5, xl: 6 }, py: 5, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
             <Box sx={{ p: 1, borderRadius: 2, bgcolor: colors.primary, color: '#fff' }}>
@@ -690,7 +690,7 @@ export default function MedicineOrderFlow() {
             </Stepper>
           )}
 
-          <Card sx={{ p: { xs: 2, md: 4 }, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <Card sx={{ p: { xs: 2, md: 4, xl: 6 }, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
             {renderStepContent()}
           </Card>
         </Box>

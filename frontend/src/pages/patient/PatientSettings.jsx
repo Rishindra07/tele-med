@@ -293,7 +293,7 @@ export default function PatientSettings() {
   return (
     <PatientShell activeSetting="settings" activeSettingSection={section}>
       <Box sx={{ bgcolor: colors.bg, minHeight: '100vh' }}>
-        <Box sx={{ px: { xs: 2, md: 5 }, py: 4, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ px: { xs: 2, md: 5, xl: 6 }, py: 4, bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography variant="h4" fontWeight={800} sx={{ color: colors.text }}>{header[0]}</Typography>
             <Typography sx={{ mt: 0.5, color: colors.muted, fontSize: 16 }}>{header[1]}</Typography>
@@ -302,7 +302,7 @@ export default function PatientSettings() {
               sx={{ px: 4, py: 1.25, borderRadius: 2.5, bgcolor: colors.primary, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.primaryDark } }}
           > {saving ? 'Saving...' : 'Save Settings'} </Button>
         </Box>
-        <Box sx={{ p: { xs: 2, md: 5 }, maxWidth: 1000 }}> {renderPanel()} </Box>
+        <Box sx={{ p: { xs: 2, md: 5, xl: 6 }, maxWidth: 1000 }}> {renderPanel()} </Box>
       </Box>
 
       {/* Password Dialog */}

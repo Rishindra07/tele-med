@@ -114,7 +114,7 @@ export default function SymptomChecker() {
 
   return (
     <PatientShell activeItem="symptoms">
-      <Box sx={{ px: { xs: 2, md: 4, xl: 5 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
+      <Box sx={{ px: { xs: 2, md: 4, xl: 6 }, py: { xs: 3, md: 4 }, bgcolor: colors.bg, minHeight: '100vh' }}>
         <Stack
           direction={{ xs: 'column', lg: 'row' }}
           justifyContent="space-between"
