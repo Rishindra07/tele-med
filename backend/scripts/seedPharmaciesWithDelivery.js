@@ -43,6 +43,33 @@ const pharmaciesToSeed = [
     deliveryAvailable: false, // One without delivery for comparison
     location: { lat: 25.9263, lng: 86.7905 },
     isJanAushadhi: true
+  },
+  {
+    full_name: "Harpreet Singh (Punjab Medicos)",
+    email: "punjab_medicos@example.com",
+    phone: "+919876543214",
+    pharmacyName: "LPU Seva Medicos",
+    address: "Near G.T. Road, Phagwara, Punjab",
+    deliveryAvailable: true,
+    location: { lat: 31.2240, lng: 75.7712 }
+  },
+  {
+    full_name: "Gurpreet Kaur (Phagwara Rural)",
+    email: "phagwara_rural@example.com",
+    phone: "+919876543215",
+    pharmacyName: "Phagwara Rural Health Kendra",
+    address: "Banga Road, Phagwara, Punjab",
+    deliveryAvailable: true,
+    location: { lat: 31.2215, lng: 75.7650 }
+  },
+  {
+    full_name: "Balvinder Singh (City Medics)",
+    email: "city_medics@example.com",
+    phone: "+919876543216",
+    pharmacyName: "City Medics Phagwara",
+    address: "Hadiabad Road, Phagwara, Punjab",
+    deliveryAvailable: false,
+    location: { lat: 31.2180, lng: 75.7780 }
   }
 ];
 

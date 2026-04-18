@@ -98,7 +98,7 @@ export default function AdminLayout({ children }) {
           gap: 1.5,
           px: 2,
           py: 1.2,
-          borderRadius: 2.5,
+          borderRadius: 3.5,
           textTransform: 'none',
           fontSize: 14.5,
           color: active ? colors.blueDark : colors.text,
@@ -113,9 +113,9 @@ export default function AdminLayout({ children }) {
         {item.badge && (
           <Box
             sx={{
-              px: 1,
-              py: 0.2,
-              borderRadius: 1,
+              px: 1.2,
+              py: 0.3,
+              borderRadius: 2,
               bgcolor: item.badgeColor,
               color: item.badgeTextColor || '#fff',
               fontSize: 11,
@@ -151,7 +151,7 @@ export default function AdminLayout({ children }) {
       >
         <Box sx={{ px: 3, py: 4 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Box sx={{ width: 32, height: 32, bgcolor: colors.blue, borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 34, height: 34, bgcolor: colors.blue, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: 18 }}>S</Typography>
             </Box>
             <Box>
@@ -160,7 +160,7 @@ export default function AdminLayout({ children }) {
               </Typography>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
                 <Typography sx={{ color: colors.muted, fontSize: 11, fontWeight: 600, letterSpacing: 0.5 }}>ADMIN CONSOLE</Typography>
-                <Box sx={{ px: 0.6, py: 0.1, bgcolor: colors.blueSoft, borderRadius: 0.5 }}>
+                <Box sx={{ px: 0.8, py: 0.2, bgcolor: colors.blueSoft, borderRadius: 1.5 }}>
                   <Typography sx={{ fontSize: 9, color: colors.blue, fontWeight: 800 }}>PRO</Typography>
                 </Box>
               </Stack>
@@ -197,7 +197,7 @@ export default function AdminLayout({ children }) {
                 size="small"
                 onClick={() => setLanguage(lang.code)}
                 sx={{
-                  minWidth: 32, px: 0.5, py: 0.4, borderRadius: 1, fontSize: 10, fontWeight: 700,
+                  minWidth: 32, px: 0.5, py: 0.4, borderRadius: 1.5, fontSize: 10, fontWeight: 700,
                   bgcolor: language === lang.code ? colors.blueSoft : 'transparent',
                   color: language === lang.code ? colors.blue : colors.muted,
                   '&:hover': { bgcolor: colors.blueSoft }
@@ -208,7 +208,7 @@ export default function AdminLayout({ children }) {
             ))}
           </Stack>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.2, borderRadius: 4, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
             <Avatar sx={{ width: 36, height: 36, bgcolor: colors.blueSoft, color: colors.blue, fontWeight: 700, fontSize: 14 }}>
               {(adminUser?.full_name || adminUser?.name || 'Admin')
                 .split(' ')
@@ -238,7 +238,7 @@ export default function AdminLayout({ children }) {
 
 function IconButton({ children, onClick, size, sx }) {
   return (
-    <Button onClick={onClick} sx={{ minWidth: 0, p: 0.8, borderRadius: 1.5, ...sx }}>
+    <Button onClick={onClick} sx={{ minWidth: 0, p: 0.8, borderRadius: 2, ...sx }}>
       {children}
     </Button>
   );

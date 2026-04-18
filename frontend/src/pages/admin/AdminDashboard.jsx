@@ -158,7 +158,7 @@ export default function AdminDashboard() {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
               disabled={refreshing}
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
         </Stack>
 
         {actionMessage && (
-          <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setActionMessage('')}>
+          <Alert severity="success" sx={{ borderRadius: '20px', mb: 3 }} onClose={() => setActionMessage('')}>
             {actionMessage}
           </Alert>
         )}
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
             <CircularProgress sx={{ color: colors.blue }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ borderRadius: '20px' }}>{error}</Alert>
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                   key={label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -218,11 +218,11 @@ export default function AdminDashboard() {
             </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '1.2fr 0.9fr 0.9fr' }, gap: 3 }}>
-              <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+              <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                 <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.pending}</Typography>
                 <Stack spacing={2}>
                   {pending.length ? pending.map((user) => (
-                    <Box key={user._id} sx={{ p: 2, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
+                    <Box key={user._id} sx={{ p: 2, borderRadius: '12px', bgcolor: '#f7f3ea' }}>
                       <Stack direction="row" justifyContent="space-between" spacing={2} alignItems="flex-start">
                         <Box sx={{ minWidth: 0 }}>
                           <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{user.full_name}</Typography>
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
                           variant="contained"
                           sx={{
                             minWidth: 94,
-                            borderRadius: 2,
+                            borderRadius: '12px',
                             textTransform: 'none',
                             bgcolor: colors.greenSoft,
                             color: colors.green,
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
               </Box>
 
               <Stack spacing={3}>
-                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.health_issues}</Typography>
                   <Stack spacing={2}>
                     {(analytics?.commonHealthIssues || []).length ? analytics.commonHealthIssues.map((item) => (
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                   </Stack>
                 </Box>
 
-                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.complaints}</Typography>
                   <Stack spacing={2}>
                     {complaintRows.length ? complaintRows.map((item) => (
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
               </Stack>
 
               <Stack spacing={3}>
-                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.fulfillment}</Typography>
                   <Typography sx={{ fontSize: 30, lineHeight: 1 }}>
                     {analytics?.pharmacyFulfillment?.rate || 0}%
@@ -323,7 +323,7 @@ export default function AdminDashboard() {
                   </Stack>
                 </Box>
 
-                <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.system_health}</Typography>
                   <Stack spacing={1.5}>
                     {[
@@ -342,11 +342,11 @@ export default function AdminDashboard() {
               </Stack>
             </Box>
 
-            <Box sx={{ p: 2.5, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, mt: 4 }}>
+            <Box sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, mt: 4 }}>
               <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.recent_logs}</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2 }}>
                 {logs.length ? logs.map((log) => (
-                  <Box key={log._id} sx={{ p: 1.6, borderRadius: 2.5, bgcolor: '#f7f3ea' }}>
+                  <Box key={log._id} sx={{ p: 1.6, borderRadius: '12px', bgcolor: '#f7f3ea' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography
                         sx={{
@@ -371,6 +371,7 @@ export default function AdminDashboard() {
               </Box>
             </Box>
           </>
+
         )}
       </Box>
     </AdminLayout>

@@ -3,6 +3,7 @@ const Doctor = require("../models/Doctor.js");
 const Notification = require("../models/Notification.js");
 const Prescription = require("../models/Prescription.js");
 const User = require("../models/User.js");
+const GlobalSetting = require("../models/GlobalSetting.js");
 
 const startOfToday = () => {
   const now = new Date();
@@ -150,7 +151,18 @@ exports.updateDoctorProfile = async (req, res) => {
     if (specialization) doctorUpdates.specialization = String(specialization).trim();
     if (bio !== undefined) doctorUpdates.bio = String(bio).trim();
     if (hospitalName) doctorUpdates.hospitalName = String(hospitalName).trim();
-    if (consultationFee !== undefined) doctorUpdates.consultationFee = Number(consultationFee);
+    if (consultationFee !== undefined) {
+      const minFeeSetting = await GlobalSetting.findOne({ key: 'minConsultationFee' });
+      const minFee = minFeeSetting ? Number(minFeeSetting.value) : 100;
+      
+      const newFee = Number(consultationFee);
+      if (newFee < minFee) {
+        return res.status(400).json({ 
+          message: `Consultation fee cannot be lower than the global minimum of ₹${minFee}` 
+        });
+      }
+      doctorUpdates.consultationFee = newFee;
+    }
     if (qualification) doctorUpdates.qualification = String(qualification).trim();
     if (experience !== undefined) doctorUpdates.experience = Number(experience);
     if (Array.isArray(languages)) doctorUpdates.languages = languages;

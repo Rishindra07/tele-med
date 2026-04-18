@@ -133,7 +133,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                     gap: 1.5,
                     px: 2,
                     py: 1.6,
-                    borderRadius: 3,
+                    borderRadius: 4,
                     textTransform: 'none',
                     fontSize: 16,
                     color: active ? colors.greenDark : '#3d3d3d',
@@ -211,7 +211,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                   gap: 1.5,
                   px: 2,
                   py: 1.4,
-                  borderRadius: 3,
+                  borderRadius: 4,
                   textTransform: 'none',
                   fontSize: 16,
                   color: activeSetting === 'settings' ? colors.greenDark : '#3d3d3d',
@@ -245,7 +245,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                           gap: 1,
                           px: 1.5,
                           py: 0.8,
-                          borderRadius: 2.2,
+                          borderRadius: 2.5,
                           textTransform: 'none',
                           fontSize: 14,
                           color: key === 'danger' ? '#d9635b' : active ? colors.greenDark : '#66615a',
@@ -303,7 +303,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
             ))}
           </Stack>
 
-        <Box sx={{ mt: 3.5, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ mt: 3.5, p: 2, borderRadius: 4, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar
             src={profileImage}
             alt={patientName}
@@ -325,7 +325,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
               width: '100%',
               justifyContent: 'center',
               py: 1.1,
-              borderRadius: 3,
+              borderRadius: 3.5,
               border: `1px solid ${colors.line}`,
               bgcolor: '#fff',
               color: '#34322f',

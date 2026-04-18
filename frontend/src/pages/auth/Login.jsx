@@ -95,7 +95,7 @@ export default function Login() {
           alignItems: "center"
         }}
       >
-        <Paper elevation={6} sx={{ p: 4, width: "100%", borderRadius: 2 }}>
+        <Paper elevation={6} sx={{ p: 4, width: "100%", borderRadius: '16px' }}>
           <Typography component="h1" variant="h4" align="center" gutterBottom color="primary" fontWeight="bold">
             Seva TeleHealth
           </Typography>
@@ -156,7 +156,7 @@ export default function Login() {
               }}
             />
 
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2, py: 1.5, fontSize: "1rem" }} disabled={loading}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2, py: 1.5, borderRadius: '12px', fontSize: '1rem', fontWeight: 'bold' }} disabled={loading}>
               {loading ? "Signing In..." : "Sign In"}
             </Button>
 

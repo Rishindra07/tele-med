@@ -104,3 +104,38 @@ body.low-bandwidth .heavy-animation, body.low-bandwidth * {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(0.95); opacity: 0; }
+}
+
+.premium-map-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.premium-map-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip-container {
+  display: none;
+}
+
+/* Global Aggressive Border Radius Overrides */
+.MuiPaper-root, .MuiCard-root, .MuiAlert-root {
+  border-radius: 20px !important;
+}
+
+.MuiButton-root {
+  border-radius: 12px !important;
+}
+
+.MuiOutlinedInput-root {
+  border-radius: 10px !important;
+}

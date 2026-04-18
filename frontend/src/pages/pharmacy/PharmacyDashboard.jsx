@@ -113,7 +113,7 @@ export default function PharmacyDashboard() {
               {t.subtitle}
             </Typography>
           </Box>
-          <Box sx={{ p: 2, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+          <Box sx={{ p: 2, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
             <FormControlLabel
               control={
                 <Switch 
@@ -141,7 +141,7 @@ export default function PharmacyDashboard() {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 2, mb: 4 }}>
               {stats.map(([title, value, sub, color]) => (
-                <Box key={title} sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                <Box key={title} sx={{ p: 2.5, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</Typography>
                   <Typography sx={{ mt: 1, fontSize: 32, fontWeight: 700, fontFamily: 'Inter, sans-serif', color: colors.text }}>{value}</Typography>
                   <Typography sx={{ mt: 0.5, fontSize: 12.5, color, fontWeight: 600 }}>{sub}</Typography>
@@ -155,7 +155,7 @@ export default function PharmacyDashboard() {
                 <Stack spacing={2}>
                   {(data?.orders || []).length ? (
                     data.orders.map((item) => (
-                      <Box key={item._id} sx={{ p: 2.5, borderRadius: 3, border: `1px solid ${colors.line}`, bgcolor: colors.soft }}>
+                      <Box key={item._id} sx={{ p: 2.5, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.soft }}>
                         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                           <Box>
                             <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
@@ -174,7 +174,7 @@ export default function PharmacyDashboard() {
                         </Stack>
 
                         {item.deliveryType === 'HOME' && item.deliveryAddress && (
-                          <Box sx={{ mt: 2, p: 1.5, bgcolor: '#fff', borderRadius: 2, border: `1px dashed ${colors.line}` }}>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: '#fff', borderRadius: '10px', border: `1px dashed ${colors.line}` }}>
                             <Typography sx={{ fontSize: 12, fontWeight: 700, color: colors.muted, mb: 0.5 }}>{t.delivery_address}</Typography>
                             <Typography sx={{ fontSize: 13 }}>{item.deliveryAddress}</Typography>
                           </Box>
@@ -189,7 +189,7 @@ export default function PharmacyDashboard() {
                                 size="small" 
                                 startIcon={<AcceptIcon />}
                                 onClick={() => handleUpdateStatus(item._id, 'Accepted')}
-                                sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark }, textTransform: 'none', borderRadius: 2, fontWeight: 700, py: 1 }}
+                                sx={{ bgcolor: colors.primary, '&:hover': { bgcolor: colors.primaryDark }, textTransform: 'none', borderRadius: '8px', fontWeight: 700, py: 1 }}
                               >
                                 {t.accept}
                               </Button>
