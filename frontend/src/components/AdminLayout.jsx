@@ -21,17 +21,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage, useTranslation } from '../context/LanguageContext';
 
 const colors = {
-  bg: '#f5f1e8',
-  sidebarBg: '#fcfbf7',
-  line: '#ebe9e0',
-  muted: '#6f6a62',
-  text: '#252525',
-  blue: '#2563eb',
-  blueSoft: '#eff6ff',
-  blueDark: '#1e40af',
-  red: '#dc2626',
-  green: '#16a34a',
-  orange: '#ea580c'
+  bg: '#f8f9fa',
+  sidebarBg: '#ffffff',
+  line: '#e0e0e0',
+  muted: '#5f6368',
+  text: '#202124',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  blueDark: '#1557b0',
+  red: '#d93025',
+  green: '#1e8e3e',
+  orange: '#f9ab00'
 };
 
 const NAV_SECTIONS = [
@@ -98,12 +98,12 @@ export default function AdminLayout({ children }) {
           gap: 1.5,
           px: 2,
           py: 1.2,
-          borderRadius: 3.5,
+          borderRadius: '12px',
           textTransform: 'none',
           fontSize: 14.5,
           color: active ? colors.blueDark : colors.text,
           bgcolor: active ? colors.blueSoft : 'transparent',
-          '&:hover': { bgcolor: active ? colors.blueSoft : '#f3eee4' },
+          '&:hover': { bgcolor: active ? colors.blueSoft : '#f1f3f4' },
           width: '100%',
           mb: 0.5
         }}
@@ -115,7 +115,7 @@ export default function AdminLayout({ children }) {
             sx={{
               px: 1.2,
               py: 0.3,
-              borderRadius: 2,
+              borderRadius: '8px',
               bgcolor: item.badgeColor,
               color: item.badgeTextColor || '#fff',
               fontSize: 11,
@@ -151,16 +151,16 @@ export default function AdminLayout({ children }) {
       >
         <Box sx={{ px: 3, py: 4 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Box sx={{ width: 34, height: 34, bgcolor: colors.blue, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ width: 34, height: 34, bgcolor: colors.blue, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: 18 }}>S</Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: 20, fontWeight: 700, color: colors.blueDark, fontFamily: 'Georgia, serif', lineHeight: 1 }}>
+              <Typography sx={{ fontSize: 20, fontWeight: 700, color: colors.blueDark, fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
                 Seva TeleHealth
               </Typography>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
                 <Typography sx={{ color: colors.muted, fontSize: 11, fontWeight: 600, letterSpacing: 0.5 }}>ADMIN CONSOLE</Typography>
-                <Box sx={{ px: 0.8, py: 0.2, bgcolor: colors.blueSoft, borderRadius: 1.5 }}>
+                <Box sx={{ px: 0.8, py: 0.2, bgcolor: colors.blueSoft, borderRadius: '12px' }}>
                   <Typography sx={{ fontSize: 9, color: colors.blue, fontWeight: 800 }}>PRO</Typography>
                 </Box>
               </Stack>
@@ -182,7 +182,7 @@ export default function AdminLayout({ children }) {
         </Box>
 
         {/* Footer Sidebar */}
-        <Box sx={{ p: 2, borderTop: `1px solid ${colors.line}`, bgcolor: '#fcfbf7' }}>
+        <Box sx={{ p: 2, borderTop: `1px solid ${colors.line}`, bgcolor: colors.sidebarBg }}>
           <Stack direction="row" spacing={0.5} sx={{ mb: 2 }}>
             {[
               { code: 'en', label: 'EN' },
@@ -197,7 +197,7 @@ export default function AdminLayout({ children }) {
                 size="small"
                 onClick={() => setLanguage(lang.code)}
                 sx={{
-                  minWidth: 32, px: 0.5, py: 0.4, borderRadius: 1.5, fontSize: 10, fontWeight: 700,
+                  minWidth: 32, px: 0.5, py: 0.4, borderRadius: '12px', fontSize: 10, fontWeight: 700,
                   bgcolor: language === lang.code ? colors.blueSoft : 'transparent',
                   color: language === lang.code ? colors.blue : colors.muted,
                   '&:hover': { bgcolor: colors.blueSoft }
@@ -208,7 +208,7 @@ export default function AdminLayout({ children }) {
             ))}
           </Stack>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.2, borderRadius: 4, bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.2, borderRadius: '12px', bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
             <Avatar sx={{ width: 36, height: 36, bgcolor: colors.blueSoft, color: colors.blue, fontWeight: 700, fontSize: 14 }}>
               {(adminUser?.full_name || adminUser?.name || 'Admin')
                 .split(' ')
@@ -238,7 +238,7 @@ export default function AdminLayout({ children }) {
 
 function IconButton({ children, onClick, size, sx }) {
   return (
-    <Button onClick={onClick} sx={{ minWidth: 0, p: 0.8, borderRadius: 2, ...sx }}>
+    <Button onClick={onClick} sx={{ minWidth: 0, p: 0.8, borderRadius: '12px', ...sx }}>
       {children}
     </Button>
   );

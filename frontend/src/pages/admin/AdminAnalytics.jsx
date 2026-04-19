@@ -13,19 +13,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchAdminAnalytics } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -124,13 +124,13 @@ export default function AdminAnalytics() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Analytics</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Analytics</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Platform-wide growth, engagement and health metrics
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -138,7 +138,7 @@ export default function AdminAnalytics() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -151,14 +151,14 @@ export default function AdminAnalytics() {
           </Box>
         </Stack>
 
-        {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
+        {message && <Alert severity="success" sx={{ borderRadius: '12px', mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
 
         {loading ? (
           <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
             <CircularProgress sx={{ color: colors.blue }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
@@ -167,7 +167,7 @@ export default function AdminAnalytics() {
                   key={label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -189,7 +189,7 @@ export default function AdminAnalytics() {
 
             <Grid container spacing={4} sx={{ mb: 5 }}>
               <Grid item xs={12} lg={8}>
-                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Typography sx={{ fontSize: 18, mb: 4 }}>Patient & consultation growth</Typography>
                   <Box sx={{ height: 260, borderBottom: `1px solid ${colors.line}`, mb: 4, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 1 }}>
                     {monthlyGrowth.map((item) => (
@@ -217,7 +217,7 @@ export default function AdminAnalytics() {
 
               <Grid item xs={12} lg={4}>
                 <Stack spacing={4}>
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 3 }}>Patient acquisition</Typography>
                     <Stack spacing={2}>
                       {[
@@ -226,7 +226,7 @@ export default function AdminAnalytics() {
                         ['First consultation', formatNumber(acquisition.firstConsultation), formatPercent(acquisition.firstConsultationRate)],
                         ['Retained (30d)', formatNumber(acquisition.retained30d), formatPercent(acquisition.retained30dRate)]
                       ].map(([label, val, perc]) => (
-                        <Box key={label} sx={{ p: 1.8, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Box key={label} sx={{ p: 1.8, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Stack direction="row" alignItems="center" justifyContent="space-between">
                             <Typography sx={{ fontSize: 15, fontWeight: 600 }}>{label}</Typography>
                             <Box sx={{ textAlign: 'right' }}>
@@ -239,9 +239,9 @@ export default function AdminAnalytics() {
                     </Stack>
                   </Box>
 
-                  <Box sx={{ p: 3, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 3, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 2 }}>Outcome summary</Typography>
-                    <Stack spacing={1.5} sx={{ mb: 4, p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
+                    <Stack spacing={1.5} sx={{ mb: 4, p: 2, borderRadius: '12px', bgcolor: colors.soft }}>
                       <OutcomeRow color={colors.green} label="Prescription issued" value={outcomes.prescriptionIssued} />
                       <OutcomeRow color={colors.orange} label="Follow-up booked" value={outcomes.followUpBooked} />
                       <OutcomeRow color={colors.blue} label="Escalated" value={outcomes.escalated} />
@@ -258,7 +258,7 @@ export default function AdminAnalytics() {
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={4}>
-                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Typography sx={{ fontSize: 18, mb: 4 }}>Top states by patients</Typography>
                   <Stack spacing={2.5}>
                     {topStates.map((state, index) => (
@@ -278,7 +278,7 @@ export default function AdminAnalytics() {
               <Grid item xs={12} lg={8}>
                 <Grid container spacing={4}>
                   <Grid item xs={12} md={7}>
-                    <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                    <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                       <Typography sx={{ fontSize: 18, mb: 2 }}>Heatmap (by hour)</Typography>
                       <Typography sx={{ fontSize: 13, color: colors.muted, mb: 4 }}>Avg consultations per hour · Past 30 days</Typography>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1, mb: 2 }}>
@@ -310,7 +310,7 @@ export default function AdminAnalytics() {
                   </Grid>
 
                   <Grid item xs={12} md={5}>
-                    <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                    <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                       <Typography sx={{ fontSize: 18, mb: 3 }}>Engagement metrics</Typography>
                       <Stack spacing={3.5}>
                         <MetricRow label="Avg session duration" val={`${analytics?.averageConsultationDurationMinutes || 0} min`} />

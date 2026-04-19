@@ -13,19 +13,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { fetchAdminAnalytics, fetchSystemLogs } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -97,13 +97,13 @@ export default function AdminSystemHealth() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>System health</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>System Health</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Live status built from current backend analytics and logs.
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -111,7 +111,7 @@ export default function AdminSystemHealth() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -130,11 +130,11 @@ export default function AdminSystemHealth() {
             <CircularProgress sx={{ color: colors.blue }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>
         ) : (
           <>
             {(analytics?.system?.errorCount24h || 0) > 0 && (
-              <Alert severity="warning" sx={{ mb: 4, borderRadius: 3, bgcolor: colors.orangeSoft }}>
+              <Alert severity="warning" sx={{ mb: 4, borderRadius: '12px', bgcolor: colors.orangeSoft }}>
                 {analytics.system.errorCount24h} error log entries were recorded in the last 24 hours.
               </Alert>
             )}
@@ -145,7 +145,7 @@ export default function AdminSystemHealth() {
                   key={label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -164,14 +164,14 @@ export default function AdminSystemHealth() {
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={7}>
-                <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                <Box sx={{ borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}` }}>
                     <Typography sx={{ fontSize: 18 }}>Service status</Typography>
                   </Box>
                   <Box sx={{ p: 3 }}>
                     <Stack spacing={2.5}>
                       {serviceRows.map(([name, status, uptime, latency, color]) => (
-                        <Stack key={name} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1.5, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Stack key={name} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1.5, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '42%' }}>
                             <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color }} />
                             <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{name}</Typography>
@@ -187,11 +187,11 @@ export default function AdminSystemHealth() {
               </Grid>
 
               <Grid item xs={12} lg={5}>
-                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                   <Typography sx={{ fontSize: 18, mb: 3 }}>Recent system logs</Typography>
                   <Stack spacing={2.5}>
                     {logs.length ? logs.map((log) => (
-                      <Box key={log._id} sx={{ position: 'relative', pl: 3, p: 1.8, borderRadius: 2.5, bgcolor: colors.soft }}>
+                      <Box key={log._id} sx={{ position: 'relative', pl: 3, p: 1.8, borderRadius: '12px', bgcolor: colors.soft }}>
                         <Box sx={{ position: 'absolute', left: 12, top: 22, width: 10, height: 10, borderRadius: '50%', bgcolor: log.level === 'error' ? colors.red : log.level === 'warn' ? colors.orange : colors.green }} />
                         <Typography sx={{ fontSize: 14, fontWeight: 800, ml: 1 }}>{log.level?.toUpperCase?.() || 'INFO'}</Typography>
                         <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.5, ml: 1 }}>{buildLogLabel(log)}</Typography>

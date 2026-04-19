@@ -413,6 +413,89 @@ export const ADMIN_SETTINGS_TRANSLATIONS = {
       desc: "প্ল্যাটফর্ম-ব্যাপী প্রভাব সহ অপরিবর্তনীয় সিস্টেম অ্যাকশন।",
       reset_btn: "প্ল্যাটফর্ম রিসেট করুন"
     }
+  },
+  pa: {
+    title: "ਪਲੇਟਫਾਰਮ ਸੈਟਿੰਗਾਂ",
+    subtitle: "ਤਕਨੀਕੀ, ਵਪਾਰਕ ਅਤੇ ਵਿਜ਼ੂਅਲ ਪੈਰਾਮੀਟਰਾਂ ਨੂੰ ਕੌਂਫਿਗਰ ਕਰੋ",
+    save_changes: "ਬਦਲਾਵ ਬਚਾਓ",
+    tabs: {
+      General: "ਜਨਰਲ",
+      Security: "ਸੁਰੱਖਿਆ",
+      Notifications: "ਸੂਚਨਾਵਾਂ",
+      Platform: "ਪਲੇਟਫਾਰਮ",
+      Data: "ਡਾਟਾ",
+      Branding: "ਬ੍ਰਾਂਡਿੰਗ"
+    },
+    general: {
+      title: "ਆਮ ਸੈਟਿੰਗਾਂ",
+      desc: "ਮੂਲ ਖਾਤਾ ਅਤੇ ਇੰਟਰਫੇਸ ਸੰਰਚਨਾ।",
+      profile_overview: "ਪ੍ਰੋਫਾਈਲ ਦੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+      change_photo: "ਫੋਟੋ ਬਦਲੋ",
+      language: "ਭਾਸ਼ਾ",
+      timezone: "ਸਮਾਂ ਖੇਤਰ"
+    },
+    security: {
+      title: "ਸੁਰੱਖਿਆ ਅਤੇ ਪਹੁੰਚ",
+      desc: "ਪ੍ਰਮਾਣਿਕਤਾ ਅਤੇ ਸੈਸ਼ਨ ਨੀਤੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ।",
+      two_factor: "ਦੋ-ਕਾਰਕ ਪ੍ਰਮਾਣਿਕਤਾ",
+      two_factor_desc: "ਐਡਮਿਨ ਲੌਗਇਨ ਲਈ ਮੋਬਾਈਲ ਰਾਹੀਂ OTP ਦੀ ਲੋੜ ਹੈ",
+      password_mgmt: "ਪਾਸਵਰਡ ਪ੍ਰਬੰਧਨ",
+      password_desc: "ਆਖਰੀ ਅਪਡੇਟ 3 ਮਹੀਨੇ ਪਹਿਲਾਂ",
+      update_password: "ਪਾਸਵਰਡ ਅੱਪਡੇਟ ਕਰੋ",
+      session_timeout: "ਸੈਸ਼ਨ ਦਾ ਸਮਾਂ ਸਮਾਪਤ",
+      hours_24: "24 ਘੰਟੇ"
+    },
+    notifications: {
+      title: "ਨੋਟੀਫਿਕੇਸ਼ਨ ਨੀਤੀਆਂ",
+      desc: "ਵੱਖ-ਵੱਖ ਚੈਨਲਾਂ ਲਈ ਚੇਤਾਵਨੀ ਥ੍ਰੈਸ਼ਹੋਲਡ ਨੂੰ ਕੌਂਫਿਗਰ ਕਰੋ।",
+      email_alerts: "ਈਮੇਲ ਚੇਤਾਵਨੀਆਂ",
+      promotions: "ਪਲੇਟਫਾਰਮ ਪ੍ਰੋਮੋਸ਼ਨ",
+      service_updates: "ਸੇਵਾ ਅੱਪਡੇਟ",
+      security_alerts: "ਸੁਰੱਖਿਆ ਚਿਤਾਵਨੀਆਂ",
+      push_notifications: "ਪੁਸ਼ ਸੂਚਨਾਵਾਂ",
+      ongoing_consultations: "ਜਾਰੀ ਸਲਾਹਾਂ",
+      system_health: "ਸਿਸਟਮ ਹੈਲਥ ਅਲਰਟ",
+      sms_alerts: "SMS ਚੇਤਾਵਨੀਆਂ",
+      infra_error: "ਨਾਜ਼ੁਕ ਬੁਨਿਆਦੀ ਢਾਂਚਾ ਗਲਤੀ"
+    },
+    platform: {
+      title: "ਪਲੇਟਫਾਰਮ ਸੰਰਚਨਾ",
+      desc: "ਪਲੇਟਫਾਰਮ ਸੰਚਾਲਨ ਲਈ ਗਲੋਬਲ ਟੌਗਲ।",
+      new_enrollment: "ਨਵੀਂ ਭਰਤੀ",
+      new_enrollment_desc: "ਨਵੇਂ ਡਾਕਟਰ/ਫਾਰਮੇਸੀ ਭਾਈਵਾਲਾਂ ਨੂੰ ਇਜਾਜ਼ਤ ਦਿਓ",
+      doctor_verification: "ਡਾਕਟਰ ਦੀ ਤਸਦੀਕ",
+      doctor_verification_desc: "ਹਮੇਸ਼ਾ ਮੈਨੂਅਲ ਐਡਮਿਨ ਮਨਜ਼ੂਰੀ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ",
+      patient_reg: "ਮਰੀਜ਼ ਰਜਿਸਟ੍ਰੇਸ਼ਨ",
+      patient_reg_desc: "ਨਵੇਂ ਮਰੀਜ਼ਾਂ ਲਈ ਜਨਤਕ ਰਜਿਸਟ੍ਰੇਸ਼ਨ",
+      min_fee: "ਮਿਨ ਕੰਸਲਟੇਸ਼ਨ ਫੀਸ",
+      min_fee_desc: "ਸਾਰੇ ਪ੍ਰੈਕਟੀਸ਼ਨਰਾਂ ਲਈ ਗਲੋਬਲ ਨਿਊਨਤਮ"
+    },
+    data: {
+      title: "ਡਾਟਾ ਪ੍ਰਬੰਧਨ",
+      desc: "ਡਾਟਾ ਧਾਰਨ ਅਤੇ ਬੈਕਅੱਪ ਲਈ ਨੀਤੀਆਂ।",
+      export_data: "ਪਲੇਟਫਾਰਮ ਡੇਟਾ ਐਕਸਪੋਰਟ ਕਰੋ",
+      export_desc: "JSON/CSV ਫਾਰਮੈਟ ਵਿੱਚ ਪੂਰਾ ਰਿਕਾਰਡ ਡੰਪ",
+      export_btn: "ਨਿਰਯਾਤ",
+      auto_delete: "ਆਟੋ-ਡਿਲੀਟ ਅਕਿਰਿਆਸ਼ੀਲ",
+      auto_delete_desc: ">2 ਸਾਲਾਂ ਤੋਂ ਅਕਿਰਿਆਸ਼ੀਲ ਖਾਤਿਆਂ ਨੂੰ ਹਟਾਓ",
+      db_backup: "ਡਾਟਾਬੇਸ ਬੈਕਅੱਪ",
+      db_backup_desc: "ਆਟੋ-ਬੈਕਅੱਪ ਅੰਤਰਾਲ",
+      backup_interval: "ਹਰ 6 ਘੰਟੇ"
+    },
+    branding: {
+      title: "ਦਿੱਖ ਪਛਾਣ",
+      desc: "ਪਲੇਟਫਾਰਮ ਦਿੱਖ ਅਤੇ ਮਹਿਸੂਸ ਨੂੰ ਅਨੁਕੂਲਿਤ ਕਰੋ।",
+      logo: "ਪਲੇਟਫਾਰਮ ਲੋਗੋ",
+      logo_desc: "SVG ਜਾਂ PNG ਫਾਰਮੈਟ",
+      upload_svg: "ਅੱਪਲੋਡ SVG",
+      primary_color: "ਪ੍ਰਾਇਮਰੀ ਰੰਗ",
+      secondary_color: "ਸੈਕੰਡਰੀ ਰੰਗ"
+    },
+    danger_zone: {
+      title: "ਖ਼ਤਰਾ ਜ਼ੋਨ",
+      desc: "ਪਲੇਟਫਾਰਮ-ਵਿਆਪਕ ਪ੍ਰਭਾਵ ਦੇ ਨਾਲ ਅਟੱਲ ਸਿਸਟਮ ਕਾਰਵਾਈਆਂ।",
+      reset_btn: "ਪਲੇਟਫਾਰਮ ਰੀਸੈਟ ਕਰੋ"
+    }
   }
 };
 
@@ -670,6 +753,57 @@ export const ADMIN_DASHBOARD_TRANSLATIONS = {
       no_fulfillment: "এখনও কোন পূর্ণতার তথ্য নেই।",
       no_logs: "কোন সাম্প্রতিক সিস্টেম লগ নেই।",
       approval_success: "অনুমোদন সফলভাবে আপডেট করা হয়েছে।"
+    }
+  },
+  pa: {
+    title: "ਐਡਮਿਨ ਡੈਸ਼ਬੋਰਡ",
+    subtitle: "ਲਾਈਵ ਪਲੇਟਫਾਰਮ ਵਿਸ਼ਲੇਸ਼ਣ, ਬਕਾਇਆ ਮਨਜ਼ੂਰੀਆਂ, ਸ਼ਿਕਾਇਤਾਂ, ਪੂਰਤੀ, ਅਤੇ ਸਿਸਟਮ ਦੀ ਸਿਹਤ।",
+    refresh: "ਡੈਸ਼ਬੋਰਡ ਨੂੰ ਤਾਜ਼ਾ ਕਰੋ",
+    refreshing: "ਤਾਜ਼ਗੀ...",
+    stats: {
+      patients: "ਮਰੀਜ਼",
+      doctors: "ਡਾਕਟਰ",
+      pharmacists: "ਫਾਰਮਾਸਿਸਟ",
+      today_cons: "ਅੱਜ ਦੀ ਸਲਾਹ",
+      week_cons: "ਹਫ਼ਤਾ ਸਲਾਹ",
+      month_cons: "ਮਹੀਨੇ ਦੀ ਸਲਾਹ",
+      pending: "ਬਕਾਇਆ ਮਨਜ਼ੂਰੀਆਂ",
+      avg_resp: "ਔਸਤ ਜਵਾਬ (ms)",
+      active_patients_desc: "ਸਰਗਰਮ ਮਰੀਜ਼ ਖਾਤੇ",
+      active_doctors_desc: "ਪ੍ਰਵਾਨਿਤ ਅਤੇ ਕਿਰਿਆਸ਼ੀਲ",
+      active_pharmacy_desc: "ਕਿਰਿਆਸ਼ੀਲ ਫਾਰਮੇਸੀ ਉਪਭੋਗਤਾ",
+      today_cons_desc: "ਅੱਜ ਬਣਾਇਆ ਗਿਆ",
+      week_cons_desc: "ਪਿਛਲੇ 7 ਦਿਨ",
+      month_cons_desc: "ਮੌਜੂਦਾ ਮਹੀਨਾ",
+      pending_queue_desc: "ਡਾਕਟਰ ਅਤੇ ਫਾਰਮੇਸੀ ਦੀ ਕਤਾਰ",
+      backend_avg_desc: "ਬੈਕਐਂਡ ਔਸਤ"
+    },
+    sections: {
+      pending: "ਬਕਾਇਆ ਮਨਜ਼ੂਰੀਆਂ",
+      health_issues: "ਆਮ ਸਿਹਤ ਸਮੱਸਿਆਵਾਂ",
+      complaints: "ਸ਼ਿਕਾਇਤ ਸਾਰ",
+      fulfillment: "ਫਾਰਮੇਸੀ ਪੂਰਤੀ",
+      fulfillment_desc: "ਤਿਆਰ, ਅੰਸ਼ਕ, ਅਤੇ ਮੁਕੰਮਲ ਪੂਰਤੀ ਦਰ",
+      system_health: "ਸਿਸਟਮ ਦੀ ਸਿਹਤ",
+      recent_logs: "ਹਾਲੀਆ ਲੌਗਸ"
+    },
+    labels: {
+      uptime: "ਅੱਪਟਾਈਮ",
+      error_count: "ਗਲਤੀ ਗਿਣਤੀ 24 ਘੰਟੇ",
+      avg_resp: "ਔਸਤ ਜਵਾਬ",
+      avg_cons: "ਔਸਤ ਸਲਾਹ ਮਸ਼ਵਰਾ",
+      hrs: "ਘੰਟੇ",
+      ms: "ms",
+      min: "ਮਿੰਟ",
+      approve: "ਮਨਜ਼ੂਰ",
+      saving: "ਸੰਭਾਲ ਰਿਹਾ ਹੈ...",
+      requested_on: "ਤੇ ਬੇਨਤੀ ਕੀਤੀ",
+      no_pending: "ਕੋਈ ਬਕਾਇਆ ਮਨਜ਼ੂਰੀਆਂ ਨਹੀਂ ਹਨ।",
+      no_symptoms: "ਅਜੇ ਤੱਕ ਕੋਈ ਲੱਛਣ ਵਿਸ਼ਲੇਸ਼ਣ ਨਹੀਂ।",
+      no_complaints: "ਅਜੇ ਤੱਕ ਕੋਈ ਸ਼ਿਕਾਇਤ ਡਾਟਾ ਨਹੀਂ ਹੈ।",
+      no_fulfillment: "ਅਜੇ ਤੱਕ ਕੋਈ ਪੂਰਤੀ ਡੇਟਾ ਨਹੀਂ ਹੈ।",
+      no_logs: "ਕੋਈ ਹਾਲੀਆ ਸਿਸਟਮ ਲੌਗ ਨਹੀਂ।",
+      approval_success: "ਮਨਜ਼ੂਰੀ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਡੇਟ ਕੀਤੀ ਗਈ।"
     }
   }
 };

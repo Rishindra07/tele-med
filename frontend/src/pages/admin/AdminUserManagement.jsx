@@ -12,19 +12,19 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const ACCOUNTS = [
@@ -42,13 +42,13 @@ export default function AdminUserManagement() {
         {/* Header */}
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>User management</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>User management</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Admin accounts, roles and access permissions
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -56,7 +56,7 @@ export default function AdminUserManagement() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -70,7 +70,7 @@ export default function AdminUserManagement() {
           </Box>
         </Stack>
 
-        <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
+        <Box sx={{ borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
            <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontSize: 18 }}>Admin accounts</Typography>
               <Button startIcon={<AuditIcon />} size="small" sx={{ textTransform: 'none', color: colors.green, fontWeight: 800, fontSize: 14 }}>Audit log →</Button>
@@ -85,17 +85,17 @@ export default function AdminUserManagement() {
                       <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.2 }}>{a.email} • {a.access} • Last active: {a.last}</Typography>
                    </Box>
                    <Stack direction="row" spacing={3} alignItems="center">
-                      <Chip label={a.role} size="small" sx={{ borderRadius: 1.5, height: 26, fontSize: 12, fontWeight: 800, bgcolor: a.color + '15', color: a.color }} />
-                      <Button variant="outlined" size="small" sx={{ borderRadius: 2, textTransform: 'none', px: 3, fontWeight: 700, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.text, bgcolor: 'transparent' } }}>Edit</Button>
+                      <Chip label={a.role} size="small" sx={{ borderRadius: '12px', height: 26, fontSize: 12, fontWeight: 800, bgcolor: a.color + '15', color: a.color }} />
+                      <Button variant="outlined" size="small" sx={{ borderRadius: '12px', textTransform: 'none', px: 3, fontWeight: 700, borderColor: colors.line, color: colors.text, '&:hover': { borderColor: colors.text, bgcolor: 'transparent' } }}>Edit</Button>
                    </Stack>
                 </Box>
               ))}
            </Stack>
         </Box>
 
-        <Box sx={{ mt: 5, p: 4, borderRadius: 3.5, bgcolor: colors.soft, border: `1px solid ${colors.line}` }}>
+        <Box sx={{ mt: 5, p: 4, borderRadius: '16px', bgcolor: colors.soft, border: `1px solid ${colors.line}` }}>
            <Stack direction="row" spacing={3} alignItems="flex-start">
-              <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: colors.paper, display: 'grid', placeItems: 'center', border: `1px solid ${colors.line}` }}>
+              <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: colors.paper, display: 'grid', placeItems: 'center', border: `1px solid ${colors.line}` }}>
                 <SecurityIcon sx={{ color: colors.muted }} />
               </Box>
               <Box>

@@ -23,19 +23,19 @@ import {
 } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -154,20 +154,20 @@ export default function AdminReports() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Reports</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Reports</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Generate and download live platform reports from the backend.
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -181,8 +181,8 @@ export default function AdminReports() {
           </Box>
         </Stack>
 
-        {message && <Alert severity="success" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
-        {error && <Alert severity="error" sx={{ borderRadius: 3, mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
+        {message && <Alert severity="success" sx={{ borderRadius: '12px', mb: 3 }} onClose={() => setMessage('')}>{message}</Alert>}
+        {error && <Alert severity="error" sx={{ borderRadius: '12px', mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
         {loading ? (
           <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
@@ -190,11 +190,11 @@ export default function AdminReports() {
           </Box>
         ) : (
           <Stack spacing={4}>
-            <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+            <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 18, mb: 4 }}>Quick reports</Typography>
               <Stack spacing={3}>
                 {quickReports.map((report) => (
-                  <Stack key={report.key} direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ p: 2, borderRadius: 2.5, bgcolor: colors.soft, transition: '0.2s', '&:hover': { bgcolor: '#fbfbfb', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' } }}>
+                  <Stack key={report.key} direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ p: 2, borderRadius: '12px', bgcolor: colors.soft, transition: '0.2s', '&:hover': { bgcolor: '#fbfbfb', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' } }}>
                     <Box>
                       <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{report.title}</Typography>
                       <Typography sx={{ fontSize: 13.5, color: colors.muted, mt: 0.5 }}>{report.desc}</Typography>
@@ -207,7 +207,7 @@ export default function AdminReports() {
                         onClick={() => handleExport(report.key, 'pdf')} 
                         disabled={loadingType === `${report.key}:pdf`} 
                         sx={{ 
-                          borderRadius: 2, 
+                          borderRadius: '12px', 
                           textTransform: 'none', 
                           borderColor: colors.line, 
                           color: colors.text,
@@ -224,7 +224,7 @@ export default function AdminReports() {
                         onClick={() => handleExport(report.key, 'excel')} 
                         disabled={loadingType === `${report.key}:excel`} 
                         sx={{ 
-                          borderRadius: 2, 
+                          borderRadius: '12px', 
                           textTransform: 'none', 
                           borderColor: colors.line, 
                           color: colors.text,
@@ -241,7 +241,7 @@ export default function AdminReports() {
               </Stack>
             </Box>
 
-            <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+            <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
               <Typography sx={{ fontSize: 18, mb: 3 }}>Live report snapshot</Typography>
               <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
                 {snapshotChips.map((chip) => (
@@ -250,7 +250,7 @@ export default function AdminReports() {
                     label={chip.label} 
                     sx={{ 
                       ...chip.sx, 
-                      borderRadius: 2, 
+                      borderRadius: '12px', 
                       fontWeight: 700, 
                       fontSize: 14,
                       py: 2.2

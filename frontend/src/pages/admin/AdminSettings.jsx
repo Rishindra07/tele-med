@@ -15,16 +15,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { fetchAdminSettings, updateAdminSettings } from '../../api/adminApi';
 
 const colors = {
-  bg: '#fcfbf7',
   paper: '#ffffff',
-  line: '#ebe9e0',
-  soft: '#f5f1e8',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  red: '#d9635b'
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
+  redSoft: '#fbeaea',
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 function SettingRow({ label, desc, action }) {
@@ -107,14 +110,14 @@ export default function AdminSettings() {
         
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 6 }}>
           <Box>
-            <Typography variant="h3" sx={{ fontFamily: 'Georgia, serif', fontWeight: 700 }}>Admin Settings</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Settings</Typography>
             <Typography sx={{ color: colors.muted, mt: 1 }}>Configure global platform behavior, security protocols, and system metadata</Typography>
           </Box>
-          <Button 
+            <Button 
             variant="contained" 
             onClick={handleSave}
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
-            sx={{ bgcolor: colors.blue, px: 4, py: 1.5, borderRadius: 3, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.blue } }}
+            sx={{ bgcolor: colors.blue, px: 4, py: 1.5, borderRadius: '12px', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.blue } }}
           >
             {saving ? 'Processing...' : 'Save Global Config'}
           </Button>
@@ -132,7 +135,7 @@ export default function AdminSettings() {
                   justifyContent: 'flex-start',
                   px: 2,
                   py: 1.4,
-                  borderRadius: 4,
+                  borderRadius: '12px',
                   textTransform: 'none',
                   fontSize: 15,
                   fontWeight: 700,
@@ -146,12 +149,12 @@ export default function AdminSettings() {
             ))}
           </Stack>
 
-          <Box sx={{ p: 5, borderRadius: '48px', bgcolor: colors.paper, border: `1px solid ${colors.line}`, boxShadow: '0 4px 30px rgba(0,0,0,0.02)' }}>
+          <Box sx={{ p: 5, borderRadius: '16px', bgcolor: colors.paper, border: `1px solid ${colors.line}`, boxShadow: '0 4px 30px rgba(0,0,0,0.02)' }}>
             
             {activeTab === 'general' && (
               <Stack spacing={4}>
                 <Typography variant="h6" fontWeight={800}>Administrative Profile</Typography>
-                <Stack direction="row" spacing={3} alignItems="center" sx={{ p: 3, borderRadius: '32px', bgcolor: colors.soft }}>
+                <Stack direction="row" spacing={3} alignItems="center" sx={{ p: 3, borderRadius: '12px', bgcolor: colors.soft }}>
                     <Avatar sx={{ width: 64, height: 64, bgcolor: colors.blue, fontWeight: 700 }}>
                         {adminUser.full_name?.charAt(0) || 'A'}
                     </Avatar>
@@ -159,7 +162,7 @@ export default function AdminSettings() {
                         <Typography variant="subtitle1" fontWeight={800}>{adminUser.full_name || 'Admin Tester'}</Typography>
                         <Typography variant="body2" sx={{ color: colors.muted }}>{adminUser.email || 'admin.test@seva.local'}</Typography>
                     </Box>
-                    <Button variant="outlined" size="small" sx={{ ml: 'auto', borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>Change Photo</Button>
+                    <Button variant="outlined" size="small" sx={{ ml: 'auto', borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}>Change Photo</Button>
                 </Stack>
                 <SettingRow label="Global Language" desc="Default display language for new users" action={
                     <Select 
@@ -236,13 +239,13 @@ export default function AdminSettings() {
                 />
                 <SettingRow label="Session Timeout" desc="Auto-logout for administrative inactivity" action={<Typography fontWeight={700}>4 Hours</Typography>} />
                 <Divider sx={{my: 2}} />
-                <Box sx={{ p: 3, borderRadius: 3, bgcolor: '#fdf2f2', border: `1px solid ${colors.red}20` }}>
+                <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
                             <Typography sx={{ fontWeight: 800, color: colors.red }}>Reset Platform Data</Typography>
                             <Typography sx={{ fontSize: 13, color: colors.red, opacity: 0.8 }}>Caution: This will clear temporary caches and logs</Typography>
                         </Box>
-                        <Button variant="contained" color="error" size="small" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }}>Initialize Reset</Button>
+                        <Button variant="contained" color="error" size="small" sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, boxShadow: 'none' }}>Initialize Reset</Button>
                     </Stack>
                 </Box>
               </Stack>

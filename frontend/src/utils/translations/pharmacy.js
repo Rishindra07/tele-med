@@ -138,6 +138,34 @@ export const PHARMACY_DASHBOARD_TRANSLATIONS = {
     no_low_stock: "এই মুহূর্তে কোনো কম স্টক সতর্কতা নেই।",
     notifications: "বিজ্ঞপ্তি",
     no_notifications: "এই মুহূর্তে কোনো বিজ্ঞপ্তি নেই।"
+  },
+  pa: {
+    hello: "ਹੈਲੋ",
+    subtitle: "ਲਾਈਵ ਨੁਸਖ਼ੇ ਦੀ ਕਤਾਰ, ਸਟਾਕ ਦਬਾਅ, ਅਤੇ ਪੂਰਤੀ ਅੱਪਡੇਟ।",
+    delivery_active: "ਡਿਲਿਵਰੀ ਐਕਟਿਵ",
+    pickup_only: "ਸਿਰਫ਼ ਪਿਕਅੱਪ",
+    rx_today: "ਅੱਜ ਦਾ ਨੁਸਖਾ",
+    incoming_queue: "ਆਉਣ ਵਾਲੀ ਕਤਾਰ",
+    pending: "ਲੰਬਿਤ",
+    awaiting_stock: "ਸਟਾਕ ਜਾਂ ਕਾਰਵਾਈ ਦੀ ਉਡੀਕ ਕਰ ਰਿਹਾ ਹੈ",
+    ready: "ਤਿਆਰ",
+    ready_pickup: "ਪਿਕਅੱਪ ਲਈ ਤਿਆਰ",
+    low_stock: "ਘੱਟ ਸਟਾਕ",
+    needs_reorder: "ਜਲਦੀ ਹੀ ਮੁੜ ਕ੍ਰਮ ਦੀ ਲੋੜ ਹੈ",
+    fulfillment_orders: "ਪੂਰਤੀ ਆਦੇਸ਼ (ਸਿੱਧਾ)",
+    patient: "ਮਰੀਜ਼",
+    home_delivery: "ਹੋਮ ਡਿਲੀਵਰੀ",
+    store_pickup: "ਸਟੋਰ ਪਿਕਅੱਪ",
+    delivery_address: "ਡਿਲੀਵਰੀ ਪਤਾ",
+    accept: "ਸਵੀਕਾਰ ਕਰੋ",
+    reject: "ਅਸਵੀਕਾਰ",
+    status: "ਸਥਿਤੀ:",
+    no_orders: "ਅਜੇ ਤੱਕ ਕੋਈ ਸਿੱਧਾ ਆਦੇਸ਼ ਨਹੀਂ।",
+    low_stock_items: "ਘੱਟ ਸਟਾਕ ਆਈਟਮਾਂ",
+    threshold: "ਥ੍ਰੈਸ਼ਹੋਲਡ",
+    no_low_stock: "ਇਸ ਵੇਲੇ ਕੋਈ ਘੱਟ ਸਟਾਕ ਚੇਤਾਵਨੀਆਂ ਨਹੀਂ ਹਨ।",
+    notifications: "ਸੂਚਨਾਵਾਂ",
+    no_notifications: "ਇਸ ਵੇਲੇ ਕੋਈ ਸੂਚਨਾਵਾਂ ਨਹੀਂ ਹਨ।"
   }
 };
 
@@ -261,6 +289,30 @@ export const PHARMACY_ORDERS_TRANSLATIONS = {
     accept_order: "আদেশ গ্রহণ করুন",
     mark_ready: "প্রস্তুত চিহ্নিত করুন",
     mark_delivered: "বিতরণ করা চিহ্নিত করুন"
+  },
+  pa: {
+    title: "ਆਉਣ ਵਾਲੇ ਹੁਕਮ",
+    subtitle: "ਨੁਸਖ਼ੇ ਦੀ ਪੂਰਤੀ ਦੀਆਂ ਬੇਨਤੀਆਂ ਦੀ ਸਮੀਖਿਆ ਅਤੇ ਅੱਪਡੇਟ ਕਰੋ।",
+    refresh: "ਤਾਜ਼ਾ ਕਰੋ",
+    status_filter: "ਸਥਿਤੀ ਫਿਲਟਰ",
+    all_statuses: "ਸਾਰੇ ਸਟੇਟਸ",
+    search_placeholder: "ਮਰੀਜ਼ ਜਾਂ ਆਈਡੀ ਦੀ ਖੋਜ ਕਰੋ...",
+    found: "ਪਾਇਆ",
+    orders_lc: "ਹੁਕਮ",
+    fetching: "ਨਵੇਂ ਆਰਡਰ ਲਿਆ ਰਿਹਾ ਹੈ...",
+    no_orders: "ਕੋਈ ਆਰਡਰ ਨਹੀਂ ਮਿਲੇ।",
+    adjust_filters: "ਆਪਣੇ ਫਿਲਟਰ ਐਡਜਸਟ ਕਰੋ ਜਾਂ ਨਵੇਂ ਅਸਾਈਨਮੈਂਟਾਂ ਦੀ ਉਡੀਕ ਕਰੋ।",
+    patient: "ਮਰੀਜ਼",
+    pickup: "ਪਿਕਅੱਪ",
+    received: "ਪ੍ਰਾਪਤ ਕੀਤਾ:",
+    prescription_details: "ਨੁਸਖ਼ੇ ਦੇ ਵੇਰਵੇ",
+    items_prescribed: "ਤਜਵੀਜ਼ ਕੀਤੀਆਂ ਚੀਜ਼ਾਂ",
+    delivery_details: "ਡਿਲਿਵਰੀ ਵੇਰਵੇ",
+    update_status: "ਆਰਡਰ ਸਥਿਤੀ ਨੂੰ ਅਪਡੇਟ ਕਰੋ",
+    quick: "ਜਲਦੀ",
+    accept_order: "ਆਰਡਰ ਸਵੀਕਾਰ ਕਰੋ",
+    mark_ready: "ਮਾਰਕ ਤਿਆਰ",
+    mark_delivered: "ਮਾਰਕ ਡਿਲੀਵਰ ਕੀਤਾ ਗਿਆ"
   }
 };
 
@@ -334,6 +386,20 @@ export const PHARMACY_PRESCRIPTIONS_TRANSLATIONS = {
     doctor_prefix: "ডাক্তার.",
     no_medicines: "কোন ওষুধের তালিকা নেই",
     no_prescriptions: "আপনার ফিল্টারগুলির সাথে কোনো প্রেসক্রিপশন মেলে না।"
+  },
+  pa: {
+    title: "ਨੁਸਖੇ",
+    subtitle: "ਬੈਕਐਂਡ ਤੋਂ ਲਾਈਵ ਪੂਰਤੀ ਕਤਾਰ।",
+    search: "ਮਰੀਜ਼, ਡਾਕਟਰ, ਦਵਾਈ, ਤਜਵੀਜ਼ ਆਈਡੀ ਦੀ ਖੋਜ ਕਰੋ",
+    all_statuses: "ਸਾਰੀਆਂ ਸਥਿਤੀਆਂ",
+    status_pending: "ਬਕਾਇਆ",
+    status_ready: "ਤਿਆਰ ਹੈ",
+    status_partially_available: "ਅੰਸ਼ਕ ਤੌਰ \'ਤੇ ਉਪਲਬਧ",
+    status_completed: "ਪੂਰਾ ਹੋਇਆ",
+    patient: "ਮਰੀਜ਼",
+    doctor_prefix: "ਡਾ.",
+    no_medicines: "ਕੋਈ ਦਵਾਈਆਂ ਸੂਚੀਬੱਧ ਨਹੀਂ ਹਨ",
+    no_prescriptions: "ਕੋਈ ਵੀ ਨੁਸਖ਼ਾ ਤੁਹਾਡੇ ਫਿਲਟਰਾਂ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ।"
   }
 };
 
@@ -427,6 +493,24 @@ export const PHARMACY_INVENTORY_TRANSLATIONS = {
     stock_category: "বিভাগ অনুযায়ী স্টক", no_categories: "কোনো বিভাগ রেকর্ড করা হয়নি",
     reorder_alerts: "রিঅর্ডার সতর্কতা", out_of_stock_alert: "স্টকের বাইরে", low_stock_alert: "কম স্টক",
     reorder_point: "রিঅর্ডার পয়েন্ট:", optimal: "সমস্ত স্টক স্তর সর্বোত্তম।", create_reorder: "রিঅর্ডার তালিকা তৈরি করুন"
+  },
+  pa: {
+    title: "ਵਸਤੂ ਸੂਚੀ", subtitle: "ਆਪਣੀਆਂ ਪੂਰੀਆਂ ਦਵਾਈਆਂ\nਸਟਾਕ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    filter_all: "ਸਾਰੇ", filter_in_stock: "ਸਟਾਕ ਵਿੱਚ", filter_low_stock: "ਘੱਟ ਸਟਾਕ", filter_out: "ਸਟਾਕ ਤੋਂ ਬਾਹਰ",
+    stats_all_skus: "ਕੁੱਲ SKUs", stats_all_skus_sub: "ਸਾਰੀਆਂ ਰਜਿਸਟਰਡ ਆਈਟਮਾਂ",
+    stats_in_stock_sub1: "%\nਉਪਲਬਧਤਾ",
+    stats_low_stock_sub: "ਹੇਠਾਂ ਮੁੜ ਕ੍ਰਮਵਾਰ\nਪੁਆਇੰਟ",
+    stats_out_sub: "ਕਾਰਵਾਈ ਦੀ ਲੋੜ ਹੈ",
+    search: "ਦਵਾਈਆਂ ਦੀ ਖੋਜ ਕਰੋ...", all_categories: "ਸਾਰੀਆਂ ਸ਼੍ਰੇਣੀਆਂ",
+    stock_list: "ਸਟਾਕ ਸੂਚੀ", export_csv: "CSV ਨਿਰਯਾਤ ਕਰੋ →",
+    th_medicine: "ਦਵਾਈ", th_category: "ਸ਼੍ਰੇਣੀ", th_stock: "ਸਟਾਕ", th_level: "ਪੱਧਰ", th_mrp: "MRP", th_expiry: "ਸਮਾਪਤੀ",
+    general: "ਜਨਰਲ", units: "ਯੂਨਿਟਾਂ", no_items: "ਕੋਈ ਵੀ ਆਈਟਮ ਤੁਹਾਡੇ ਮਾਪਦੰਡ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।",
+    quick_add: "ਜਲਦੀ ਦਵਾਈ ਜੋੜੋ", placeholder_name: "ਦਵਾਈ ਦਾ ਨਾਮ", generic_name: "ਆਮ ਨਾਮ", strength: "ਤਾਕਤ (ਜਿਵੇਂ ਕਿ 500mg)",
+    form_type: "ਫਾਰਮ (ਜਿਵੇਂ ਕਿ ਟੈਬਲੇਟ)", batch: "ਬੈਚ n", qty: "ਮਾਤਰਾ", mrp_placeholder: "MRP (₹)", threshold: "ਚੇਤਾਵਨੀ ਥ੍ਰੈਸ਼ਹੋਲਡ", 
+    rack: "ਰੈਕ / ਸ਼ੈਲਫ ਟਿਕਾਣਾ", saving: "ਸੰਭਾਲ ਰਿਹਾ ਹੈ...", save: "ਬਚਾਓ\nਦਵਾਈ", scan: "ਸਕੈਨ\nਬਾਰਕੋਡ",
+    stock_category: "ਸ਼੍ਰੇਣੀ ਅਨੁਸਾਰ ਸਟਾਕ", no_categories: "ਕੋਈ ਸ਼੍ਰੇਣੀਆਂ ਰਿਕਾਰਡ ਨਹੀਂ ਕੀਤੀਆਂ",
+    reorder_alerts: "ਚੇਤਾਵਨੀਆਂ ਨੂੰ ਮੁੜ ਕ੍ਰਮਬੱਧ ਕਰੋ", out_of_stock_alert: "ਸਟਾਕ ਤੋਂ ਬਾਹਰ", low_stock_alert: "ਘੱਟ ਸਟਾਕ",
+    reorder_point: "ਪੁਨਰ ਕ੍ਰਮ ਬਿੰਦੂ:", optimal: "ਸਾਰੇ ਸਟਾਕ ਪੱਧਰ ਅਨੁਕੂਲ ਹਨ।", create_reorder: "ਮੁੜ-ਕ੍ਰਮ ਸੂਚੀ ਬਣਾਓ"
   }
 };
 
@@ -500,6 +584,20 @@ export const PHARMACY_SALES_TRANSLATIONS = {
     export_gstr1: "GSTR-1 রপ্তানি", export_excel: "Excel রপ্তানি", quick_reports: "দ্রুত রিপোর্ট",
     rep_daily: "দৈনিক বিক্রয় রিপোর্ট", rep_monthly: "মাসিক স্টক বিবৃতি", rep_pres: "প্রেসক্রিপশন বিতরণের লগ", rep_purch: "ক্রয় বনাম বিক্রয় বিবৃতি",
     pdf: "PDF", excel: "Excel"
+  },
+  pa: {
+    title: "ਵਿਕਰੀ ਅਤੇ ਰਿਪੋਰਟਾਂ", subtitle: "ਮਾਲੀਆ, ਬਿਲਿੰਗ ਅਤੇ ਵਪਾਰਕ ਸੂਝ", new_bill: "ਨਵਾਂ ਬਿੱਲ",
+    stats_revenue: "ਅੱਜ ਦੀ ਆਮਦਨ", vs_yesterday: "% ਬਨਾਮ ਕੱਲ੍ਹ", stats_month: "ਇਸ ਮਹੀਨੇ", vs_last_month: "% ਬਨਾਮ ਪਿਛਲੇ ਮਹੀਨੇ",
+    bills_today: "ਬਿੱਲ ਅੱਜ", avg_bill: "ਔਸਤ", per_bill: "ਪ੍ਰਤੀ ਬਿੱਲ", gst_collected: "GST\nਇਕੱਠਾ",
+    revenue_trend: "ਮਾਲੀਆ ਰੁਝਾਨ", daily: "ਰੋਜ਼ਾਨਾ", weekly: "ਹਫਤਾਵਾਰੀ", monthly: "ਮਾਸਿਕ",
+    rev_split: "ਮਾਲੀਆ ਵੰਡ — ਨੁਸਖ਼ਾ ਬਨਾਮ ਵਾਕ-ਇਨ", pres_split: "ਸੇਵਾ ਨੁਸਖੇ", walkin_split: "ਵਾਕ-ਇਨ OTC",
+    payment_breakdown: "ਭੁਗਤਾਨ ਮੋਡ ਬ੍ਰੇਕਡਾਊਨ", top_medicines: "ਚੋਟੀ ਦੀਆਂ ਦਵਾਈਆਂ ਵਿਕੀਆਂ", top_meds_sub: "ਇਸ ਮਹੀਨੇ",
+    no_data: "ਕੋਈ ਡਾਟਾ ਉਪਲਬਧ ਨਹੀਂ", tx_history: "ਲੈਣ-ਦੇਣ ਦਾ ਇਤਿਹਾਸ", export_pdf: "PDF ਨਿਰਯਾਤ ਕਰੋ",
+    tx_all: "ਸਾਰੇ", tx_prescription: "ਦਾਰੂ", tx_walkin: "ਵਾਕ-ਇਨ", tx_refunds: "ਰਿਫੰਡ", no_tx: "ਅਜੇ ਤੱਕ ਕੋਈ ਲੈਣ-ਦੇਣ ਰਿਕਾਰਡ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।",
+    gst_summary: "ਜੀਐਸਟੀ ਸੰਖੇਪ —", download: "Download", taxable_sales: "ਟੈਕਸਯੋਗ ਵਿਕਰੀ", cgst: "CGST (6%)", sgst: "SGST (6%)", total_gst: "ਕੁਲ GST ਇਕੱਠਾ ਕੀਤਾ", exempt: "ਛੋਟ (ਜਨ ਔਸ਼ਧੀ)",
+    export_gstr1: "GSTR-1 ਨੂੰ ਨਿਰਯਾਤ ਕਰੋ", export_excel: "ਐਕਸਲ ਐਕਸਪੋਰਟ", quick_reports: "ਤਤਕਾਲ ਰਿਪੋਰਟਾਂ",
+    rep_daily: "ਰੋਜ਼ਾਨਾ ਵਿਕਰੀ ਰਿਪੋਰਟ", rep_monthly: "ਮਾਸਿਕ ਸਟਾਕ ਸਟੇਟਮੈਂਟ", rep_pres: "ਨੁਸਖਾ ਵੰਡਣ ਲਾਗ", rep_purch: "ਖਰੀਦ ਬਨਾਮ ਵਿਕਰੀ ਬਿਆਨ",
+    pdf: "PDF", excel: "ਐਕਸਲ"
   }
 };
 
@@ -563,6 +661,18 @@ export const PHARMACY_EXPIRY_TRANSLATIONS = {
     loss_title: "কোনো পদক্ষেপ না নিলে আনুমানিক ক্ষতি", total_risk: "মোট ক্ষতি", other_items: "অন্যান্য সামগ্রী", alert_settings: "সতর্কতা সেটিংস",
     sms: "মালিককে SMS সতর্কতা", auto_return: "স্বতঃ-রিটার্ন তালিকা", auto_return_sub: "যখন মেয়াদ < ৭ দিন",
     custom_threshold: "কাস্টম সতকর্তা সীমা (দিন)", days_7: "৭ দিন", days_90: "৯০ দিন", days_dynamic: "দিন"
+  },
+  pa: {
+    title: "ਮਿਆਦ ਪੁੱਗਣ ਦੀਆਂ ਚੇਤਾਵਨੀਆਂ", subtitle: "ਮਿਆਦ ਪੁੱਗਣ ਵਾਲੀਆਂ ਦਵਾਈਆਂ \'ਤੇ ਨਜ਼ਰ ਰੱਖੋ — ਨੁਕਸਾਨ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ ਕਾਰਵਾਈ ਕਰੋ", create_list: "ਬਣਾਓ\nਵਾਪਸੀ ਸੂਚੀ",
+    stats_7: "ਮਿਆਦ ਪੁੱਗ ਰਹੀ ਹੈ < 7\nਦਿਨਾਂ", stats_7_sub: "ਤੁਰੰਤ ਕਾਰਵਾਈ", stats_30: "ਮਿਆਦ ਪੁੱਗ ਰਹੀ ਹੈ < 30\nਦਿਨਾਂ", stats_30_sub: "ਕਾਰਵਾਈ ਦੀ ਲੋੜ ਹੈ\nਛੇਤੀ",
+    stats_90: "ਮਿਆਦ ਪੁੱਗ ਰਹੀ ਹੈ < 90\nਦਿਨਾਂ", stats_90_sub: "ਨਿਗਰਾਨ\nਨੇੜਿਓਂ", loss: "ਅਨੁਮਾਨ ਨੁਕਸਾਨ \nਜੋਖਮ ਵਿੱਚ", loss_sub: "ਅਗਲੇ 6 ਮਹੀਨੇ",
+    search: "ਦਵਾਈ ਦਾ ਨਾਮ ਜਾਂ ਬੈਚ ਨੰਬਰ ਖੋਜੋ...", filter_all: "ਸਾਰੇ", filter_critical: "ਨਾਜ਼ੁਕ", filter_warning: "ਚੇਤਾਵਨੀ", filter_watch: "ਦੇਖੋ",
+    expiry_list: "ਮਿਆਦ ਪੁੱਗਣ ਦੀ ਸੂਚੀ", export_list: "ਨਿਰਯਾਤ ਸੂਚੀ →", expires: "ਮਿਆਦ ਪੁੱਗਦੀ ਹੈ", days_remaining: "ਦਿਨ ਬਾਕੀ", units: "ਯੂਨਿਟਾਂ", supplier: "ਸਪਲਾਇਰ:",
+    est_loss: "ਅਨੁਮਾਨ ਨੁਕਸਾਨ", return_eligible: "ਵਾਪਸੀ ਯੋਗ", init_return: "ਵਾਪਸੀ ਸ਼ੁਰੂ ਕਰੋ", mark_dispose: "ਨਿਸ਼ਾਨ ਨਿਪਟਾਰਾ", view_stock: "ਸਟਾਕ ਦੇਖੋ",
+    no_meds: "ਤੁਹਾਡੇ ਮਾਪਦੰਡਾਂ ਨਾਲ ਮੇਲ ਖਾਂਦੀ ਕੋਈ ਦਵਾਈ ਨਹੀਂ ਮਿਲੀ।", cal_title: "ਮਿਆਦ ਪੁੱਗਣ ਵਾਲਾ ਕੈਲੰਡਰ —", critical_expiry: "ਨਾਜ਼ੁਕ ਸਮਾਪਤੀ", warning: "ਚੇਤਾਵਨੀ",
+    loss_title: "ਕਾਰਵਾਈ ਨਾ ਹੋਣ \'ਤੇ ਅਨੁਮਾਨਿਤ ਨੁਕਸਾਨ", total_risk: "ਖਤਰੇ ਵਿੱਚ ਕੁੱਲ", other_items: "ਹੋਰ ਚੀਜ਼ਾਂ", alert_settings: "ਚੇਤਾਵਨੀ ਸੈਟਿੰਗਾਂ",
+    sms: "ਮਾਲਕ ਨੂੰ ਐਸਐਮਐਸ ਚੇਤਾਵਨੀ", auto_return: "ਆਟੋ-ਬਣਾਓ ਵਾਪਸੀ ਸੂਚੀ", auto_return_sub: "ਜਦੋਂ ਮਿਆਦ < 7 ਦਿਨ",
+    custom_threshold: "ਕਸਟਮ ਚੇਤਾਵਨੀ ਥ੍ਰੈਸ਼ਹੋਲਡ (ਦਿਨ)", days_7: "7 ਦਿਨ", days_90: "90 ਦਿਨ", days_dynamic: "ਦਿਨ"
   }
 };
 
@@ -616,6 +726,16 @@ export const PHARMACY_SUPPLIERS_TRANSLATIONS = {
     suggestions_title: "স্বতঃ-রিঅর্ডার পরামর্শ", stock: "স্টক:", add: "যোগ করুন →", healthy_stock: "স্টকের মাত্রা স্বাস্থ্যকর।",
     directory_title: "সরবরাহকারী ডিরেক্টরি", add_supplier: "সরবরাহকারী যোগ করুন", pending_payments: "অমীমাংসিত পেমেন্ট", total_due: "মোট বকেয়া",
     status_in_transit: "পথে", status_confirmed: "নিশ্চিত", status_ordered: "অর্ডার করা হয়েছে", status_draft: "খসড়া", status_delivered: "সরবরাহ করা হয়েছে"
+  },
+  pa: {
+    title: "ਸਪਲਾਇਰ", subtitle: "ਵਿਤਰਕ ਸਬੰਧਾਂ, ਆਰਡਰਾਂ ਅਤੇ ਡਿਲੀਵਰੀ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ", new_order: "+ ਨਵਾਂ\nਆਰਡਰ",
+    stats_total: "ਕੁੱਲ\nਸਪਲਾਇਰ", stats_total_sub: "ਸਭ ਸਰਗਰਮ", stats_transit: "ਆਵਾਜਾਈ ਵਿੱਚ", stats_transit_sub1: "ਜਲਦੀ ਆ ਰਿਹਾ ਹੈ", stats_transit_sub2: "ਕੋਈ ਹੁਕਮ ਨਹੀਂ",
+    stats_pending: "ਬਕਾਇਆ\nਭੁਗਤਾਨ", stats_pending_sub: "ਹੁਕਮ", stats_spend: "ਇਸ ਮਹੀਨੇ\nਖਰਚੋ", stats_spend_sub: "ਹੁਕਮ",
+    orders_title: "ਹੁਕਮ", purchase_history: "ਖਰੀਦ ਇਤਿਹਾਸ →", filter_all: "ਸਾਰੇ", filter_transit: "ਆਵਾਜਾਈ ਵਿੱਚ", filter_confirmed: "ਪੁਸ਼ਟੀ ਕੀਤੀ", filter_ordered: "ਹੁਕਮ ਕੀਤਾ", filter_delivered: "ਪਹੁੰਚਾਇਆ", filter_draft: "ਡਰਾਫਟ",
+    items: "ਆਈਟਮਾਂ", placed: "ਰੱਖਿਆ", view_items: "ਆਈਟਮਾਂ ਦੇਖੋ", call_supplier: "ਸਪਲਾਇਰ ਨੂੰ ਕਾਲ ਕਰੋ", no_orders: "ਕੋਈ ਆਰਡਰ ਨਹੀਂ ਮਿਲੇ।",
+    suggestions_title: "ਆਟੋ-ਰੀਆਰਡਰ ਸੁਝਾਅ", stock: "ਸਟਾਕ:", add: "ਜੋੜੋ →", healthy_stock: "ਸਟਾਕ ਦੇ ਪੱਧਰ ਸਿਹਤਮੰਦ ਹਨ.",
+    directory_title: "ਸਪਲਾਇਰ ਡਾਇਰੈਕਟਰੀ", add_supplier: "ਸਪਲਾਇਰ ਸ਼ਾਮਲ ਕਰੋ", pending_payments: "ਬਕਾਇਆ ਭੁਗਤਾਨ", total_due: "ਕੁੱਲ ਬਕਾਇਆ",
+    status_in_transit: "ਆਵਾਜਾਈ ਵਿੱਚ", status_confirmed: "ਪੁਸ਼ਟੀ ਕੀਤੀ", status_ordered: "ਹੁਕਮ ਕੀਤਾ", status_draft: "ਡਰਾਫਟ", status_delivered: "ਡਿਲੀਵਰ ਕੀਤਾ"
   }
 };
 
@@ -729,6 +849,28 @@ export const PHARMACY_PROFILE_TRANSLATIONS = {
     op_hours: "কাজের সময়", ph_op: "উদাহরন সোম-শনি 8:00 AM - 9:00 PM", def_op: "সোম-শনি 8:00 AM - 9:00 PM\nরবিবার 9:00 AM - 2:00 PM",
     m24: "২৪-ঘন্টা মোড", m24_s: "জরুরি অবস্থার জন্য পরিবর্তন করুন", notif_set: "বিজ্ঞপ্তি সেটিংস",
     n1: "নতুন প্রেসক্রিপশন পেয়েছি", n1_s: "SMS + অ্যাপ পুশ অ্যালার্ট", n2: "কম স্টক সতর্কতা", n2_s: "পুনরায় অর্ডারের পয়েন্টের নিচে হলে", n3: "মেয়াদোত্তীর্ণ সতর্কতা (৩০ দিন)", n3_s: "দৈনিক SMS"
+  },
+  pa: {
+    tab_basic: "ਮੁੱਢਲੀ ਜਾਣਕਾਰੀ", tab_licences: "ਲਾਇਸੰਸ", tab_staff: "ਸਟਾਫ਼", tab_hours: "ਘੰਟੇ", tab_notif: "ਸੂਚਨਾਵਾਂ", tab_bank: "ਬੈਂਕ / UPI",
+    home: "ਘਰ", settings: "ਸੈਟਿੰਗਾਂ", profile: "ਫਾਰਮੇਸੀ ਪ੍ਰੋਫਾਈਲ", subtitle: "ਆਪਣੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ, ਸਟਾਫ਼ ਅਤੇ ਖਾਤਾ\nਸੈਟਿੰਗਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    loc_pending: "ਟਿਕਾਣਾ ਲੰਬਿਤ", linked: "ਸੇਵਾ ਟੈਲੀਹੈਲਥ ਲਿੰਕਡ", jan_aushadhi: "ਜਨ ਔਸ਼ਧੀ ਦਰਜ", gstin_ver: "GSTIN ਪ੍ਰਮਾਣਿਤ", drug_lic_val: "ਡਰੱਗ ਲਾਇਸੰਸ ਵੈਧ",
+    stats_sku: "ਸਟਾਕ ਕੀਤੇ SKUs", stats_staff: "ਸਟਾਫ ਦੇ ਖਾਤੇ", stats_yrs: "ਸੇਵਾ ਤੇ ਸਾਲ",
+    basic_info: "ਮੁੱਢਲੀ ਜਾਣਕਾਰੀ", btn_save: "ਬਚਾਓ", btn_edit: "ਸੋਧੋ",
+    f_pname: "ਫਾਰਮੇਸੀ ਦਾ ਨਾਮ", f_oname: "ਮਾਲਕ ਦਾ ਨਾਮ", f_village: "ਪਿੰਡ/ਕਸਬਾ", f_dist: "ਜ਼ਿਲ੍ਹਾ", f_pin: "ਪਿਨਕੋਡ",
+    i_pname: "ਫਾਰਮੇਸੀ ਦਾ ਨਾਮ", i_oname: "ਮਾਲਕ ਦਾ ਨਾਮ", i_mob: "ਮੋਬਾਈਲ", i_email: "ਈਮੇਲ", i_village: "ਪਿੰਡ/ਕਸਬਾ", i_dist: "ਜ਼ਿਲ੍ਹਾ ਅਤੇ ਪਿੰਨ", i_aadhaar: "ਆਧਾਰ",
+    verified: "ਪ੍ਰਮਾਣਿਤ", licences: "ਲਾਇਸੈਂਸ ਅਤੇ ਰਜਿਸਟ੍ਰੇਸ਼ਨਾਂ",
+    f_drug_lic: "ਡਰੱਗ ਲਾਇਸੰਸ ਨੰਬਰ", f_gstin: "GSTIN", f_jan_id: "ਜਨ ਔਸ਼ਧੀ ਆਈਡੀ",
+    i_drug_lic: "ਡਰੱਗ ਲਾਇਸੰਸ ਨੰ.", i_lic_val: "ਲਾਇਸੰਸ ਉਦੋਂ ਤੱਕ ਵੈਧ ਹੈ", i_gstin: "GSTIN", i_gst_reg: "GST ਰਜਿਸਟ੍ਰੇਸ਼ਨ", taxpayer: "ਨਿਯਮਤ ਟੈਕਸਦਾਤਾ",
+    i_jan_id: "ਜਨ ਔਸ਼ਧੀ ਆਈਡੀ", i_jan_val: "ਜਨ ਔਸ਼ਧੀ ਜਾਇਜ", i_fssai: "FSSAI (ਜੇ ਭੋਜਨ ਦੀਆਂ ਵਸਤੂਆਂ)", fssai_req: "ਲੋੜੀਂਦਾ",
+    seva_link: "ਸੇਵਾ ਟੈਲੀਹੈਲਥ ਲਿੰਕ", btn_settings: "ਸੈਟਿੰਗਾਂ",
+    st_conn: "ਕਨੈਕਸ਼ਨ ਸਥਿਤੀ", conn_y: "ਜੁੜਿਆ", st_pid: "ਫਾਰਮੇਸੀ ID",
+    st_vis: "ਮਰੀਜ਼ਾਂ ਨੂੰ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ", vis_y: "ਹਾਂ —", radius: "ਕਿਲੋਮੀਟਰ ਦਾ ਘੇਰਾ", hidden: "ਲੁਕਿਆ ਹੋਇਆ",
+    st_rx_rec: "ਨੁਸਖੇ ਮਿਲੇ", st_rtg: "ਮਰੀਜ਼ ਰੇਟਿੰਗ", reviews: "ਸਮੀਖਿਆਵਾਂ", st_rx_ful: "ਕੁੱਲ Rxs ਪੂਰੇ ਹੋਏ",
+    s_acc: "ਸਟਾਫ ਦੇ ਖਾਤੇ", btn_add_staff: "ਸਟਾਫ ਸ਼ਾਮਲ ਕਰੋ", r_owner: "ਮਾਲਕ",
+    r_perms: "ਰੋਲ ਅਨੁਮਤੀਆਂ", p_o: "ਮਾਲਕ", p_o_desc: "ਸਾਰੇ ਮੋਡੀਊਲ ਅਤੇ ਬਿਲਿੰਗ ਤੱਕ ਪੂਰੀ ਪਹੁੰਚ", p_p: "ਫਾਰਮਾਸਿਸਟ", p_p_desc: "ਕੇਵਲ Rx + ਵਸਤੂ ਪ੍ਰਬੰਧਨ", p_h: "ਸਹਾਇਕ", p_h_desc: "ਸਿਰਫ਼ ਬਿਲਿੰਗ ਅਤੇ ਚੈੱਕਆਉਟ ਪਹੁੰਚ",
+    op_hours: "ਓਪਰੇਟਿੰਗ ਘੰਟੇ", ph_op: "ਜਿਵੇਂ ਕਿ ਸੋਮ-ਸ਼ਨਿ 8:00 AM - 9:00 PM", def_op: "ਸੋਮ-ਸ਼ਨਿ 8:00 AM - 9:00 PM\nਐਤਵਾਰ 9:00 AM - 2:00 PM",
+    m24: "24-ਘੰਟੇ ਮੋਡ", m24_s: "ਐਮਰਜੈਂਸੀ ਲਈ ਟੌਗਲ ਕਰੋ", notif_set: "ਸੂਚਨਾ ਸੈਟਿੰਗਾਂ",
+    n1: "ਨਵਾਂ ਨੁਸਖਾ ਮਿਲਿਆ", n1_s: "SMS + ਐਪ ਪੁਸ਼ ਚੇਤਾਵਨੀ", n2: "ਘੱਟ ਸਟਾਕ ਚੇਤਾਵਨੀ", n2_s: "ਜਦੋਂ ਪੁਨਰ ਕ੍ਰਮ ਬਿੰਦੂ ਦੇ ਹੇਠਾਂ", n3: "ਮਿਆਦ ਪੁੱਗਣ ਦੀ ਚਿਤਾਵਨੀ (30 ਦਿਨ)", n3_s: "ਰੋਜ਼ਾਨਾ ਡਾਇਜੈਸਟ SMS"
   }
 };
 
@@ -822,5 +964,23 @@ export const PHARMACY_SETTINGS_TRANSLATIONS = {
     export_title: "অডিট লগ রপ্তানি করুন", export_sub: "এক্সেল ফর্ম্যাটে সমস্ত ফার্মাসি কার্যকলাপের অডিট লগ ডাউনলোড করুন", btn_export: "রপ্তানি",
     t4_title: "টু-ফ্যাক্টর অথেনটিকেশন", t4_sub: "মালিকের লগইনে অতিরিক্ত নিরাপত্তা যোগ করুন",
     login_dur: "লগইন সেশনের সময়কাল", hr_1: "১ ঘণ্টা", hr_8: "৮ ঘণ্টা", hr_24: "২৪ ঘণ্টা"
+  },
+  pa: {
+    home: "ਘਰ", settings: "ਸੈਟਿੰਗਾਂ", subtitle: "ਆਪਣੀ ਫਾਰਮੇਸੀ ਪਲੇਟਫਾਰਮ ਤਰਜੀਹਾਂ ਅਤੇ\nਸੰਰਚਨਾਵਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ", btn_save: "ਤਬਦੀਲੀਆਂ ਨੂੰ ਸੰਭਾਲੋ",
+    cat_gen: "ਜਨਰਲ", cat_plat: "ਪਲੇਟਫਾਰਮ ਲਿੰਕ", cat_inv: "ਆਰਡਰ ਅਤੇ ਵਸਤੂ ਸੂਚੀ", cat_bill: "ਬਿਲਿੰਗ ਅਤੇ GST", cat_staff: "ਸਟਾਫ ਅਤੇ ਰੋਲ", cat_sec: "ਸੁਰੱਖਿਆ", cat_notif: "ਸੂਚਨਾਵਾਂ", del_acc: "ਖਾਤਾ ਮਿਟਾਓ",
+    gen_title: "ਆਮ ਤਰਜੀਹਾਂ", gen_sub: "ਪੋਰਟਲ ਦੀ ਭਾਸ਼ਾ ਅਤੇ ਵਿਜ਼ੂਅਲ ਦਿੱਖ", lang: "ਪ੍ਰਾਇਮਰੀ ਭਾਸ਼ਾ", theme: "ਥੀਮ ਮੋਡ", theme_light: "ਚਾਨਣ", theme_dark: "ਹਨੇਰਾ", theme_sys: "ਸਿਸਟਮ",
+    inv_title: "ਆਰਡਰ ਅਤੇ ਵਸਤੂ ਸੂਚੀ", inv_sub: "ਆਪਣੇ ਸਟਾਕ ਥ੍ਰੈਸ਼ਹੋਲਡ ਨੂੰ ਸਵੈਚਾਲਤ ਅਤੇ ਪ੍ਰਬੰਧਿਤ ਕਰੋ",
+    threshold: "ਘੱਟ ਸਟਾਕ ਥ੍ਰੈਸ਼ਹੋਲਡ", threshold_sub: "ਜਦੋਂ ਆਈਟਮਾਂ ਇਸ ਗਿਣਤੀ ਤੋਂ ਹੇਠਾਂ ਆਉਂਦੀਆਂ ਹਨ ਤਾਂ ਵਿਜ਼ੂਅਲ ਚੇਤਾਵਨੀ", units: "ਯੂਨਿਟਾਂ",
+    expiry: "ਮਿਆਦ ਪੁੱਗਣ ਦੀ ਚੇਤਾਵਨੀ ਵਿੰਡੋ", expiry_sub: "ਇਸ ਤੋਂ ਕਈ ਦਿਨ ਪਹਿਲਾਂ ਆਈਟਮਾਂ ਨੂੰ \'ਜਲਦੀ ਹੀ ਮਿਆਦ ਪੁੱਗਣ ਵਾਲੀ\' ਵਜੋਂ ਚਿੰਨ੍ਹਿਤ ਕਰੋ", days: "ਦਿਨ",
+    t1_title: "ਸਟਾਕ ਆਈਟਮਾਂ ਤੋਂ ਬਾਹਰ ਆਟੋ-ਹਾਈਡ", t1_sub: "ਜੇ ਸਟਾਕ 0 ਹੈ ਤਾਂ ਮਰੀਜ਼ ਦੇ ਦ੍ਰਿਸ਼ ਤੋਂ ਆਈਟਮਾਂ ਨੂੰ ਹਟਾਓ",
+    t2_title: "ਆਟੋ-ਜਨਰੇਟ ਖਰੀਦ ਆਰਡਰ", t2_sub: "ਜਦੋਂ ਆਈਟਮਾਂ ਘੱਟ ਥ੍ਰੈਸ਼ਹੋਲਡ \'ਤੇ ਪਹੁੰਚ ਜਾਂਦੀਆਂ ਹਨ ਤਾਂ PO ਦਾ ਸੁਝਾਅ ਦਿਓ",
+    t3_title: "PO ਮਨਜ਼ੂਰੀ ਦੀ ਲੋੜ ਹੈ", t3_sub: "ਮਾਲਕ ਨੂੰ ਸਪਲਾਇਰ ਨੂੰ ਭੇਜਣ ਤੋਂ ਪਹਿਲਾਂ ਪੀਓ ਨੂੰ ਮਨਜ਼ੂਰੀ ਦੇਣੀ ਚਾਹੀਦੀ ਹੈ",
+    bill_title: "ਬਿਲਿੰਗ ਅਤੇ GST", bill_sub: "ਟੈਕਸ ਕੌਂਫਿਗਰੇਸ਼ਨ ਅਤੇ ਸਥਾਨਕ ਇਨਵੌਇਸ ਸੈਟਿੰਗਾਂ",
+    gstin: "GST ਪਛਾਣ ਨੰਬਰ", tax_type: "ਟੈਕਸ ਦੀ ਕਿਸਮ", rep_tax: "ਨਿਯਮਤ ਟੈਕਸਦਾਤਾ", comp_scheme: "ਕੰਪੋਜੀਸ਼ਨ ਸਕੀਮ",
+    inv_footer: "ਇਨਵੌਇਸ ਫੁੱਟਰ ਟੈਕਸਟ", inv_placeholder: "ਤੁਹਾਡੇ ਕਾਰੋਬਾਰ ਲਈ ਧੰਨਵਾਦ। ਕਿਰਪਾ ਕਰਕੇ ਤੰਦਰੁਸਤ ਰਹੋ!",
+    ds_title: "ਡਾਟਾ ਅਤੇ ਗੋਪਨੀਯਤਾ", ds_sub: "ਆਪਣੇ ਡੇਟਾ ਅਤੇ ਸੁਰੱਖਿਆ ਤਰਜੀਹਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    export_title: "ਨਿਰਯਾਤ ਆਡਿਟ ਲਾਗ", export_sub: "ਸਾਰੇ ਫਾਰਮੇਸੀ ਗਤੀਵਿਧੀ ਲੌਗਸ ਨੂੰ ਐਕਸਲ ਫਾਰਮੈਟ ਵਿੱਚ ਡਾਊਨਲੋਡ ਕਰੋ", btn_export: "ਨਿਰਯਾਤ",
+    t4_title: "ਦੋ-ਕਾਰਕ ਪ੍ਰਮਾਣਿਕਤਾ", t4_sub: "ਮਾਲਕ ਲੌਗਇਨ ਲਈ ਵਾਧੂ ਸੁਰੱਖਿਆ ਸ਼ਾਮਲ ਕਰੋ",
+    login_dur: "ਲੌਗਇਨ ਸੈਸ਼ਨ ਦੀ ਮਿਆਦ", hr_1: "1 ਘੰਟਾ", hr_8: "8 ਘੰਟੇ", hr_24: "24 ਘੰਟੇ"
   }
 };
