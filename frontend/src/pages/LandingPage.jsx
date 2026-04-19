@@ -206,8 +206,8 @@ const LandingPage = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
+          <Grid size={{ xs: 12, sm: 8, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
             <FeatureCard 
               delay={0.4}
               icon={<VideoCallIcon sx={{ fontSize: 50 }} />} 
@@ -215,7 +215,7 @@ const LandingPage = () => {
               description="High-quality video and low-bandwidth audio options carefully designed to ensure you can talk to doctors seamlessly." 
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, sm: 8, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
             <FeatureCard 
               delay={0.6}
               icon={<SmartToyIcon sx={{ fontSize: 50 }} />} 
@@ -223,7 +223,7 @@ const LandingPage = () => {
               description="Get instant AI-driven suggestions, preliminary assessments, and severity indicators before confirming your booking." 
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, sm: 8, md: 4 }} sx={{ display: 'flex', justifyContent: 'center' }}>
             <FeatureCard 
               delay={0.8}
               icon={<LocalPharmacyIcon sx={{ fontSize: 50 }} />} 

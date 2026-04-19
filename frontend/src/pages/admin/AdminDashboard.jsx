@@ -21,18 +21,18 @@ import {
 } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>
               {t.title}
             </Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                 <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.pending}</Typography>
                 <Stack spacing={2}>
                   {pending.length ? pending.map((user) => (
-                    <Box key={user._id} sx={{ p: 2, borderRadius: '12px', bgcolor: '#f7f3ea' }}>
+                    <Box key={user._id} sx={{ p: 2, borderRadius: '12px', bgcolor: colors.blueSoft, border: `1px solid ${colors.line}` }}>
                       <Stack direction="row" justifyContent="space-between" spacing={2} alignItems="flex-start">
                         <Box sx={{ minWidth: 0 }}>
                           <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{user.full_name}</Typography>
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
               <Typography sx={{ fontSize: 18, mb: 2 }}>{t.sections.recent_logs}</Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2 }}>
                 {logs.length ? logs.map((log) => (
-                  <Box key={log._id} sx={{ p: 1.6, borderRadius: '12px', bgcolor: '#f7f3ea' }}>
+                  <Box key={log._id} sx={{ p: 1.6, borderRadius: '12px', bgcolor: '#f1f3f4', border: `1px solid ${colors.line}` }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography
                         sx={{

@@ -22,19 +22,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { exportAdminReport, fetchFinancialOverview } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
@@ -157,13 +157,13 @@ export default function AdminFinancials() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Financials</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Financials</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Platform revenue, partner payouts and tax management
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
@@ -172,7 +172,7 @@ export default function AdminFinancials() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -200,7 +200,7 @@ export default function AdminFinancials() {
               icon={<WarningIcon sx={{ color: colors.red }} />}
               sx={{
                 mb: 4,
-                borderRadius: 3.5,
+                borderRadius: '16px',
                 bgcolor: colors.redSoft,
                 border: `1px solid ${colors.red}20`,
                 color: colors.red,
@@ -219,7 +219,7 @@ export default function AdminFinancials() {
                   key={stat.label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -243,7 +243,7 @@ export default function AdminFinancials() {
 
             <Grid container spacing={4}>
               <Grid item xs={12} lg={8}>
-          <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+          <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                     <Box>
                       <Typography sx={{ fontSize: 18 }}>Revenue growth</Typography>
@@ -266,7 +266,7 @@ export default function AdminFinancials() {
                     {recentPayouts.length ? recentPayouts.map((payout, index) => {
                       const statusColor = payout.status === 'Paid' ? colors.green : payout.status === 'Flagged' ? colors.red : colors.orange;
                       return (
-                        <Box key={`${payout.doctorName}-${index}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Box key={`${payout.doctorName}-${index}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Stack direction="row" spacing={2} alignItems="center">
                             <Avatar sx={{ width: 44, height: 44, bgcolor: `${statusColor}15`, color: statusColor, fontWeight: 800, fontSize: 14 }}>
                               {getInitials(payout.doctorName)}
@@ -294,7 +294,7 @@ export default function AdminFinancials() {
 
               <Grid item xs={12} lg={4}>
                 <Stack spacing={4}>
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 4 }}>GST summary — {monthLabel}</Typography>
                     <Stack spacing={2.5}>
                       {[
@@ -311,7 +311,7 @@ export default function AdminFinancials() {
                     </Stack>
                   </Box>
 
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, background: `linear-gradient(180deg, ${colors.paper} 0%, #fcfbf7 100%)` }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, background: `linear-gradient(180deg, ${colors.paper} 0%, #fcfbf7 100%)` }}>
                     <Typography sx={{ fontSize: 18, mb: 4 }}>Revenue breakdown</Typography>
                     <Stack spacing={3}>
                       {revenueBreakdown.map((item, index) => {
@@ -332,7 +332,7 @@ export default function AdminFinancials() {
                         );
                       })}
                     </Stack>
-                    <Box sx={{ mt: 4, p: 2.5, borderRadius: 3, bgcolor: colors.blueSoft, border: `1px solid ${colors.blue}15` }}>
+                    <Box sx={{ mt: 4, p: 2.5, borderRadius: '12px', bgcolor: colors.blueSoft, border: `1px solid ${colors.blue}15` }}>
                       <Typography sx={{ fontSize: 14, color: colors.blue, fontWeight: 800, mb: 1 }}>Performance Insight</Typography>
                       <Typography sx={{ fontSize: 13, color: colors.muted, lineHeight: 1.6 }}>
                         {`${insight.topSource || 'Consultation fees'} is the top revenue driver, contributing about ${insight.topSourceShare || 0}% of current estimated monthly revenue.`}

@@ -8,25 +8,41 @@ import {
   Grid,
   Paper,
   Stack,
-  Typography
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Divider,
+  Avatar
 } from '@mui/material';
+import {
+  CloseRounded as CloseIcon,
+  LocalPharmacyRounded as PharmacyIcon,
+  EmailRounded as EmailIcon,
+  PhoneRounded as PhoneIcon,
+  BadgeRounded as LicenseIcon,
+  VerifiedUserRounded as VerifiedIcon,
+  TimelineRounded as PerformanceIcon,
+  MapRounded as MapIcon
+} from '@mui/icons-material';
 import AdminLayout from '../../components/AdminLayout';
 import { approvePendingUser, fetchPharmaciesDirectory } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -36,6 +52,8 @@ export default function AdminPharmacies() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [approvingId, setApprovingId] = useState('');
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const loadPharmacies = async () => {
     try {
@@ -89,20 +107,20 @@ export default function AdminPharmacies() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Pharmacies</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Pharmacies</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Live pharmacy registry, approval queue, and fulfillment overview.
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -121,7 +139,7 @@ export default function AdminPharmacies() {
             <CircularProgress sx={{ color: colors.blue }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
@@ -130,7 +148,7 @@ export default function AdminPharmacies() {
                   key={label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -149,35 +167,35 @@ export default function AdminPharmacies() {
 
             <Grid container spacing={4} sx={{ mb: 5 }}>
               <Grid item xs={12} lg={8}>
-                <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
+                <Box sx={{ borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
                   <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}` }}>
                     <Typography sx={{ fontSize: 18 }}>Pharmacy registry</Typography>
                   </Box>
                   <Box sx={{ px: 4, py: 2, bgcolor: colors.soft, display: { xs: 'none', lg: 'flex' } }}>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '24%' }}>Pharmacy</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '18%' }}>Contact</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '12%' }}>Type</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '12%' }}>Fulfilled</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '12%' }}>Low stock</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '12%' }}>Status</Typography>
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '10%', textAlign: 'right' }}>Action</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '20%' }}>Pharmacy</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '26%' }}>Contact</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '10%' }}>Type</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '11%' }}>Fulfilled</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '11%' }}>Low stock</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '11%' }}>Status</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: colors.muted, width: '11%', textAlign: 'right' }}>Action</Typography>
                   </Box>
                   {pharmacies.map((pharmacy, index) => (
                     <Box key={pharmacy.pharmacyId} sx={{ px: 4, py: 2.5, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, borderBottom: index === pharmacies.length - 1 ? 'none' : `1px solid ${colors.line}`, '&:hover': { bgcolor: '#fbfbfb' } }}>
-                      <Box sx={{ width: { xs: '100%', lg: '24%' }, mb: { xs: 1, lg: 0 } }}>
+                      <Box sx={{ width: { xs: '100%', lg: '20%' }, mb: { xs: 1, lg: 0 } }}>
                         <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{pharmacy.pharmacyName}</Typography>
                         <Typography sx={{ fontSize: 12, color: colors.muted }}>{pharmacy.licenseNumber}</Typography>
                       </Box>
-                      <Typography sx={{ fontSize: 14, color: colors.muted, width: { xs: '100%', lg: '18%' }, mb: { xs: 0.5, lg: 0 } }}>{pharmacy.email || pharmacy.phone || 'No contact'}</Typography>
-                      <Box sx={{ width: { xs: '100%', lg: '12%' }, mb: { xs: 1, lg: 0 } }}>
+                      <Typography sx={{ fontSize: 14, color: colors.muted, width: { xs: '100%', lg: '26%' }, mb: { xs: 0.5, lg: 0 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pharmacy.email || pharmacy.phone || 'No contact'}</Typography>
+                      <Box sx={{ width: { xs: '100%', lg: '10%' }, mb: { xs: 1, lg: 0 } }}>
                         <Chip label={pharmacy.isJanAushadhi ? 'Jan Aushadhi' : 'General'} size="small" sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: pharmacy.isJanAushadhi ? colors.greenSoft : colors.soft, color: pharmacy.isJanAushadhi ? colors.green : colors.muted }} />
                       </Box>
-                      <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '12%' }, mb: { xs: 0.5, lg: 0 } }}>{pharmacy.fulfillmentRate || 0}%</Typography>
-                      <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '12%' }, color: pharmacy.lowStockItems > 0 ? colors.orange : colors.text, mb: { xs: 0.5, lg: 0 } }}>{formatNumber(pharmacy.lowStockItems)} items</Typography>
-                      <Box sx={{ width: { xs: '100%', lg: '12%' }, mb: { xs: 1, lg: 0 } }}>
+                      <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '11%' }, mb: { xs: 0.5, lg: 0 } }}>{pharmacy.fulfillmentRate || 0}%</Typography>
+                      <Typography sx={{ fontSize: 14, width: { xs: '100%', lg: '11%' }, color: pharmacy.lowStockItems > 0 ? colors.orange : colors.text, mb: { xs: 0.5, lg: 0 } }}>{formatNumber(pharmacy.lowStockItems)} items</Typography>
+                      <Box sx={{ width: { xs: '100%', lg: '11%' }, mb: { xs: 1, lg: 0 } }}>
                         <Chip label={pharmacy.is_approved ? 'Active' : 'Pending'} size="small" sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: pharmacy.is_approved ? colors.greenSoft : colors.orangeSoft, color: pharmacy.is_approved ? colors.green : colors.orange }} />
                       </Box>
-                      <Box sx={{ width: { xs: '100%', lg: '10%' }, textAlign: { lg: 'right' }, mt: { xs: 1, lg: 0 } }}>
+                      <Box sx={{ width: { xs: '100%', lg: '11%' }, textAlign: { lg: 'right' }, mt: { xs: 1, lg: 0 } }}>
                         {!pharmacy.is_approved ? (
                           <Button 
                             onClick={() => handleApprove(pharmacy.userId)} 
@@ -196,7 +214,15 @@ export default function AdminPharmacies() {
                             {approvingId === pharmacy.userId ? 'Saving...' : 'Approve'}
                           </Button>
                         ) : (
-                          <Button sx={{ borderRadius: 1.5, textTransform: 'none', color: colors.blue, fontWeight: 700 }}>View</Button>
+                          <Button 
+                            onClick={() => {
+                              setSelectedPharmacy(pharmacy);
+                              setModalOpen(true);
+                            }} 
+                            sx={{ borderRadius: 1.5, textTransform: 'none', color: colors.blue, fontWeight: 700 }}
+                          >
+                            View
+                          </Button>
                         )}
                       </Box>
                     </Box>
@@ -206,11 +232,11 @@ export default function AdminPharmacies() {
 
               <Grid item xs={12} lg={4}>
                 <Stack spacing={4}>
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 3 }}>Pending approvals</Typography>
                     <Stack spacing={2}>
                       {pendingPharmacies.length ? pendingPharmacies.map((item) => (
-                        <Box key={item.pharmacyId} sx={{ p: 1.8, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Box key={item.pharmacyId} sx={{ p: 1.8, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{item.pharmacyName}</Typography>
                           <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.4 }}>{item.email || item.phone || 'No contact'}</Typography>
                         </Box>
@@ -218,11 +244,11 @@ export default function AdminPharmacies() {
                     </Stack>
                   </Box>
 
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 3 }}>Top fulfillment</Typography>
                     <Stack spacing={2}>
                       {topPharmacies.slice(0, 5).map((item) => (
-                        <Box key={item.pharmacyId} sx={{ p: 1.8, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Box key={item.pharmacyId} sx={{ p: 1.8, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center">
                             <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>{item.pharmacyName}</Typography>
                             <Chip label={`${item.fulfillmentRate || 0}%`} size="small" sx={{ fontWeight: 700, bgcolor: colors.blueSoft, color: colors.blue }} />
@@ -236,6 +262,105 @@ export default function AdminPharmacies() {
             </Grid>
           </>
         )}
+
+        {/* Pharmacy Detail Modal */}
+        <Dialog 
+          open={modalOpen} 
+          onClose={() => setModalOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' } }}
+        >
+          <Box sx={{ p: 4 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar sx={{ bgcolor: colors.blueSoft, color: colors.blue }}>
+                  <PharmacyIcon />
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight={800}>{selectedPharmacy?.pharmacyName}</Typography>
+                  <Typography variant="caption" sx={{ color: colors.muted }}>ID: {selectedPharmacy?.pharmacyId}</Typography>
+                </Box>
+              </Stack>
+              <IconButton onClick={() => setModalOpen(false)} sx={{ bgcolor: colors.soft }}>
+                <CloseIcon />
+              </IconButton>
+            </Stack>
+
+            <Divider sx={{ mb: 4 }} />
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <Stack spacing={2.5}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>CONTACT EMAIL</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <EmailIcon sx={{ fontSize: 18, color: colors.blue }} />
+                      <Typography fontWeight={600} sx={{ wordBreak: 'break-all' }}>{selectedPharmacy?.email || 'N/A'}</Typography>
+                    </Stack>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>PHONE NUMBER</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <PhoneIcon sx={{ fontSize: 18, color: colors.blue }} />
+                      <Typography fontWeight={600}>{selectedPharmacy?.phone || 'N/A'}</Typography>
+                    </Stack>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>LICENSE INFO</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <LicenseIcon sx={{ fontSize: 18, color: colors.blue }} />
+                      <Typography fontWeight={600}>{selectedPharmacy?.licenseNumber || 'N/A'}</Typography>
+                    </Stack>
+                  </Box>
+                </Stack>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ p: 3, borderRadius: '12px', bgcolor: colors.soft }}>
+                  <Typography variant="caption" sx={{ color: colors.muted, mb: 2, display: 'block' }}>PLATFORM PERFORMANCE</Typography>
+                  <Stack spacing={3}>
+                    <Box>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography variant="body2" fontWeight={700}>Fulfillment</Typography>
+                        <Typography variant="body2" fontWeight={800} color={colors.blue}>{selectedPharmacy?.fulfillmentRate || 0}%</Typography>
+                      </Stack>
+                      <Box sx={{ height: 6, bgcolor: colors.paper, borderRadius: 3, overflow: 'hidden' }}>
+                        <Box sx={{ width: `${selectedPharmacy?.fulfillmentRate || 0}%`, height: '100%', bgcolor: colors.blue }} />
+                      </Box>
+                    </Box>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <PerformanceIcon sx={{ color: colors.muted }} />
+                      <Box>
+                        <Typography variant="body2" fontWeight={700}>{selectedPharmacy?.lowStockItems || 0} Low items</Typography>
+                        <Typography variant="caption" sx={{ color: colors.muted }}>Requires inventory update</Typography>
+                      </Box>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Box sx={{ mt: 1, p: 2, borderRadius: '12px', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <VerifiedIcon sx={{ color: selectedPharmacy?.is_approved ? colors.green : colors.orange }} />
+                  <Box>
+                    <Typography variant="body2" fontWeight={700}>Status: {selectedPharmacy?.is_approved ? 'Verified Merchant' : 'Verification Pending'}</Typography>
+                    <Typography variant="caption" sx={{ color: colors.muted }}>Account created on {new Date().toLocaleDateString()}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+
+            <Button 
+              fullWidth 
+              variant="contained" 
+              onClick={() => setModalOpen(false)}
+              sx={{ mt: 4, py: 1.5, borderRadius: '12px', bgcolor: colors.blue, textTransform: 'none', fontWeight: 700 }}
+            >
+              Close Profile
+            </Button>
+          </Box>
+        </Dialog>
       </Box>
     </AdminLayout>
   );

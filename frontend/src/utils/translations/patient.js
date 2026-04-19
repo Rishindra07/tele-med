@@ -445,12 +445,104 @@ const PATIENT_SHELL_BN = {
   },
 };
 
+
+const PATIENT_PROFILE_PA = {
+  title: 'ਮੇਰੀ ਪ੍ਰੋਫਾਇਲ',
+  subtitle_view: 'ਆਪਣੀ ਨਿੱਜੀ, ਸਿਹਤ ਅਤੇ ਖਾਤਾ ਜਾਣਕਾਰੀ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ',
+  subtitle_edit: 'ਆਪਣੀ ਨਿੱਜੀ, ਸਿਹਤ ਅਤੇ ਖਾਤਾ ਜਾਣਕਾਰੀ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ',
+  edit_profile: 'ਪ੍ਰੋਫਾਈਲ ਸੰਪਾਦਿਤ ਕਰੋ',
+  cancel: 'ਰੱਦ ਕਰੋ',
+  save_changes: 'ਬਦਲਾਵ ਬਚਾਓ',
+  role_label: 'ਭੂਮਿਕਾ:',
+  not_set: 'ਸੈੱਟ ਨਹੀਂ',
+  not_provided: 'ਪ੍ਰਦਾਨ ਨਹੀਂ ਕੀਤੀ ਗਈ',
+  verified: 'ਪ੍ਰਮਾਣਿਤ',
+  add: 'ਜੋੜੋ',
+  coordinates: 'ਕੋਆਰਡੀਨੇਟਸ:',
+  stats: {
+    consultations: 'ਸਲਾਹ ਮਸ਼ਵਰਾ',
+    prescriptions: 'ਨੁਸਖੇ',
+    records: 'ਰਿਕਾਰਡ',
+  },
+  basic_info: {
+    title: 'ਮੁੱਢਲੀ ਜਾਣਕਾਰੀ',
+    dob: 'ਜਨਮ ਮਿਤੀ',
+    dob_placeholder: 'ਜਿਵੇਂ ਕਿ 15 ਅਗਸਤ 1990',
+    age: 'ਉਮਰ',
+    age_placeholder: 'ਜਿਵੇਂ ਕਿ 34',
+    gender: 'ਲਿੰਗ',
+    gender_placeholder: 'ਲਿੰਗ ਚੁਣੋ',
+    gender_options: ['Male', 'Female', 'Other', 'Prefer not to say'],
+    blood_group: 'ਬਲੱਡ ਗਰੁੱਪ',
+    blood_group_placeholder: 'ਬਲੱਡ ਗਰੁੱਪ ਚੁਣੋ',
+  },
+  contact_info: {
+    title: 'ਸੰਪਰਕ ਜਾਣਕਾਰੀ',
+    mobile: 'ਮੋਬਾਈਲ ਨੰਬਰ',
+    mobile_placeholder: 'ਜਿਵੇਂ ਕਿ 9014062013',
+    email: 'ਈਮੇਲ ਪਤਾ',
+    email_placeholder: 'ਜਿਵੇਂ ਕਿ user@example.com',
+    address: 'ਪਤਾ',
+    address_placeholder: 'ਜਿਵੇਂ ਕਿ 123 ਹੈਲਥ ਐਵੇਨਿਊ, ਮੁਂਬਈ',
+  },
+  emergency: {
+    title: 'ਐਮਰਜੈਂਸੀ ਸੰਪਰਕ',
+    name: 'ਸੰਪਰਕ ਨਾਮ',
+    name_placeholder: 'ਜਿਵੇਂ ਕਿ ਜੌਹਨ ਡੋ',
+    relation: 'ਰਿਸ਼ਤਾ',
+    relation_placeholder: 'ਜਿਵੇਂ ਕਿ ਪਿਤਾ',
+    phone: 'ਫ਼ੋਨ ਨੰਬਰ',
+    phone_placeholder: 'ਜਿਵੇਂ ਕਿ 9876543210',
+  },
+  geo: {
+    title: 'ਭੂ-ਸਥਾਨ',
+    subtitle: 'ਤੇਜ਼ ਹੋਮ ਡਿਲੀਵਰੀ ਅਤੇ ਮੈਪਿੰਗ ਲਈ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ',
+    detect: 'ਮੇਰੀ ਸਥਿਤੀ ਦਾ ਪਤਾ ਲਗਾਓ',
+  },
+  full_name_placeholder: 'ਪੂਰਾ ਨਾਮ',
+  file_size_error: 'ਫ਼ਾਈਲ ਦਾ ਆਕਾਰ 2MB ਤੋਂ ਘੱਟ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ',
+};
+
+
+const PATIENT_SHELL_PA = {
+  brand: 'ਸੇਵਾ ਟੈਲੀਹੈਲਥ',
+  tagline: 'ਪੇਂਡੂ ਸਿਹਤ ਸੰਭਾਲ ਪਲੇਟਫਾਰਮ',
+  nav: {
+    home: 'ਘਰ',
+    appointments: 'ਮੁਲਾਕਾਤਾਂ',
+    records: 'ਸਿਹਤ ਰਿਕਾਰਡ',
+    symptoms: 'ਲੱਛਣ ਜਾਂਚਕਰਤਾ',
+    pharmacies: 'ਫਾਰਮੇਸੀਆਂ',
+    orders: 'ਹੁਕਮ',
+    payments: 'ਭੁਗਤਾਨ',
+  },
+  settings_label: 'ਸੈਟਿੰਗਾਂ',
+  my_profile: 'ਮੇਰੀ ਪ੍ਰੋਫਾਇਲ',
+  settings: 'ਸੈਟਿੰਗਾਂ',
+  language_label: 'ਭਾਸ਼ਾ',
+  logout: 'ਲਾਗਆਉਟ',
+  settings_sections: {
+    appearance: 'ਰੂਪ',
+    language: 'ਭਾਸ਼ਾ',
+    notifications: 'ਸੂਚਨਾਵਾਂ',
+    connectivity: 'ਕਨੈਕਟੀਵਿਟੀ',
+    privacy: 'ਗੋਪਨੀਯਤਾ',
+    security: 'ਸੁਰੱਖਿਆ',
+    storage: 'ਸਟੋਰੇਜ ਅਤੇ ਸਿੰਕ',
+    accessibility: 'ਪਹੁੰਚਯੋਗਤਾ',
+    account: 'ਖਾਤਾ',
+    devices: 'ਯੰਤਰ',
+    danger: 'ਖ਼ਤਰਾ ਜ਼ੋਨ',
+  },
+};
+
 export const PATIENT_PROFILE_TRANSLATIONS = {
   en: PATIENT_PROFILE_EN,
   hi: PATIENT_PROFILE_HI,
   ta: PATIENT_PROFILE_TA,
   te: PATIENT_PROFILE_TE,
   bn: PATIENT_PROFILE_BN,
+  pa: PATIENT_PROFILE_PA,
 };
 
 export const PATIENT_SHELL_TRANSLATIONS = {
@@ -459,6 +551,7 @@ export const PATIENT_SHELL_TRANSLATIONS = {
   ta: PATIENT_SHELL_TA,
   te: PATIENT_SHELL_TE,
   bn: PATIENT_SHELL_BN,
+  pa: PATIENT_SHELL_PA,
 };
 
 export const PATIENT_SETTINGS_TRANSLATIONS = {
@@ -765,6 +858,128 @@ export const PATIENT_SETTINGS_TRANSLATIONS = {
     devices: 'ডিভাইসগুলো', sessions: 'সেশন', current_browser: 'বর্তমান ব্রাউজার', active_now: 'সক্রিয় আছে', this_device: 'এই ডিভাইস', sign_out_all: 'সাইন আউট',
     danger_zone: 'বিপদ এলাকা', permanent: 'স্থায়ী', deactivate: 'নিষ্ক্রিয় করুন', deactivate_desc: 'পরে সক্রিয় করা যাবে।', delete_records: 'মুছুন', delete_records_desc: 'মুছুন', delete_account: 'স্থায়ীভাবে অ্যাকাউন্ট মুছুন', cannot_undone: 'মুছে যাবে।',
     actions: { light: 'হালকা', dark: 'গাঢ়', system: 'সিস্টেম', small: 'ছোট', medium: 'মাঝারি', large: 'বড়', change_password: 'পরিবর্তন করুন', enabled: 'সক্রিয়', export_pdf: 'পিডিএফ', clear: 'মুছুন', edit: 'সম্পাদনা', change: 'পরিবর্তন' }
+  },
+  pa: {
+    title: 'ਸੈਟਿੰਗਾਂ',
+    subtitle: 'ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਸਾਈਡਬਾਰ ਤੋਂ ਇੱਕ ਭਾਗ ਚੁਣੋ।',
+    save_changes: 'ਬਦਲਾਵ ਬਚਾਓ',
+    saving: 'ਸੰਭਾਲ ਰਿਹਾ ਹੈ...',
+    select_category: 'ਸੰਰਚਨਾ ਸੈਟਿੰਗਾਂ ਲਈ ਇੱਕ ਸ਼੍ਰੇਣੀ ਚੁਣੋ',
+    select_category_desc: 'ਖੱਬੇ ਸਾਈਡਬਾਰ \'ਤੇ ਆਈਟਮ ਨੂੰ ਲੱਭਣ ਅਤੇ ਇਸ ਨਾਲ ਸੰਬੰਧਿਤ ਸੈਟਿੰਗਾਂ ਨੂੰ ਸੋਧਣ ਲਈ ਕਲਿੱਕ ਕਰੋ।',
+    
+    appearance: 'ਰੂਪ',
+    app_look: 'ਅਨੁਕੂਲਿਤ ਕਰੋ ਕਿ ਐਪ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਕਿਵੇਂ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ',
+    theme: 'ਥੀਮ',
+    choose_theme: 'ਰੋਸ਼ਨੀ, ਹਨੇਰਾ ਜਾਂ ਸਿਸਟਮ ਡਿਫੌਲਟ ਵਿਚਕਾਰ ਚੁਣੋ',
+    text_size: 'ਟੈਕਸਟ ਦਾ ਆਕਾਰ',
+    adjust_readability: 'ਛੋਟੀਆਂ ਸਕ੍ਰੀਨਾਂ \'ਤੇ ਬਿਹਤਰ ਪੜ੍ਹਨਯੋਗਤਾ ਲਈ ਵਿਵਸਥਿਤ ਕਰੋ',
+    compact_layout: 'ਸੰਖੇਪ ਖਾਕਾ',
+    show_more: 'ਸਖ਼ਤ ਸਪੇਸਿੰਗ ਨਾਲ ਹੋਰ ਸਮੱਗਰੀ ਦਿਖਾਓ',
+    animations: 'ਐਨੀਮੇਸ਼ਨ',
+    enable_smooth: 'ਨਿਰਵਿਘਨ ਪਰਿਵਰਤਨ ਅਤੇ ਗਤੀ ਪ੍ਰਭਾਵਾਂ ਨੂੰ ਸਮਰੱਥ ਬਣਾਓ',
+    
+    language: 'ਭਾਸ਼ਾ',
+    preferred_language: 'ਇੰਟਰਫੇਸ ਲਈ ਆਪਣੀ ਪਸੰਦੀਦਾ ਭਾਸ਼ਾ ਚੁਣੋ',
+    
+    notifications: 'ਸੂਚਨਾਵਾਂ',
+    control_alerts: 'ਕੰਟਰੋਲ ਕਰੋ ਕਿ ਤੁਸੀਂ ਕਦੋਂ ਅਤੇ ਕਿਵੇਂ ਚੇਤਾਵਨੀਆਂ ਪ੍ਰਾਪਤ ਕਰਦੇ ਹੋ',
+    apt_reminders: 'ਮੁਲਾਕਾਤ ਰੀਮਾਈਂਡਰ',
+    get_notified: 'ਆਪਣੀ ਸਲਾਹ ਤੋਂ ਪਹਿਲਾਂ ਸੂਚਿਤ ਕਰੋ',
+    reminder_timing: 'ਰੀਮਾਈਂਡਰ ਟਾਈਮਿੰਗ',
+    how_early: 'ਪਹਿਲੀ ਯਾਦ ਕਿੰਨੀ ਜਲਦੀ ਭੇਜੀਏ',
+    follow_up: 'ਫਾਲੋ-ਅੱਪ ਰੀਮਾਈਂਡਰ',
+    notify_follow: 'ਸੂਚਿਤ ਕਰੋ ਜਦੋਂ ਇੱਕ ਫਾਲੋ-ਅਪ ਬਕਾਇਆ ਹੈ',
+    channels: 'ਚੈਨਲਾਂ',
+    sms_notif: 'SMS ਸੂਚਨਾਵਾਂ',
+    sms_alerts: 'ਤੁਹਾਡੇ ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਲਈ ਚੇਤਾਵਨੀਆਂ',
+    push_notif: 'ਪੁਸ਼ ਸੂਚਨਾਵਾਂ',
+    push_alerts: 'ਇਨ-ਐਪ ਅਤੇ ਬ੍ਰਾਊਜ਼ਰ ਪੁਸ਼ ਅਲਰਟ',
+    email_notif: 'ਈਮੇਲ ਸੂਚਨਾਵਾਂ',
+    summary_emails: 'ਤੁਹਾਡੇ ਖਾਤੇ ਲਈ ਸੰਖੇਪ ਈਮੇਲਾਂ',
+    
+    connectivity: 'ਕਨੈਕਟੀਵਿਟੀ',
+    optimise_rural: 'ਘੱਟ-ਨੈੱਟਵਰਕ ਪੇਂਡੂ ਖੇਤਰਾਂ ਲਈ ਅਨੁਕੂਲ ਬਣਾਓ',
+    connected: 'ਕਨੈਕਟ ਕੀਤਾ ਗਿਆ - 3G · 320 kbps ਖੋਜਿਆ ਗਿਆ',
+    low_bw: 'ਘੱਟ ਬੈਂਡਵਿਡਥ ਮੋਡ',
+    compress: 'ਚਿੱਤਰਾਂ ਨੂੰ ਸੰਕੁਚਿਤ ਕਰੋ ਅਤੇ ਵੀਡੀਓ ਗੁਣਵੱਤਾ ਨੂੰ ਆਪਣੇ ਆਪ ਘਟਾਓ',
+    audio_only: 'ਸਿਰਫ਼ ਆਡੀਓ \'ਤੇ ਆਟੋ-ਸਵਿੱਚ ਕਰੋ',
+    drop_video: 'ਜੇਕਰ ਵੀਡੀਓ ਅਸਥਿਰ ਹੈ ਤਾਂ ਆਡੀਓ \'ਤੇ ਸੁੱਟੋ',
+    text_fallback: 'ਟੈਕਸਟ ਚੈਟ \'ਤੇ ਆਟੋ-ਸਵਿਚ ਕਰੋ',
+    drop_audio: 'ਜੇਕਰ ਆਡੀਓ ਵੀ ਫੇਲ ਹੋ ਜਾਵੇ ਤਾਂ ਚੈਟ \'ਤੇ ਵਾਪਸ ਆ ਜਾਓ',
+    
+    privacy: 'ਗੋਪਨੀਯਤਾ',
+    control_data: 'ਕੰਟਰੋਲ ਕਰੋ ਕਿ ਤੁਹਾਡੇ ਸਿਹਤ ਡੇਟਾ ਤੱਕ ਕੌਣ ਪਹੁੰਚ ਸਕਦਾ ਹੈ',
+    share_doctors: 'ਡਾਕਟਰਾਂ ਨਾਲ ਰਿਕਾਰਡ ਸ਼ੇਅਰ ਕਰੋ',
+    doc_access: 'ਸਲਾਹ-ਮਸ਼ਵਰੇ ਦੌਰਾਨ ਡਾਕਟਰ ਤੁਹਾਡਾ ਪੂਰਾ ਮੈਡੀਕਲ ਇਤਿਹਾਸ ਦੇਖ ਸਕਦੇ ਹਨ',
+    share_pharmacy: 'ਫਾਰਮਾਸਿਸਟ ਨਾਲ ਸ਼ੇਅਰ ਕਰੋ',
+    pharm_access: 'ਫਾਰਮਾਸਿਸਟ ਤੁਹਾਡੀ ਪਰਚੀ ਅਤੇ ਸੰਪਰਕ ਵੇਰਵੇ ਪ੍ਰਾਪਤ ਕਰਦੇ ਹਨ',
+    location_access: 'ਟਿਕਾਣਾ ਪਹੁੰਚ',
+    used_to_show: 'ਨੇੜਲੇ ਫਾਰਮੇਸੀਆਂ ਅਤੇ ਡਾਕਟਰਾਂ ਨੂੰ ਦਿਖਾਉਣ ਲਈ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ',
+    analytics: 'ਵਿਸ਼ਲੇਸ਼ਣ ਅਤੇ ਵਰਤੋਂ ਡੇਟਾ',
+    help_improve: 'ਅਗਿਆਤ ਵਰਤੋਂ ਪੈਟਰਨਾਂ ਨਾਲ ਐਪ ਨੂੰ ਬਿਹਤਰ ਬਣਾਉਣ ਵਿੱਚ ਸਾਡੀ ਮਦਦ ਕਰੋ',
+    compliance: 'ਸੇਵਾ ਟੈਲੀਹੈਲਥ ਡਾਟਾ ਸੁਰੱਖਿਆ ਨਿਯਮਾਂ ਦੀ ਪਾਲਣਾ ਕਰਦੀ ਹੈ। ਤੁਹਾਡਾ ਡੇਟਾ ਆਰਾਮ ਅਤੇ ਆਵਾਜਾਈ ਵਿੱਚ ਏਨਕ੍ਰਿਪਟ ਕੀਤਾ ਗਿਆ ਹੈ। ਅਸੀਂ ਕਦੇ ਵੀ ਵਿਗਿਆਪਨਦਾਤਾਵਾਂ ਨੂੰ ਤੁਹਾਡਾ ਡੇਟਾ ਨਹੀਂ ਵੇਚਦੇ।',
+    
+    security: 'ਸੁਰੱਖਿਆ',
+    manage_access: 'ਆਪਣੇ ਖਾਤੇ ਦੀ ਪਹੁੰਚ ਅਤੇ ਪ੍ਰਮਾਣਿਕਤਾ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ',
+    password: 'ਪਾਸਵਰਡ',
+    last_changed: 'ਪਿਛਲਾ ਹਾਲ ਹੀ ਬਦਲਿਆ',
+    two_factor: 'ਦੋ-ਕਾਰਕ ਪ੍ਰਮਾਣਿਕਤਾ',
+    otp_sent: 'ਹਰੇਕ ਲੌਗਇਨ \'ਤੇ ਮੋਬਾਈਲ \'ਤੇ OTP ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ',
+    auto_lock: 'ਆਟੋ-ਲਾਕ ਟਾਈਮਆਊਟ',
+    lock_app: 'ਅਕਿਰਿਆਸ਼ੀਲਤਾ ਤੋਂ ਬਾਅਦ ਐਪ ਨੂੰ ਲਾਕ ਕਰੋ',
+    login_alerts: 'ਲੌਗਇਨ ਚੇਤਾਵਨੀਆਂ',
+    sms_alert: 'ਜਦੋਂ ਵੀ ਕੋਈ ਨਵਾਂ ਲੌਗਇਨ ਖੋਜਿਆ ਜਾਂਦਾ ਹੈ ਤਾਂ SMS ਚੇਤਾਵਨੀ',
+    export_data: 'ਮੇਰਾ ਡੇਟਾ ਐਕਸਪੋਰਟ ਕਰੋ',
+    download_archive: 'ਆਪਣੇ ਸਾਰੇ ਸਿਹਤ ਰਿਕਾਰਡਾਂ ਨੂੰ PDF ਪੁਰਾਲੇਖ ਵਜੋਂ ਡਾਊਨਲੋਡ ਕਰੋ',
+    
+    storage: 'ਸਟੋਰੇਜ ਅਤੇ ਸਿੰਕ',
+    manage_offline: 'ਔਫਲਾਈਨ ਕੈਸ਼ ਅਤੇ ਡਾਟਾ ਵਰਤੋਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ',
+    offline_cache: 'ਔਫਲਾਈਨ ਕੈਸ਼',
+    clear_cache: 'ਔਫਲਾਈਨ ਕੈਸ਼ ਸਾਫ਼ ਕਰੋ',
+    remove_all: 'ਸਾਰੀਆਂ ਸਥਾਨਕ ਤੌਰ \'ਤੇ ਸਟੋਰ ਕੀਤੀਆਂ ਫਾਈਲਾਂ ਨੂੰ ਹਟਾਓ',
+    
+    accessibility: 'ਪਹੁੰਚਯੋਗਤਾ',
+    easier_use: 'ਐਪ ਨੂੰ ਹਰ ਕਿਸੇ ਲਈ ਵਰਤਣਾ ਆਸਾਨ ਬਣਾਓ',
+    high_contrast: 'ਉੱਚ ਕੰਟ੍ਰਾਸਟ ਮੋਡ',
+    increase_contrast: 'ਸੂਰਜ ਦੀ ਰੌਸ਼ਨੀ ਵਿੱਚ ਬਿਹਤਰ ਦਿੱਖ ਲਈ ਕੰਟ੍ਰਾਸਟ ਵਧਾਓ',
+    large_tap: 'ਵੱਡੇ ਟੈਪ ਟੀਚੇ',
+    bigger_btn: 'ਫ਼ੋਨ \'ਤੇ ਆਸਾਨੀ ਨਾਲ ਟੈਪ ਕਰਨ ਲਈ ਬਟਨਾਂ ਨੂੰ ਵੱਡਾ ਬਣਾਓ',
+    reduce_motion: 'ਗਤੀ ਘਟਾ',
+    minimize_anim: 'ਗਤੀ-ਸੰਵੇਦਨਸ਼ੀਲ ਉਪਭੋਗਤਾਵਾਂ ਲਈ ਐਨੀਮੇਸ਼ਨ ਨੂੰ ਘੱਟ ਤੋਂ ਘੱਟ ਕਰੋ',
+    
+    account: 'ਖਾਤਾ',
+    manage_personal: 'ਆਪਣੇ ਨਿੱਜੀ ਅਤੇ ਲੌਗਇਨ ਵੇਰਵਿਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ',
+    full_name: 'ਪੂਰਾ ਨਾਮ',
+    mobile_number: 'ਮੋਬਾਈਲ ਨੰਬਰ',
+    verified_mobile: 'ਪ੍ਰਮਾਣਿਤ ਮੋਬਾਈਲ ਨੰਬਰ',
+    email_address: 'ਈਮੇਲ ਪਤਾ',
+    
+    devices: 'ਯੰਤਰ',
+    sessions: 'ਸੈਸ਼ਨ ਇਸ ਸਮੇਂ ਤੁਹਾਡੇ ਖਾਤੇ ਵਿੱਚ ਲੌਗਇਨ ਕੀਤੇ ਹੋਏ ਹਨ',
+    current_browser: 'ਮੌਜੂਦਾ ਬਰਾਊਜ਼ਰ',
+    active_now: 'ਹੁਣ ਸਰਗਰਮ',
+    this_device: 'ਇਹ ਯੰਤਰ',
+    sign_out_all: 'ਹੋਰ ਸਾਰੀਆਂ ਡਿਵਾਈਸਾਂ ਤੋਂ ਸਾਈਨ ਆਉਟ ਕਰੋ',
+    
+    danger_zone: 'ਖ਼ਤਰਾ ਜ਼ੋਨ',
+    permanent: 'ਸਥਾਈ ਅਤੇ ਅਟੱਲ ਖਾਤਾ ਕਿਰਿਆਵਾਂ',
+    deactivate: 'ਖਾਤਾ ਬੰਦ ਕਰੋ',
+    deactivate_desc: 'ਆਪਣੇ ਖਾਤੇ ਨੂੰ ਅਸਥਾਈ ਤੌਰ \'ਤੇ ਅਯੋਗ ਕਰੋ। ਤੁਸੀਂ ਬਾਅਦ ਵਿੱਚ ਮੁੜ-ਕਿਰਿਆਸ਼ੀਲ ਕਰ ਸਕਦੇ ਹੋ।',
+    delete_records: 'ਸਾਰੇ ਸਿਹਤ ਰਿਕਾਰਡ ਮਿਟਾਓ',
+    delete_records_desc: 'ਤੁਹਾਡੇ ਸਾਰੇ ਸਟੋਰ ਕੀਤੇ ਮੈਡੀਕਲ ਡੇਟਾ ਨੂੰ ਸਥਾਈ ਤੌਰ \'ਤੇ ਹਟਾਓ।',
+    delete_account: 'ਖਾਤਾ ਪੱਕੇ ਤੌਰ \'ਤੇ ਮਿਟਾਓ',
+    cannot_undone: 'ਇਸਨੂੰ ਅਣਕੀਤਾ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ। ਸਾਰਾ ਡਾਟਾ ਹਮੇਸ਼ਾ ਲਈ ਮਿਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ।',
+    
+    actions: {
+      light: 'ਚਾਨਣ', dark: 'ਹਨੇਰਾ', system: 'ਸਿਸਟਮ',
+      small: 'ਛੋਟਾ', medium: 'ਦਰਮਿਆਨਾ', large: 'ਵੱਡਾ',
+      change_password: 'ਪਾਸਵਰਡ ਬਦਲੋ',
+      enabled: 'ਸਮਰਥਿਤ',
+      export_pdf: 'PDF ਨਿਰਯਾਤ ਕਰੋ',
+      clear: 'ਕੈਸ਼ ਸਾਫ਼ ਕਰੋ',
+      edit: 'ਸੋਧੋ',
+      change: 'ਬਦਲੋ'
+    }
   }
 };
 
@@ -862,6 +1077,25 @@ export const ORDER_TRACKING_TRANSLATIONS = {
       'Accepted': 'গৃহীত',
       'Ready/Shipped': 'প্রস্তুত/পাঠানো হয়েছে',
       'Delivered': 'ডেলিভারি হয়েছে'
+    }
+  },
+  pa: {
+    title: 'ਆਰਡਰ ਟ੍ਰੈਕਿੰਗ',
+    subtitle: 'ਸਥਾਨਕ ਫਾਰਮੇਸੀਆਂ ਤੋਂ ਆਪਣੇ ਦਵਾਈਆਂ ਦੇ ਆਰਡਰ ਨੂੰ ਟ੍ਰੈਕ ਕਰੋ',
+    loading: 'ਤੁਹਾਡੇ ਆਰਡਰ ਲੋਡ ਕੀਤੇ ਜਾ ਰਹੇ ਹਨ...',
+    no_orders: 'ਅਜੇ ਤੱਕ ਕੋਈ ਆਰਡਰ ਨਹੀਂ',
+    no_orders_desc: 'ਤੁਹਾਡੇ ਕੋਲ ਹੈ\'t placed any medicine orders with local pharmacies yet.',
+    go_prescriptions: 'ਨੁਸਖੇ ਤੇ ਜਾਓ',
+    cancel_order: 'ਆਰਡਰ ਰੱਦ ਕਰੋ',
+    current_status: 'ਮੌਜੂਦਾ ਸਥਿਤੀ',
+    order_contains: 'ਆਰਡਰ ਵਿੱਚ',
+    medications_from: 'ਤੋਂ ਦਵਾਈਆਂ',
+    view_details: 'ਵੇਰਵੇ ਵੇਖੋ',
+    steps: {
+      'Pending': 'Pending',
+      'Accepted': 'Accepted',
+      'Ready/Shipped': 'Ready/Shipped',
+      'Delivered': 'Delivered'
     }
   }
 };
@@ -1256,6 +1490,84 @@ export const PATIENT_DASHBOARD_TRANSLATIONS = {
       confirming: 'নিশ্চিত করা হচ্ছে...',
       select_first: 'উপलब्ध তারিখ এবং সময় দেখতে দয়া করে প্রথমে তালিকা থেকে একজন ডাক্তার নির্বাচন করুন।'
     }
+  },
+  pa: {
+    welcome_back: 'ਵਾਪਸ ਸਵਾਗਤ',
+    health_overview: 'ਇਹ ਅੱਜ ਲਈ ਤੁਹਾਡੀ ਕੇਂਦਰੀ ਸਿਹਤ ਬਾਰੇ ਸੰਖੇਪ ਜਾਣਕਾਰੀ ਹੈ।',
+    book_appointment_btn: '+ ਬੁੱਕ ਅਪਾਇੰਟਮੈਂਟ',
+    order_medicines_btn: 'ਦਵਾਈਆਂ ਆਰਡਰ ਕਰੋ',
+    stats: {
+      consultations: 'ਕੁੱਲ ਸਲਾਹ-ਮਸ਼ਵਰੇ',
+      all_time: 'ਹਰ ਸਮੇਂ ਦੀ ਸਲਾਹ',
+      this_month: 'ਇਸ ਮਹੀਨੇ',
+      records: 'ਸਿਹਤ ਰਿਕਾਰਡ',
+      stored_files: 'ਸਟੋਰ ਕੀਤੀਆਂ ਮੈਡੀਕਲ ਫਾਈਲਾਂ',
+      prescriptions: 'ਨੁਸਖੇ',
+      next_appt: 'ਅਗਲੀ ਮੁਲਾਕਾਤ',
+      no_upcoming_dates: 'ਕੋਈ ਆਗਾਮੀ ਮਿਤੀਆਂ ਨਹੀਂ ਹਨ',
+      upcoming: 'ਆਗਾਮੀ',
+      na: 'N/A'
+    },
+    appts: {
+      upcoming: 'ਆਗਾਮੀ ਮੁਲਾਕਾਤਾਂ',
+      view_all: 'ਸਭ ਦੇਖੋ',
+      join_consultation: 'ਸਲਾਹ-ਮਸ਼ਵਰੇ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋਵੋ',
+      reschedule: 'ਮੁੜ ਤਹਿ ਕਰੋ',
+      cancel: 'ਮੁਲਾਕਾਤ ਰੱਦ ਕਰੋ',
+      join_now: 'ਹੁਣੇ ਸ਼ਾਮਲ ਹੋਵੋ',
+      chat: 'ਡਾਕਟਰ ਨਾਲ ਗੱਲਬਾਤ ਕਰੋ',
+      upload: 'ਰਿਪੋਰਟਾਂ ਅੱਪਲੋਡ ਕਰੋ',
+      view_prescription: 'ਨੁਸਖ਼ਾ ਦੇਖੋ',
+      view_record: 'ਮੈਡੀਕਲ ਰਿਕਾਰਡ ਦੇਖੋ',
+      feedback: 'ਫੀਡਬੈਕ ਦਿਓ',
+      rebook: 'ਮੁਲਾਕਾਤ ਨੂੰ ਦੁਬਾਰਾ ਬੁੱਕ ਕਰੋ',
+      book_again: 'ਦੁਬਾਰਾ ਬੁੱਕ ਕਰੋ',
+      no_appts: "ਤੁਹਾਡੇ ਕੋਲ ਕੋਈ ਵੀ ਆਗਾਮੀ ਮੁਲਾਕਾਤਾਂ ਨਹੀਂ ਹਨ।",
+      book_now: 'ਹੁਣੇ ਬੁੱਕ ਕਰੋ'
+    },
+    ai: {
+      title: 'AI ਲੱਛਣ ਜਾਂਚਕਰਤਾ',
+      desc: 'ਯਕੀਨੀ ਨਹੀਂ ਕਿ ਕਿਸ ਮਾਹਰ ਨੂੰ ਦੇਖਣਾ ਹੈ? ਆਪਣੇ ਲੱਛਣਾਂ ਦਾ ਵਰਣਨ ਕਰੋ ਅਤੇ ਤੁਰੰਤ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ।',
+      start: 'ਜਾਂਚ ਸ਼ੁਰੂ ਕਰੋ'
+    },
+    records: {
+      recent: 'ਤਾਜ਼ਾ ਸਿਹਤ ਰਿਕਾਰਡ',
+      upload: 'ਅੱਪਲੋਡ ਕਰੋ',
+      view_all: 'ਸਭ ਦੇਖੋ',
+      no_records: 'ਕੋਈ ਸਿਹਤ ਰਿਕਾਰਡ ਨਹੀਂ ਮਿਲਿਆ।'
+    },
+    pharmacies: {
+      nearby: 'ਨੇੜਲੇ ਫਾਰਮੇਸੀਆਂ',
+      explore: 'ਨਕਸ਼ੇ ਦੀ ਪੜਚੋਲ ਕਰੋ',
+      no_pharmacies: 'ਤੁਹਾਡੇ ਖੇਤਰ ਵਿੱਚ ਕੋਈ ਨਜ਼ਦੀਕੀ ਫਾਰਮੇਸੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।'
+    },
+    orders: {
+      active: 'ਕਿਰਿਆਸ਼ੀਲ ਨੁਸਖ਼ੇ ਦੇ ਆਦੇਸ਼',
+      track: 'ਟ੍ਰੈਕ ਆਰਡਰ',
+      cancel: 'ਰੱਦ ਕਰੋ',
+      no_orders: 'ਤੁਹਾਡੇ ਕੋਲ ਹੈ\'t sent any prescriptions to pharmacies yet. Your active orders will appear here.'
+    },
+    booking: {
+      title: 'ਇੱਕ ਸਲਾਹ ਬੁੱਕ ਕਰੋ',
+      desc: 'ਸਹੀ ਡਾਕਟਰ ਲੱਭੋ, ਇੱਕ ਮਿਤੀ ਚੁਣੋ, ਅਤੇ ਇੱਕ ਉਪਲਬਧ ਸਮਾਂ ਚੁਣੋ।',
+      search_placeholder: 'ਉਦਾਹਰਨ ਲਈ, ਕਾਰਡੀਓਲੋਜਿਸਟ, ਡਰਮਾਟੋਲੋਜਿਸਟ',
+      search: 'ਖੋਜ',
+      searching: 'ਖੋਜ ਰਿਹਾ ਹੈ...',
+      step_1: 'ਕਦਮ 1: ਇੱਕ ਡਾਕਟਰ ਚੁਣੋ',
+      no_match: 'ਕੋਈ ਡਾਕਟਰ ਤੁਹਾਡੀ ਖੋਜ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ। ਕੋਈ ਹੋਰ ਵਿਸ਼ੇਸ਼ਤਾ ਅਜ਼ਮਾਓ।',
+      not_rated: 'ਦਰਜਾ ਨਹੀਂ ਦਿੱਤਾ ਗਿਆ',
+      check_slots: 'ਮਿਤੀ ਦੀ ਚੋਣ ਕਰਦੇ ਸਮੇਂ ਸਲਾਟ ਦੀ ਜਾਂਚ ਕਰੋ',
+      selected: 'ਚੁਣਿਆ ਗਿਆ',
+      select: 'ਚੁਣੋ',
+      step_2: 'ਕਦਮ 2: ਸਲਾਟ ਚੁਣੋ',
+      fee: 'ਫੀਸ: ਰੁਪਏ',
+      available: 'ਉਪਲਬਧ ਸਮਾਂ',
+      pick_date: 'ਉਪਲਬਧ ਸਮਾਂ ਸਲਾਟ ਦੇਖਣ ਲਈ ਇੱਕ ਮਿਤੀ ਚੁਣੋ।',
+      no_slots: 'ਇਸ ਮਿਤੀ ਲਈ ਕੋਈ ਸਲਾਟ ਉਪਲਬਧ ਨਹੀਂ ਹਨ।',
+      confirm: 'ਮੁਲਾਕਾਤ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ',
+      confirming: 'ਪੁਸ਼ਟੀ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ...',
+      select_first: 'ਕਿਰਪਾ ਕਰਕੇ ਉਪਲਬਧ ਤਾਰੀਖਾਂ ਅਤੇ ਸਮੇਂ ਨੂੰ ਦੇਖਣ ਲਈ ਪਹਿਲਾਂ ਸੂਚੀ ਵਿੱਚੋਂ ਇੱਕ ਡਾਕਟਰ ਦੀ ਚੋਣ ਕਰੋ।'
+    }
   }
 };
 
@@ -1455,6 +1767,54 @@ export const PATIENT_APPOINTMENTS_TRANSLATIONS = {
       reschedule_fail: 'পুনঃনির্ধারণ করতে ব্যর্থ'
     },
     dialog: { title: 'অ্যাপয়েন্টমেন্টের সময়সূচী পরিবর্তন করুন', new_date: 'নতুন তারিখ', cancel: 'বাতিল করুন', save: 'সংরক্ষণ করুন' }
+  },
+  pa: {
+    title: 'ਮੁਲਾਕਾਤਾਂ',
+    subtitle: 'ਆਪਣੇ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ।',
+    total: 'ਕੁੱਲ',
+    book_new: 'ਨਵੀਂ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ',
+    filters: {
+      all: 'ਸਾਰੇ', upcoming: 'ਆਗਾਮੀ', ongoing: 'ਜਾਰੀ ਹੈ', completed: 'ਪੂਰਾ ਹੋਇਆ', missed: 'ਖੁੰਝ ਗਈ', cancelled: 'ਰੱਦ ਕਰ ਦਿੱਤਾ',
+      all_specialties: 'ਸਾਰੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ',
+      search_placeholder: 'ਡਾਕਟਰ ਦੁਆਰਾ ਫਿਲਟਰ ਕਰੋ...'
+    },
+    states: {
+      fetching: 'ਤੁਹਾਡੀਆਂ ਮੁਲਾਕਾਤਾਂ ਨੂੰ ਪ੍ਰਾਪਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...',
+      no_consultations: 'ਕੋਈ ਸਲਾਹ-ਮਸ਼ਵਰਾ ਨਹੀਂ ਮਿਲਿਆ',
+      no_consultations_desc: 'ਆਪਣੇ ਫਿਲਟਰਾਂ ਨੂੰ ਵਿਵਸਥਿਤ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ ਜਾਂ ਇਸਨੂੰ ਇੱਥੇ ਦੇਖਣ ਲਈ ਇੱਕ ਨਵੀਂ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ।',
+      book_now: 'ਹੁਣੇ ਬੁੱਕ ਕਰੋ',
+      dr: 'ਡਾ.'
+    },
+    sections: {
+      upcoming: 'ਆਗਾਮੀ ਸਲਾਹ-ਮਸ਼ਵਰੇ',
+      history: 'ਇਤਿਹਾਸ',
+      not_completed: 'ਪੂਰਾ ਨਹੀਂ ਹੋਇਆ'
+    },
+    chips: { past: 'ਅਤੀਤ', no_show: 'ਕੋਈ ਸ਼ੋਅ ਨਹੀਂ' },
+    actions: {
+      join: 'ਸਲਾਹ-ਮਸ਼ਵਰੇ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋਵੋ',
+      reschedule: 'ਮੁੜ ਤਹਿ ਕਰੋ',
+      cancel: 'ਰੱਦ ਕਰੋ',
+      join_now: 'ਹੁਣੇ ਸ਼ਾਮਲ ਹੋਵੋ',
+      chat: 'ਚੈਟ',
+      prescription: 'ਨੁਸਖ਼ਾ',
+      records: 'ਰਿਕਾਰਡਸ',
+      book_again: 'ਦੁਬਾਰਾ ਬੁੱਕ ਕਰੋ',
+      rebook_now: 'ਹੁਣੇ ਮੁੜ ਬੁੱਕ ਕਰੋ'
+    },
+    messages: {
+      confirm_cancel: 'ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਤੌਰ \'ਤੇ ਇਸ ਮੁਲਾਕਾਤ ਨੂੰ ਰੱਦ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?',
+      cancel_success: 'ਮੁਲਾਕਾਤ ਸਫਲਤਾਪੂਰਵਕ ਰੱਦ ਕੀਤੀ ਗਈ',
+      cancel_fail: 'ਮੁਲਾਕਾਤ ਰੱਦ ਕਰਨ ਵਿੱਚ ਅਸਫਲ',
+      reschedule_success: 'ਮੁਲਾਕਾਤ ਮੁੜ ਨਿਯਤ ਕੀਤੀ ਗਈ',
+      reschedule_fail: 'ਮੁੜ-ਨਿਯਤ ਕਰਨਾ ਅਸਫਲ ਰਿਹਾ'
+    },
+    dialog: {
+      title: 'ਮੁਲਾਕਾਤ ਨੂੰ ਮੁੜ ਤਹਿ ਕਰੋ',
+      new_date: 'ਨਵੀਂ ਤਾਰੀਖ',
+      cancel: 'ਰੱਦ ਕਰੋ',
+      save: 'ਸੇਵ ਕਰੋ'
+    }
   }
 };
 
@@ -1893,6 +2253,93 @@ export const PATIENT_HEALTH_RECORDS_TRANSLATIONS = {
       pending_update: 'পেন্ডিং আপডেট',
       pending_updates_plural: 'পেন্ডিং আপডেট'
     }
+  },
+  pa: {
+    title: 'ਸਿਹਤ ਰਿਕਾਰਡ',
+    subtitle: 'ਤੁਹਾਡਾ ਪੂਰਾ ਮੈਡੀਕਲ ਇਤਿਹਾਸ, ਨੁਸਖੇ ਅਤੇ ਰਿਪੋਰਟਾਂ।',
+    upload_btn: 'ਅੱਪਲੋਡ ਰਿਕਾਰਡ',
+    ehr_status_title: 'EHR ਕੈਸ਼ ਸਥਿਤੀ',
+    ehr_online: 'ਆਫ਼ਲਾਈਨ ਪਹੁੰਚ ਲਈ ਰਿਕਾਰਡ ਸਥਾਨਕ ਤੌਰ \'ਤੇ ਕੈਸ਼ ਕੀਤੇ ਜਾਂਦੇ ਹਨ।',
+    ehr_offline: 'ਤੁਸੀਂ ਔਫਲਾਈਨ ਹੋ। ਕੈਸ਼ ਕੀਤਾ EHR ਡੇਟਾ ਪਹੁੰਚਯੋਗ ਰਹਿੰਦਾ ਹੈ ਅਤੇ ਬਕਾਇਆ ਅੱਪਡੇਟ ਮੁੜ ਕਨੈਕਟ ਹੋਣ \'ਤੇ ਸਮਕਾਲੀ ਹੋ ਜਾਣਗੇ।',
+    last_sync: 'ਆਖਰੀ ਸਿੰਕ',
+    not_synced: 'ਅਜੇ ਤੱਕ ਸਿੰਕ ਨਹੀਂ ਕੀਤਾ ਗਿਆ',
+    pending_updates: 'ਬਕਾਇਆ ਅੱਪਡੇਟ',
+    sync_btn: 'ਬਕਾਇਆ ਅੱਪਡੇਟਾਂ ਨੂੰ ਸਿੰਕ ਕਰੋ',
+    syncing: 'ਸਿੰਕ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...',
+    sync_chip_online: 'ਔਨਲਾਈਨ ਸਿੰਕ ਕਿਰਿਆਸ਼ੀਲ',
+    sync_chip_syncing: 'EHR ਨੂੰ ਸਿੰਕ ਕਰ ਰਿਹਾ ਹੈ',
+    sync_chip_offline: 'ਔਫਲਾਈਨ ਕੈਸ਼ ਕਿਰਿਆਸ਼ੀਲ',
+    offline_ready_title: 'ਔਫਲਾਈਨ-ਤਿਆਰ EHR',
+    offline_ready_desc: 'ਹਾਲੀਆ ਸਿਹਤ ਰਿਕਾਰਡਾਂ ਨੂੰ ਔਫਲਾਈਨ ਦੇਖਣ ਲਈ IndexedDB ਵਿੱਚ ਕੈਸ਼ ਕੀਤਾ ਜਾਂਦਾ ਹੈ। ਬਕਾਇਆ ਤਬਦੀਲੀਆਂ ਆਪਣੇ ਆਪ ਸਮਕਾਲੀ ਹੋ ਜਾਂਦੀਆਂ ਹਨ ਜਦੋਂ ਨੈੱਟਵਰਕ ਵਾਪਸ ਆਉਂਦਾ ਹੈ।',
+    run_sync: 'ਸਿੰਕ ਚਲਾਓ',
+    stat_cards: {
+      prescriptions: 'ਨੁਸਖੇ',
+      prescriptions_sub: 'ਕੁੱਲ ਰਿਕਾਰਡ',
+      lab: 'ਲੈਬ ਰਿਪੋਰਟਾਂ',
+      lab_sub: 'ਖੂਨ, ਪਿਸ਼ਾਬ, ਲਿਪਿਡ',
+      notes: 'ਡਾਕਟਰ ਨੋਟਸ',
+      notes_sub: 'ਸਲਾਹ ਮਸ਼ਵਰਾ ਸਾਰ',
+      imaging: 'ਇਮੇਜਿੰਗ',
+      imaging_sub: 'ਐਕਸ-ਰੇ, ਸਕੈਨ'
+    },
+    filter_chips: {
+      all: 'ਸਾਰੇ',
+      prescription: 'ਨੁਸਖੇ',
+      lab_report: 'ਲੈਬ ਰਿਪੋਰਟਾਂ',
+      note: 'ਡਾਕਟਰ ਨੋਟਸ',
+      imaging: 'ਇਮੇਜਿੰਗ',
+      vaccine: 'ਟੀਕਾਕਰਨ'
+    },
+    search_placeholder: 'ਖੋਜ ਰਿਕਾਰਡ, ਡਾਕਟਰ, ਨਿਦਾਨ',
+    sort: {
+      newest: 'ਸਭ ਤੋਂ ਪਹਿਲਾਂ',
+      oldest: 'ਸਭ ਤੋਂ ਪੁਰਾਣਾ ਪਹਿਲਾਂ',
+      doctor: 'ਮਿਤੀ ਅਤੇ ਡਾਕਟਰ'
+    },
+    record: {
+      summary: 'ਸੰਖੇਪ',
+      diagnosis: 'ਨਿਦਾਨ',
+      medicines: 'ਦਵਾਈਆਂ',
+      lab_tests: 'ਲੈਬ ਟੈਸਟ',
+      pending_sync: 'ਲੰਬਿਤ ਸਿੰਕ'
+    },
+    empty: {
+      title: 'ਕੋਈ ਸਿਹਤ ਰਿਕਾਰਡ ਨਹੀਂ ਮਿਲਿਆ',
+      filter_desc: 'ਆਪਣੀ ਖੋਜ ਜਾਂ ਫਿਲਟਰਾਂ ਨੂੰ ਵਿਵਸਥਿਤ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
+      no_records_desc: 'ਤੁਸੀਂ ਅਜੇ ਤੱਕ ਕੋਈ ਰਿਕਾਰਡ ਅੱਪਲੋਡ ਜਾਂ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕੀਤਾ ਹੈ।',
+      upload_btn: 'ਅੱਪਲੋਡ ਰਿਕਾਰਡ'
+    },
+    dialog: {
+      title: 'ਨਵਾਂ ਹੈਲਥ ਰਿਕਾਰਡ ਜੋੜੋ',
+      record_type: 'ਰਿਕਾਰਡ ਦੀ ਕਿਸਮ',
+      title_label: 'ਸਿਰਲੇਖ',
+      title_placeholder: 'ਜਿਵੇਂ ਕਿ ਬਲੱਡ ਟੈਸਟ ਅਕਤੂਬਰ 2023',
+      description_label: 'ਛੋਟਾ ਵੇਰਵਾ (ਵਿਕਲਪਿਕ)',
+      date_label: 'ਰਿਕਾਰਡ ਦੀ ਮਿਤੀ',
+      change_file: 'ਫਾਈਲ ਬਦਲੋ',
+      select_file: 'ਫਾਈਲ ਚੁਣੋ (JPG, PDF, DOC)',
+      selected: 'ਚੁਣਿਆ',
+      max_size: 'ਅਧਿਕਤਮ ਆਕਾਰ: 5MB',
+      cancel: 'ਰੱਦ ਕਰੋ',
+      save: 'ਰਿਕਾਰਡ ਨੂੰ ਸੰਭਾਲੋ',
+      saving: 'ਸੰਭਾਲ ਰਿਹਾ ਹੈ...'
+    },
+    messages: {
+      file_too_large: 'ਫਾਈਲ ਦਾ ਆਕਾਰ ਬਹੁਤ ਵੱਡਾ (ਅਧਿਕਤਮ 5MB)',
+      file_offline: 'ਫਾਈਲ ਅਪਲੋਡ ਲਈ ਇੰਟਰਨੈਟ ਦੀ ਲੋੜ ਹੈ। ਡਰਾਫਟ ਵਜੋਂ ਸੁਰੱਖਿਅਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।',
+      saved_offline: 'ਰਿਕਾਰਡ ਨੂੰ ਔਫਲਾਈਨ ਸੁਰੱਖਿਅਤ ਕੀਤਾ ਗਿਆ ਅਤੇ ਸਮਕਾਲੀਕਰਨ ਲਈ ਕਤਾਰਬੱਧ',
+      record_added: 'ਰਿਕਾਰਡ ਸਫਲਤਾਪੂਰਵਕ ਜੋੜਿਆ ਗਿਆ',
+      add_failed: 'ਰਿਕਾਰਡ ਜੋੜਨ ਵਿੱਚ ਅਸਫਲ',
+      delete_confirm: 'ਕੀ ਇਸ ਰਿਕਾਰਡ ਨੂੰ ਮਿਟਾਉਣਾ ਹੈ?',
+      delete_queued: 'ਕਤਾਰ ਨੂੰ ਮਿਟਾਓ ਅਤੇ ਦੁਬਾਰਾ ਕਨੈਕਟ ਕਰਨ ਤੋਂ ਬਾਅਦ ਸਿੰਕ ਹੋ ਜਾਵੇਗਾ',
+      record_deleted: 'ਰਿਕਾਰਡ ਮਿਟਾਇਆ',
+      draft_removed: 'ਔਫਲਾਈਨ ਡਰਾਫਟ ਹਟਾਇਆ ਗਿਆ',
+      delete_failed: 'ਮਿਟਾਉਣ ਵਿੱਚ ਅਸਫਲ',
+      pdf_success: 'PDF ਸਫਲਤਾਪੂਰਵਕ ਸਿਰਜਿਆ ਗਿਆ!',
+      synced: 'ਸਿੰਕ ਕੀਤਾ',
+      pending_update: 'ਬਕਾਇਆ ਅੱਪਡੇਟ',
+      pending_updates_plural: 'ਬਕਾਇਆ ਅੱਪਡੇਟ'
+    }
   }
 };
 
@@ -2295,6 +2742,94 @@ export const PATIENT_PHARMACIES_TRANSLATIONS = {
     snack_error: 'ত্রুটি ঘটেছে',
     snack_location_use: 'বর্তমান অবস্থান ব্যবহার করুন',
   },
+  pa: {
+    title: 'ਫਾਰਮੇਸੀਆਂ',
+    subtitle: 'ਨਜ਼ਦੀਕੀ ਫਾਰਮੇਸੀਆਂ ਲੱਭੋ, ਸਟਾਕ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਨੁਸਖ਼ੇ ਭੇਜੋ।',
+    btn_list: 'ਸੂਚੀ',
+    btn_map: 'ਨਕਸ਼ਾ',
+    btn_send_prescription: 'ਨੁਸਖਾ ਭੇਜੋ',
+    stat_nearby: 'ਨੇੜਲੇ ਫਾਰਮੇਸੀਆਂ',
+    stat_nearby_sub: 'ਤੁਹਾਡੇ ਇਲਾਕੇ ਦੇ ਅੰਦਰ',
+    stat_active_rx: 'ਸਰਗਰਮ ਨੁਸਖੇ',
+    stat_active_rx_sub: 'ਪੂਰਤੀ ਦੀ ਉਡੀਕ ਵਿੱਚ',
+    stat_medicines: 'ਦਵਾਈਆਂ ਉਪਲਬਧ',
+    stat_medicines_val_full: 'ਪੂਰਾ ਮੈਚ',
+    stat_medicines_val_none: 'ਕੋਈ ਨਹੀਂ',
+    stat_medicines_sub: 'ਤੇਰੇ ਨੁਸਖੇ ਤੋਂ',
+    stat_pickup: 'ਪਿਕਅੱਪ ਬਕਾਇਆ',
+    stat_pickup_sub: 'ਪਿਕਅੱਪ ਲਈ ਤਿਆਰ',
+    filter_all: 'ਸਾਰੇ',
+    filter_nearby: 'ਨੇੜੇ',
+    filter_open: 'ਹੁਣ ਖੋਲ੍ਹੋ',
+    filter_jan: 'ਜਨ ਔਸ਼ਧੀ',
+    filter_24h: '24-ਘੰਟੇ',
+    search_placeholder: 'ਫਾਰਮੇਸੀ ਜਾਂ ਦਵਾਈ ਦੀ ਖੋਜ ਕਰੋ',
+    sort_nearest: 'ਸਭ ਤੋਂ ਨੇੜੇ ਪਹਿਲਾਂ',
+    sort_open: 'ਹੁਣ ਖੋਲ੍ਹੋ',
+    open_now: 'ਹੁਣ ਖੋਲ੍ਹੋ',
+    closed: 'ਬੰਦ',
+    near_you: 'ਤੇਰੇ ਨੇੜੇ',
+    delivery_available: 'ਡਿਲਿਵਰੀ ਉਪਲਬਧ',
+    view_stock: 'ਸਟਾਕ ਦੇਖੋ',
+    send_prescription: 'ਨੁਸਖਾ ਭੇਜੋ',
+    no_pharmacies: 'ਕੋਈ ਫਾਰਮੇਸੀ ਨਹੀਂ ਮਿਲੀ',
+    no_pharmacies_filter: 'ਆਪਣੀ ਖੋਜ ਜਾਂ ਫਿਲਟਰਾਂ ਨੂੰ ਵਿਵਸਥਿਤ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
+    no_pharmacies_area: 'ਇਸ ਸਮੇਂ ਤੁਹਾਡੇ ਖੇਤਰ ਵਿੱਚ ਕੋਈ ਕਿਰਿਆਸ਼ੀਲ ਫਾਰਮੇਸੀਆਂ ਨਹੀਂ ਹਨ।',
+    recenter: 'ਰੀਸੈਂਟਰ',
+    your_location_popup: 'ਤੁਹਾਡਾ ਮੌਜੂਦਾ ਟਿਕਾਣਾ ( ਮੂਵ ਕਰਨ ਲਈ ਨਕਸ਼ੇ \'ਤੇ ਕਲਿੱਕ ਕਰੋ)',
+    stock_send_rx: 'Rx ਭੇਜੋ',
+    active_prescriptions: 'ਸਰਗਰਮ ਨੁਸਖੇ',
+    no_active_rx: 'ਕੋਈ ਕਿਰਿਆਸ਼ੀਲ ਨੁਸਖੇ ਉਪਲਬਧ ਨਹੀਂ ਹਨ।',
+    send_to_pharmacy: 'ਫਾਰਮੇਸੀ ਨੂੰ ਭੇਜੋ',
+    helpful_tips: 'ਮਦਦਗਾਰ ਸੁਝਾਅ',
+    tip_1: 'ਹਮੇਸ਼ਾ ਆਪਣਾ ਨੁਸਖ਼ਾ ਕੋਡ ਰੱਖੋ - ਫਾਰਮੇਸੀਆਂ ਐਪ ਵਿੱਚ ਇਸ ਤੱਕ ਪਹੁੰਚ ਕਰ ਸਕਦੀਆਂ ਹਨ।',
+    tip_2: 'ਜੇ ਕੋਈ ਦਵਾਈ ਉਪਲਬਧ ਨਹੀਂ ਹੈ, ਤਾਂ ਡਾਕਟਰ ਨੂੰ ਬ੍ਰਾਂਡ ਨੂੰ ਸੋਧਣ ਲਈ ਕਹੋ।',
+    tip_3: 'ਵੈਧ ਡਾਕਟਰ ਦੇ ਨੋਟ ਤੋਂ ਬਿਨਾਂ ਕਦੇ ਵੀ ਨੁਸਖ਼ੇ ਵਾਲੀਆਂ ਦਵਾਈਆਂ ਨਾ ਖਰੀਦੋ।',
+    // Stock dialog
+    medicine_inventory: 'ਦਵਾਈ ਵਸਤੂ ਸੂਚੀ',
+    open_label: 'ਖੁੱਲਾ',
+    closed_label: 'ਬੰਦ',
+    checking_rx: 'ਤੁਹਾਡੇ ਨੁਸਖੇ ਦੇ ਵਿਰੁੱਧ ਜਾਂਚ ਕਰਨਾ',
+    in_stock: 'ਸਟਾਕ ਵਿੱਚ',
+    not_available: 'ਉਪਲਬਧ ਨਹੀਂ',
+    all_medicines: 'ਸਾਰੀਆਂ ਉਪਲਬਧ ਦਵਾਈਆਂ',
+    units: 'ਯੂਨਿਟਾਂ',
+    available: 'ਉਪਲਬਧ',
+    no_inventory: 'ਇਸ ਫਾਰਮੇਸੀ ਲਈ ਕੋਈ ਵਸਤੂ ਸੂਚੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।',
+    close: 'ਬੰਦ ਕਰੋ',
+    // Send dialog
+    send_dialog_title: 'ਫਾਰਮੇਸੀ ਨੂੰ ਭੇਜੋ',
+    send_dialog_desc: 'ਚੁਣੋ ਕਿ ਤੁਸੀਂ ਕਿਹੜਾ ਨੁਸਖਾ ਭੇਜਣਾ ਚਾਹੁੰਦੇ ਹੋ',
+    this_pharmacy: 'ਇਹ ਫਾਰਮੇਸੀ',
+    select_prescription: 'ਨੁਸਖ਼ਾ ਚੁਣੋ',
+    fulfillment_method: 'ਪੂਰਤੀ ਵਿਧੀ',
+    store_pickup: 'ਸਟੋਰ ਪਿਕਅੱਪ',
+    home_delivery: 'ਹੋਮ ਡਿਲੀਵਰੀ',
+    delivery_address: 'ਡਿਲਿਵਰੀ ਪਤਾ',
+    delivery_address_placeholder: 'ਡਿਲੀਵਰੀ ਲਈ ਆਪਣਾ ਪੂਰਾ ਪਤਾ ਦਰਜ ਕਰੋ',
+    pharmacy_address_label: 'ਫਾਰਮੇਸੀ ਪਤਾ:',
+    address_not_listed: 'ਪਤਾ ਸੂਚੀਬੱਧ ਨਹੀਂ ਹੈ',
+    bring_rx_id: 'ਜਦੋਂ ਤੁਸੀਂ ਸਟੋਰ \'ਤੇ ਜਾਂਦੇ ਹੋ ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੀ ਡਿਜੀਟਲ ਨੁਸਖ਼ਾ ਆਈਡੀ ਲਿਆਓ।',
+    no_rx_warning: 'ਤੁਹਾਡੇ ਕੋਲ ਭੇਜਣ ਲਈ ਕੋਈ ਕਿਰਿਆਸ਼ੀਲ ਨੁਸਖ਼ੇ ਨਹੀਂ ਹਨ।',
+    cancel: 'ਰੱਦ ਕਰੋ',
+    confirm_order: 'ਪੁਸ਼ਟੀ ਕਰੋ ਅਤੇ ਆਰਡਰ ਦਿਓ',
+    sending: 'ਭੇਜ ਰਿਹਾ ਹੈ...',
+    // Snackbar
+    snack_sent: 'ਨੁਸਖ਼ਾ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜਿਆ ਗਿਆ!',
+    snack_location: 'ਖੋਜ ਸਥਾਨ ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ ਹੈ!',
+    snack_stock_error: 'ਸਟਾਕ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ',
+    snack_error: 'ਗਲਤੀ ਹੋ ਗਈ',
+    snack_location_use: 'ਵਰਤਮਾਨ ਸਥਾਨ ਦੀ ਵਰਤੋਂ ਕਰੋ',
+    upload_prescription: 'ਅਪਲੋਡ ਸਰੀਰਕ ਨੁਸਖ਼ਾ',
+    uploading: 'ਅੱਪਲੋਡ ਕਰਨਾ ਅਤੇ ਐਕਸਟਰੈਕਟ ਕਰਨਾ...',
+    add_medicine: 'ਇੱਕ ਹੋਰ ਦਵਾਈ ਜੋੜੋ',
+    med_name_placeholder: 'ਜਿਵੇਂ ਕਿ ਪੈਰਾਸੀਟਾਮੋਲ',
+    qty: 'ਮਾਤਰਾ',
+    manual_entry: 'ਮੈਨੁਅਲ ਐਂਟਰੀ',
+    extract_success: 'ਦਵਾਈਆਂ ਸਫਲਤਾਪੂਰਵਕ ਕੱਢੀਆਂ ਗਈਆਂ!',
+    extract_error: 'ਦਵਾਈਆਂ ਕੱਢਣ ਵਿੱਚ ਅਸਫਲ',
+    or: 'ਜਾਂ'
+  }
 };
 
 export const PATIENT_SYMPTOM_CHECKER_TRANSLATIONS = {
@@ -2599,6 +3134,71 @@ export const PATIENT_SYMPTOM_CHECKER_TRANSLATIONS = {
     predicted_label: 'পূর্বাভাস:',
     no_past_reports: 'কোনো আগের রিপোর্ট পাওয়া যায়নি।',
   },
+  pa: {
+    title: 'ਲੱਛਣ ਜਾਂਚਕਰਤਾ',
+    subtitle: 'AI-ਸੰਚਾਲਿਤ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਆਪਣੇ ਲੱਛਣਾਂ ਦਾ ਵਰਣਨ ਕਰੋ।',
+    back_to_checker: 'ਚੈਕਰ ਤੇ ਵਾਪਸ',
+    view_past: 'ਪਿਛਲੀਆਂ ਜਾਂਚਾਂ ਦੇਖੋ',
+    disclaimer_title: 'ਸਿਰਫ਼ ਮਾਰਗਦਰਸ਼ਨ ਲਈ — ਡਾਕਟਰੀ ਜਾਂਚ ਨਹੀਂ',
+    disclaimer_body: 'ਇਹ AI ਟੂਲ ਤੁਹਾਡੇ ਲੱਛਣਾਂ ਦੇ ਆਧਾਰ \'ਤੇ ਸ਼ੁਰੂਆਤੀ ਸੁਝਾਅ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ। ਕੋਈ ਵੀ ਦਵਾਈ ਲੈਣ ਜਾਂ ਸਿਹਤ ਸੰਬੰਧੀ ਫੈਸਲੇ ਲੈਣ ਤੋਂ ਪਹਿਲਾਂ ਹਮੇਸ਼ਾ ਕਿਸੇ ਯੋਗ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਕਰੋ।',
+    step_1: 'ਸਰੀਰ ਦਾ ਖੇਤਰ ਚੁਣੋ',
+    step_2: 'ਲੱਛਣ ਚੁਣੋ',
+    step_3: 'ਮਿਆਦ ਅਤੇ ਤੀਬਰਤਾ',
+    step_4: 'ਨਤੀਜੇ ਵੇਖੋ',
+    describe_title: 'ਆਪਣੇ ਲੱਛਣਾਂ ਦਾ ਵਰਣਨ ਕਰੋ',
+    clear_all: 'ਸਭ ਸਾਫ਼ ਕਰੋ',
+    input_placeholder: "ਆਪਣੇ ਲੱਛਣ ਇੱਥੇ ਟਾਈਪ ਕਰੋ... ਉਦਾਹਰਨ ਲਈ \'ਮੈਨੂੰ ਕੱਲ੍ਹ ਤੋਂ ਸਿਰ ਦਰਦ ਅਤੇ ਬੁਖਾਰ ਹੈ\'",
+    selected_symptoms: 'ਚੁਣੇ ਹੋਏ ਲੱਛਣ',
+    no_symptoms: 'ਡਾਕਟਰੀ ਤੌਰ \'ਤੇ ਕੋਈ ਲੱਛਣ ਨਹੀਂ ਚੁਣੇ ਗਏ।',
+    how_long: 'ਤੁਹਾਨੂੰ ਇਹ ਲੱਛਣ ਕਿੰਨੇ ਸਮੇਂ ਤੋਂ ਹਨ?',
+    how_severe: 'ਤੁਹਾਡੇ ਲੱਛਣ ਕਿੰਨੇ ਗੰਭੀਰ ਹਨ?',
+    severity_selected: 'ਚੁਣਿਆ',
+    analyse_btn: 'AI ਨਾਲ ਲੱਛਣਾਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ',
+    analysing: 'ਵਿਸ਼ਲੇਸ਼ਣ...',
+    ai_service_error: 'AI ਸੇਵਾ ਗਲਤੀ',
+    // Result
+    ai_result_title: 'AI ਵਿਸ਼ਲੇਸ਼ਣ ਨਤੀਜਾ',
+    source_label: 'ਸਰੋਤ:',
+    possible_conditions: 'ਸੰਭਾਵੀ ਸ਼ਰਤਾਂ:',
+    recommended_specialization: 'ਸਿਫਾਰਸ਼ੀ ਵਿਸ਼ੇਸ਼ਤਾ:',
+    severity_level: 'ਗੰਭੀਰਤਾ ਦਾ ਪੱਧਰ:',
+    advice_label: 'ਸਲਾਹ:',
+    book_appointment: 'ਨਾਲ ਬੁੱਕ ਅਪਾਇੰਟਮੈਂਟ',
+    view_all_doctors: 'ਦੇਖੋ ਸਾਰੇ ਡਾਕਟਰ',
+    general_physician: 'ਜਨਰਲ ਫਿਜ਼ੀਸ਼ੀਅਨ',
+    // Body areas
+    body_areas: [
+      'Head & Face', 'Neck & Throat', 'Chest & Lungs', 'Heart & Blood',
+      'Stomach & Digestion', 'Back & Spine', 'Arms & Hands', 'Legs & Feet',
+      'Skin', 'Whole body / General'
+    ],
+    affected_body_area: 'ਪ੍ਰਭਾਵਿਤ ਸਰੀਰ ਖੇਤਰ',
+    common_illnesses: 'ਆਮ ਬਿਮਾਰੀਆਂ',
+    illnesses: [
+      ['Common Cold', 'Runny nose, cough, sore throat'],
+      ['Typhoid', 'High fever, stomach pain'],
+      ['Malaria', 'Chills, fever, sweating'],
+      ['Dengue', 'High fever, joint rash'],
+      ['Hypertension', 'Headache, dizziness, BP high'],
+      ['Diabetes', 'Thirst, fatigue, frequent urination']
+    ],
+    // Symptom groups
+    symptom_groups: {
+      General: ['Fever', 'Fatigue', 'Weakness', 'Weight loss', 'Night sweats', 'Loss of appetite'],
+      'Head & Neurological': ['Headache', 'Chills', 'Dizziness', 'Blurred vision', 'Confusion', 'Stiff neck'],
+      Respiratory: ['Cough', 'Shortness of breath', 'Sore throat', 'Runny nose', 'Chest pain'],
+      Digestive: ['Nausea', 'Vomiting', 'Diarrhoea', 'Abdominal pain', 'Bloating']
+    },
+    // Duration options
+    duration_options: ['Today', '2–3 days', '1 week', '2+ weeks'],
+    // Severity options
+    severity_options: ['Mild', 'Moderate', 'Severe'],
+    // History
+    past_reports: 'ਤੁਹਾਡੀਆਂ ਪਿਛਲੀਆਂ ਰਿਪੋਰਟਾਂ',
+    symptoms_label: 'ਲੱਛਣ:',
+    predicted_label: 'ਪਦ ਅਰਥ:',
+    no_past_reports: 'ਕੋਈ ਪਿਛਲੀ ਰਿਪੋਰਟ ਨਹੀਂ ਮਿਲੀ।',
+  }
 };
 export const MEDICINE_ORDER_FLOW_TRANSLATIONS = {
   en: {
@@ -2695,6 +3295,54 @@ export const MEDICINE_ORDER_FLOW_TRANSLATIONS = {
       out: 'डिलीवरी के लिए निकला',
       delivered: 'डिलीवरी हो गई',
       ready_pickup: 'पिकअप के लिए तैयार'
+    }
+  },
+  pa: {
+    title: 'ਦਵਾਈਆਂ ਦਾ ਆਰਡਰ ਕਰੋ',
+    step_rx: 'ਦਾਰੂ',
+    step_cart: 'ਕਾਰਟ',
+    step_pharmacy: 'ਫਾਰਮੇਸੀ',
+    step_checkout: 'ਚੈੱਕਆਉਟ',
+    step_tracking: 'ਟਰੈਕਿੰਗ',
+    select_rx: 'ਇੱਕ ਨੁਸਖ਼ਾ ਚੁਣੋ',
+    upload_rx: 'ਅੱਪਲੋਡ ਕਰੋ ਨਵਾਂ ਨੁਸਖਾ',
+    upload_desc: 'ਆਪਣੇ ਹੱਥ ਲਿਖਤ ਨੁਸਖੇ ਦੀ ਇੱਕ ਫੋਟੋ ਜਾਂ PDF ਅੱਪਲੋਡ ਕਰੋ',
+    extracting: 'AI ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਦਵਾਈਆਂ ਨੂੰ ਕੱਢਣਾ...',
+    extracted_items: 'ਕੱਢੀਆਂ ਦਵਾਈਆਂ',
+    cart_empty: 'ਤੁਹਾਡਾ ਕਾਰਟ ਖਾਲੀ ਹੈ। ਆਪਣੇ ਨੁਸਖੇ ਤੋਂ ਦਵਾਈਆਂ ਸ਼ਾਮਲ ਕਰੋ।',
+    edit_item: 'ਆਈਟਮ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ',
+    remove_item: 'ਹਟਾਓ',
+    add_medicine: 'ਗੁੰਮ ਦਵਾਈ ਜੋੜੋ',
+    med_name: 'ਦਵਾਈ ਦਾ ਨਾਮ',
+    dosage: 'ਖੁਰਾਕ (ਜਿਵੇਂ ਕਿ 500mg)',
+    quantity: 'ਮਾਤਰਾ',
+    frequency: 'ਬਾਰੰਬਾਰਤਾ',
+    select_delivery: 'ਡਿਲਿਵਰੀ ਦੀ ਕਿਸਮ',
+    pickup: 'ਸਟੋਰ ਪਿਕਅੱਪ',
+    delivery: 'ਹੋਮ ਡਿਲੀਵਰੀ',
+    nearby_pharmacies: 'ਨੇੜਲੇ ਫਾਰਮੇਸੀਆਂ',
+    pharmacy_selected: 'ਫਾਰਮੇਸੀ ਚੁਣੀ ਗਈ',
+    change_pharmacy: 'ਬਦਲੋ',
+    delivery_details: 'ਡਿਲਿਵਰੀ ਵੇਰਵੇ',
+    address_placeholder: 'ਪੂਰਾ ਡਿਲੀਵਰੀ ਪਤਾ',
+    payment_method: 'ਭੁਗਤਾਨ ਵਿਧੀ',
+    cod: 'ਡਿਲੀਵਰੀ \'ਤੇ ਨਕਦ',
+    upi: 'UPI / ਔਨਲਾਈਨ',
+    offline_pay: 'ਸਟੋਰ \'ਤੇ ਭੁਗਤਾਨ ਕਰੋ',
+    order_summary: 'ਆਰਡਰ ਸਾਰ',
+    items_total: 'ਕੁੱਲ ਆਈਟਮਾਂ',
+    delivery_fee: 'ਡਿਲਿਵਰੀ ਫੀਸ',
+    total_payable: 'ਕੁੱਲ ਭੁਗਤਾਨਯੋਗ',
+    place_order: 'ਪਲੇਸ ਆਰਡਰ',
+    order_success: 'ਆਰਡਰ ਸਫਲਤਾਪੂਰਵਕ ਦਿੱਤਾ ਗਿਆ!',
+    view_status: 'ਆਰਡਰ ਸਥਿਤੀ ਵੇਖੋ',
+    tracking: {
+      placed: 'ਆਰਡਰ ਦਿੱਤਾ ਗਿਆ',
+      accepted: 'ਫਾਰਮੇਸੀ ਸਵੀਕਾਰ ਕੀਤੀ',
+      packed: 'ਪੈਕਡ',
+      out: 'ਡਿਲੀਵਰੀ ਲਈ ਬਾਹਰ',
+      delivered: 'ਪਹੁੰਚਾਇਆ',
+      ready_pickup: 'ਪਿਕਅੱਪ ਲਈ ਤਿਆਰ'
     }
   }
 };

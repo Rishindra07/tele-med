@@ -14,19 +14,19 @@ import AdminLayout from '../../components/AdminLayout';
 import { approvePendingUser, fetchDoctorsDirectory } from '../../api/adminApi';
 
 const colors = {
-  paper: '#fffdf8',
-  line: '#d8d0c4',
-  text: '#2c2b28',
-  muted: '#8b857d',
-  blue: '#4a90e2',
-  blueSoft: '#e9f2ff',
-  green: '#26a37c',
-  greenSoft: '#dff3eb',
-  red: '#d9635b',
+  paper: '#ffffff',
+  line: '#e0e0e0',
+  text: '#202124',
+  muted: '#5f6368',
+  blue: '#1a73e8',
+  blueSoft: '#e8f0fe',
+  green: '#1e8e3e',
+  greenSoft: '#e6f4ea',
+  red: '#d93025',
   redSoft: '#fbeaea',
-  orange: '#d18a1f',
-  orangeSoft: '#fdf4e4',
-  soft: '#f7f3ea'
+  orange: '#f9ab00',
+  orangeSoft: '#fff8e1',
+  soft: '#f1f3f4'
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
@@ -109,20 +109,20 @@ export default function AdminDoctors() {
       <Box sx={{ p: { xs: 2.5, md: 4, xl: 5 }, maxWidth: 1600, mx: 'auto' }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
           <Box>
-            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontFamily: 'Georgia, serif', lineHeight: 1.05 }}>Doctors</Typography>
+            <Typography sx={{ fontSize: { xs: 36, md: 46 }, fontWeight: 700, fontFamily: 'Inter, sans-serif', lineHeight: 1.05 }}>Doctors</Typography>
             <Typography sx={{ mt: 1, color: colors.muted, fontSize: 18, maxWidth: 640 }}>
               Live doctor registry, verification queue, and performance overview.
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ px: 2.5, py: 1.25, borderRadius: 4, border: `1px solid ${colors.line}`, bgcolor: '#f7f3ea', fontSize: 17 }}>
+            <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
             <Button
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
-                borderRadius: 3,
+                borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
@@ -140,7 +140,7 @@ export default function AdminDoctors() {
             <CircularProgress sx={{ color: colors.blue }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
@@ -149,7 +149,7 @@ export default function AdminDoctors() {
                   key={label}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3.5,
+                    borderRadius: '12px',
                     border: `1px solid ${colors.line}`,
                     bgcolor: colors.paper,
                     transition: '0.2s',
@@ -168,11 +168,11 @@ export default function AdminDoctors() {
 
             <Grid container spacing={4} sx={{ mb: 5 }}>
               <Grid item xs={12} lg={7}>
-                <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
+                <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, height: '100%' }}>
                   <Typography sx={{ fontSize: 18, mb: 4 }}>Verification queue</Typography>
                   <Stack spacing={2}>
                     {pendingDoctors.length ? pendingDoctors.map((doctor) => (
-                      <Box key={doctor.userId} sx={{ p: 2, borderRadius: 2.5, bgcolor: colors.soft }}>
+                      <Box key={doctor.userId} sx={{ p: 2, borderRadius: '12px', bgcolor: colors.soft }}>
                         <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} justifyContent="space-between" alignItems="center">
                           <Box sx={{ flex: 1 }}>
                             <Typography sx={{ fontSize: 16, fontWeight: 700 }}>{doctor.full_name}</Typography>
@@ -213,11 +213,11 @@ export default function AdminDoctors() {
 
               <Grid item xs={12} lg={5}>
                 <Stack spacing={4}>
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 3 }}>By specialization</Typography>
                     <Stack spacing={1.5}>
                       {specializationRows.length ? specializationRows.map((item) => (
-                        <Box key={item.name} sx={{ p: 1.6, borderRadius: 2.5, bgcolor: colors.soft }}>
+                        <Box key={item.name} sx={{ p: 1.6, borderRadius: '12px', bgcolor: colors.soft }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center">
                             <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</Typography>
                             <Chip label={formatNumber(item.count)} size="small" sx={{ fontWeight: 700, bgcolor: colors.greenSoft, color: colors.green }} />
@@ -229,7 +229,7 @@ export default function AdminDoctors() {
                     </Stack>
                   </Box>
 
-                  <Box sx={{ p: 4, borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+                  <Box sx={{ p: 4, borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
                     <Typography sx={{ fontSize: 18, mb: 3 }}>Status snapshot</Typography>
                     <Stack spacing={2}>
                       <Stack direction="row" justifyContent="space-between"><Typography sx={{ fontSize: 15, color: colors.muted }}>Approved</Typography><Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.green }}>{formatNumber(doctors.filter((d) => d.is_approved).length)}</Typography></Stack>
@@ -241,7 +241,7 @@ export default function AdminDoctors() {
               </Grid>
             </Grid>
 
-            <Box sx={{ borderRadius: 3.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
+            <Box sx={{ borderRadius: '16px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, overflow: 'hidden' }}>
               <Box sx={{ p: 4, borderBottom: `1px solid ${colors.line}` }}>
                 <Typography sx={{ fontSize: 18 }}>Top doctors by performance</Typography>
               </Box>

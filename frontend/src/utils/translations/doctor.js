@@ -53,6 +53,17 @@ export const DOCTOR_PROFILE_TRANSLATIONS = {
     f_name: "পুরো নাম", f_phone: "ফোন", f_spec: "বিশেষত্ব", f_qual: "যোগ্যতা", f_hosp: "হাসপাতাল / ক্লিনিকের নাম",
     f_lic: "মেডিকেল লাইসেন্স", f_fee: "পরামর্শ ফি (₹)", f_exp: "অভিজ্ঞতা (বছর)", f_lang: "ভাষা (কমা দিয়ে আলাদা করুন)", f_bio: "পেশাদার বায়ো",
     prof_info: "পেশাদার তথ্য"
+  },
+  pa: {
+    title: "ਡਾਕਟਰ ਪ੍ਰੋਫ਼ਾਈਲ", subtitle: "ਆਪਣੇ ਪੇਸ਼ੇਵਰ ਵੇਰਵਿਆਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ ਅਤੇ ਅਪਡੇਟ ਕਰੋ",
+    cancel: "ਰੱਦ ਕਰੋ", saving: "ਸੰਭਾਲ ਰਿਹਾ ਹੈ...", save_changes: "ਬਦਲਾਵ ਬਚਾਓ", edit_profile: "ਪ੍ਰੋਫਾਈਲ ਸੰਪਾਦਿਤ ਕਰੋ",
+    avail: "ਉਪਲਬਧ", busy: "ਵਿਅਸਤ / ਔਫਲਾਈਨ",
+    not_provided: "ਪ੍ਰਦਾਨ ਨਹੀਂ ਕੀਤੀ ਗਈ", no_bio: "ਅਜੇ ਤੱਕ ਕੋਈ ਬਾਇਓ ਸ਼ਾਮਲ ਨਹੀਂ ਕੀਤਾ ਗਿਆ।", not_spec: "ਨਿਰਧਾਰਿਤ ਨਹੀਂ", spec_def: "ਸਪੈਸ਼ਲਿਸਟ",
+    lbl_spec: "ਵਿਸ਼ੇਸ਼ਤਾ", lbl_exp: "ਅਨੁਭਵ", lbl_lang: "ਭਾਸ਼ਾਵਾਂ", lbl_fee: "ਸਲਾਹ ਫੀਸ", years: "ਸਾਲ",
+    about: "ਡਾਕਟਰ ਬਾਰੇ", edit_details: "ਵੇਰਵਿਆਂ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ",
+    f_name: "ਪੂਰਾ ਨਾਮ", f_phone: "ਫ਼ੋਨ", f_spec: "ਵਿਸ਼ੇਸ਼ਤਾ", f_qual: "ਯੋਗਤਾ", f_hosp: "ਹਸਪਤਾਲ / ਕਲੀਨਿਕ ਦਾ ਨਾਮ",
+    f_lic: "ਮੈਡੀਕਲ ਲਾਇਸੈਂਸ", f_fee: "ਸਲਾਹ ਫੀਸ (₹)", f_exp: "ਅਨੁਭਵ (ਸਾਲ)", f_lang: "ਭਾਸ਼ਾਵਾਂ (ਕਾਮਾ ਨਾਲ ਵੱਖ ਕੀਤੀਆਂ)", f_bio: "ਪ੍ਰੋਫੈਸ਼ਨਲ ਬਾਇਓ",
+    prof_info: "ਪੇਸ਼ੇਵਰ ਜਾਣਕਾਰੀ"
   }
 };
 
@@ -276,6 +287,50 @@ export const DOCTOR_DASHBOARD_TRANSLATIONS = {
       upc_app: "আসন্ন", upc_sub: "আগে থেকে নির্ধারিত",
       presc: "প্রেসক্রিপশন", presc_sub: "আজ পর্যন্ত জারি করা হয়েছে"
     }
+  },
+  pa: {
+    hello: "ਹੈਲੋ",
+    subtitle: "ਤੁਹਾਡੀਆਂ ਮੁਲਾਕਾਤਾਂ, ਮਰੀਜ਼ਾਂ, ਨੁਸਖ਼ਿਆਂ ਅਤੇ ਸੂਚਨਾਵਾਂ ਦਾ ਲਾਈਵ ਸੰਖੇਪ ਜਾਣਕਾਰੀ।",
+    manage_slots: "ਸਲਾਟ ਪ੍ਰਬੰਧਿਤ ਕਰੋ",
+    appointments_feed: "ਮੁਲਾਕਾਤ ਫੀਡ",
+    recent_patients: "ਤਾਜ਼ਾ ਮਰੀਜ਼",
+    notifications: "ਸੂਚਨਾਵਾਂ",
+    profile_snapshot: "ਪ੍ਰੋਫਾਈਲ ਸਨੈਪਸ਼ਾਟ",
+    date_pending: "ਮਿਤੀ ਲੰਬਿਤ",
+    general_consult: "ਆਮ ਸਲਾਹ",
+    join_consult: "ਸਲਾਹ ਵਿੱਚ ਸ਼ਾਮਲ ਹੋਵੋ",
+    reschedule: "ਮੁੜ ਤਹਿ",
+    cancel: "ਰੱਦ ਕਰੋ",
+    cancelling: "ਰੱਦ ਕਰ ਰਿਹਾ ਹੈ...",
+    join_now: "ਹੁਣੇ ਸ਼ਾਮਲ ਹੋਵੋ",
+    chat_patient: "ਮਰੀਜ਼ ਨਾਲ ਗੱਲਬਾਤ ਕਰੋ",
+    prescribe: "ਲਿਖੋ",
+    view_prescription: "ਨੁਸਖਾ ਦੇਖੋ",
+    view_records: "ਰਿਕਾਰਡ ਦੇਖੋ",
+    feedback: "ਫੀਡਬੈਕ",
+    rebook: "ਰੀਬੁਕ ਮਰੀਜ਼",
+    book_again: "ਦੁਬਾਰਾ ਬੁੱਕ ਕਰੋ",
+    no_appointments: "ਅਜੇ ਤੱਕ ਕੋਈ ਮੁਲਾਕਾਤਾਂ ਨਹੀਂ ਹਨ।",
+    last_visit: "ਆਖਰੀ ਮੁਲਾਕਾਤ",
+    no_recent_patients: "ਅਜੇ ਤੱਕ ਕੋਈ ਤਾਜ਼ਾ ਮਰੀਜ਼ ਨਹੀਂ ਹੈ।",
+    no_notifications: "ਇਸ ਵੇਲੇ ਕੋਈ ਸੂਚਨਾਵਾਂ ਨਹੀਂ ਹਨ।",
+    spec_not_added: "ਵਿਸ਼ੇਸ਼ਤਾ ਸ਼ਾਮਲ ਨਹੀਂ ਕੀਤੀ ਗਈ",
+    hosp_not_added: "ਹਸਪਤਾਲ ਨਹੀਂ ਜੋੜਿਆ ਗਿਆ",
+    view_profile: "ਪ੍ਰੋਫਾਈਲ ਦੇਖੋ",
+    at: "ਤੇ",
+    reschedule_title: "ਸਲਾਹ-ਮਸ਼ਵਰੇ ਨੂੰ ਮੁੜ ਤਹਿ ਕਰੋ",
+    reschedule_desc: "ਤੁਹਾਡੀ ਸੈੱਟ ਕੀਤੀ ਉਪਲਬਧਤਾ ਦੇ ਆਧਾਰ \'ਤੇ ਇਸ ਸੈਸ਼ਨ ਨੂੰ ਕਿਸੇ ਹੋਰ ਸਮੇਂ \'ਤੇ ਭੇਜੋ।",
+    choose_date: "ਨਵੀਂ ਮਿਤੀ ਚੁਣੋ",
+    choose_time: "ਨਵਾਂ ਸਮਾਂ ਚੁਣੋ",
+    no_slots: "ਇਸ ਮਿਤੀ ਲਈ ਕੋਈ ਉਪਲਬਧ ਸਲਾਟ ਨਹੀਂ ਹਨ।",
+    confirm_reschedule: "ਮੁੜ ਸਮਾਂ-ਸਾਰਣੀ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ",
+    rescheduling: "ਮੁੜ ਤਹਿ...",
+    cards: {
+      tot_pat: "ਕੁੱਲ ਮਰੀਜ਼", pat_sub: "ਦੇਖੇ ਅਨੋਖੇ ਮਰੀਜ਼",
+      tod_app: "ਅੱਜ ਦੀਆਂ ਮੁਲਾਕਾਤਾਂ", tod_sub: "ਅੱਜ ਦਾ ਪ੍ਰੋਗਰਾਮ",
+      upc_app: "ਆਗਾਮੀ", upc_sub: "ਅੱਗੇ ਤਹਿ",
+      presc: "ਨੁਸਖੇ", presc_sub: "ਅੱਜ ਤੱਕ ਜਾਰੀ ਕੀਤਾ ਗਿਆ"
+    }
   }
 };
 
@@ -314,6 +369,13 @@ export const DOCTOR_APPOINTMENTS_TRANSLATIONS = {
     upload_reports: "রিপোর্ট আপলোড করুন", cancel_appt: "অ্যাপয়েন্টমেন্ট বাতিল করুন", processing: "প্রক্রিয়াজাত করা হচ্ছে...",
     filters: { all: "সব", upcoming: "আসন্ন", ongoing: "চলমান", completed: "সম্পন্ন", missed: "মিস করা হয়েছে", cancelled: "বাতিল" },
     groups: { live: "লাইভ এবং আসন্ন", completed: "সম্পন্ন", missed: "মিস করা হয়েছে", cancelled: "বাতিল" }
+  },
+  pa: {
+    title: "ਮੁਲਾਕਾਤਾਂ ਦੀ ਕਤਾਰ", subtitle: "ਆਪਣੇ ਕਾਰਜਕ੍ਰਮ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ ਅਤੇ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਦੀ ਸਥਿਤੀ ਦੇ ਆਧਾਰ \'ਤੇ ਕਾਰਵਾਈਆਂ ਕਰੋ।",
+    search: "ਮਰੀਜ਼ ਜਾਂ ਮੁਲਾਕਾਤ ਦੀ ਕਿਸਮ ਦੀ ਖੋਜ ਕਰੋ",
+    upload_reports: "ਅੱਪਲੋਡ ਰਿਪੋਰਟਾਂ", cancel_appt: "ਮੁਲਾਕਾਤ ਰੱਦ ਕਰੋ", processing: "ਪ੍ਰੋਸੈਸਿੰਗ...",
+    filters: { all: "ਸਾਰੇ", upcoming: "ਆਗਾਮੀ", ongoing: "ਜਾਰੀ", completed: "ਸੰਪੂਰਨ", missed: "ਖੁੰਝ ਗਈ", cancelled: "ਰੱਦ ਕੀਤਾ" },
+    groups: { live: "ਲਾਈਵ ਅਤੇ ਆਉਣ ਵਾਲੇ", completed: "ਸੰਪੂਰਨ", missed: "ਖੁੰਝ ਗਿਆ", cancelled: "ਰੱਦ ਕੀਤਾ" }
   }
 };
 
@@ -382,6 +444,19 @@ export const DOCTOR_PATIENTS_TRANSLATIONS = {
     general: "সাধারণ", scheduled: "নির্ধারিত",
     contact_info: "যোগাযোগের তথ্য", email: "ইমেল", phone: "ফোন",
     not_provided: "প্রদান করা হয়নি", visit: "পরিদর্শন", visits: "পরিদর্শন"
+  },
+  pa: {
+    title: "ਮਰੀਜ਼", subtitle: "ਸਾਰੇ ਮਰੀਜ਼ ਜਿਨ੍ਹਾਂ ਨੇ ਤੁਹਾਡੇ ਨਾਲ ਸਲਾਹ ਕੀਤੀ ਹੈ।",
+    no_patients: "ਅਜੇ ਤੱਕ ਕੋਈ ਮਰੀਜ਼ ਨਹੀਂ ਹੈ। ਤੁਹਾਡੇ ਮਰੀਜ਼ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਤੋਂ ਬਾਅਦ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।",
+    search_patient: "ਮਰੀਜ਼ ਦੀ ਖੋਜ ਕਰੋ",
+    all_patients: "ਸਾਰੇ ਮਰੀਜ਼",
+    patients_nav: "ਮਰੀਜ਼", details_nav: "ਵੇਰਵਾ",
+    write_presc: "ਨੁਸਖਾ ਲਿਖੋ", view_records: "ਰਿਕਾਰਡ ਦੇਖੋ",
+    total_visits: "ਕੁੱਲ ਮੁਲਾਕਾਤਾਂ", last_visit: "ਆਖਰੀ ਮੁਲਾਕਾਤ",
+    last_diag: "ਆਖਰੀ ਨਿਦਾਨ", status: "ਸਟੇਟਸ",
+    general: "ਜਨਰਲ", scheduled: "ਤਹਿ",
+    contact_info: "ਸੰਪਰਕ ਜਾਣਕਾਰੀ", email: "ਈਮੇਲ", phone: "ਫ਼ੋਨ",
+    not_provided: "ਪ੍ਰਦਾਨ ਨਹੀਂ ਕੀਤੀ ਗਈ", visit: "ਫੇਰੀ", visits: "ਮੁਲਾਕਾਤਾਂ"
   }
 };
 
@@ -470,6 +545,23 @@ export const DOCTOR_PRESCRIPTION_TRANSLATIONS = {
     save_draft: "খসড়া সংরক্ষণ করুন", send_sms: "এসএমএসের মাধ্যমে পাঠান", processing: "প্রক্রিয়াজাত করা হচ্ছে...",
     close: "বন্ধ করুন", download_print: "পিডিএফ ডাউনলোড/প্রিন্ট করুন", digital_signature: "ডিজিটাল স্বাক্ষর",
     add_allergy: "অ্যালার্জি যোগ করুন"
+  },
+  pa: {
+    writePrescription: "ਨੁਸਖਾ ਲਿਖੋ", diagnosis: "ਨਿਦਾਨ / ਲੱਛਣ",
+    medications: "ਦਵਾਈਆਂ", labTests: "ਲੈਬ ਟੈਸਟ", followUp: "ਪਾਲਣਾ ਕਰੋ",
+    notes: "ਨੋਟਸ", submit: "ਮਰੀਜ਼ ਨੂੰ ਭੇਜੋ", preview: "ਝਲਕ",
+    allergies: "ਐਲਰਜੀ", addMedicine: "+ ਦਵਾਈ ਸ਼ਾਮਲ ਕਰੋ", voice: "ਵੌਇਸ ਟਾਈਪਿੰਗ",
+    back: "ਪਿੱਛੇ",
+    patient_phone_placeholder: "ਮਰੀਜ਼ ਦਾ ਫ਼ੋਨ (WhatsApp ਲਈ)",
+    phone_required_warning: "ਡਿਜੀਟਲ ਨੁਸਖ਼ੇ ਸ਼ੇਅਰਿੰਗ ਲਈ ਫ਼ੋਨ ਦੀ ਲੋੜ",
+    diagnosis_placeholder: "ਸ਼ੁਰੂਆਤੀ ਨਿਦਾਨ / ਦੇਖੇ ਗਏ ਲੱਛਣ...",
+    none_reported: "ਕਿਸੇ ਨੇ ਰਿਪੋਰਟ ਨਹੀਂ ਕੀਤੀ", add_allergy_placeholder: "ਦਸਤਾਵੇਜ਼ੀ ਐਲਰਜੀ ਸ਼ਾਮਲ ਕਰੋ...",
+    medicine_name: "ਦਵਾਈ ਦਾ ਨਾਮ", dosage: "ਖੁਰਾਕ", form: "ਰੂਪ", timing: "ਸਮਾਂ",
+    duration: "ਅਵਧੀ (ਦਿਨ)", frequency: "ਬਾਰੰਬਾਰਤਾ", food: "ਭੋਜਨ",
+    search_tests: "ਸਿਫਾਰਸ਼ ਕੀਤੇ ਟੈਸਟਾਂ ਦੀ ਖੋਜ ਕਰੋ...", notes_placeholder: "ਵਾਧੂ ਸਲਾਹ...",
+    save_draft: "ਡਰਾਫਟ ਨੂੰ ਸੁਰੱਖਿਅਤ ਕਰੋ", send_sms: "SMS ਰਾਹੀਂ ਭੇਜੋ", processing: "ਪ੍ਰੋਸੈਸਿੰਗ...",
+    close: "ਬੰਦ ਕਰੋ", download_print: "PDF ਡਾਊਨਲੋਡ/ਪ੍ਰਿੰਟ ਕਰੋ", digital_signature: "ਡਿਜੀਟਲ ਦਸਤਖਤ",
+    add_allergy: "ਐਲਰਜੀ ਸ਼ਾਮਲ ਕਰੋ"
   }
 };
 
@@ -533,6 +625,18 @@ export const DOCTOR_NOTIFICATIONS_TRANSLATIONS = {
     no_notifications: "এখনও কোন বিজ্ঞপ্তি নেই।",
     unread_chip: "পড়া হয়নি",
     mark_read: "পড়া হিসেবে চিহ্নিত করুন"
+  },
+  pa: {
+    title: "ਡਾਕਟਰ ਸੂਚਨਾਵਾਂ",
+    subtitle: "ਅਪਾਇੰਟਮੈਂਟ ਇਵੈਂਟਸ, ਰੀਮਾਈਂਡਰ, ਅਤੇ ਆਗਾਮੀ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਚੇਤਾਵਨੀਆਂ ਲਈ ਕਾਰਜਸ਼ੀਲ ਇਨਬਾਕਸ।",
+    doctor_console: "ਡਾਕਟਰ ਕੰਸੋਲ",
+    refresh: "ਤਾਜ਼ਾ ਕਰੋ",
+    mark_all_read: "ਸਭ ਨੂੰ ਪੜ੍ਹੋ ਮਾਰਕ ਕਰੋ",
+    notification_queue: "ਸੂਚਨਾ ਕਤਾਰ",
+    queue_subtitle: "ਅਣਪੜ੍ਹੀਆਂ ਆਈਟਮਾਂ ਦ੍ਰਿਸ਼ਟੀਗਤ ਤੌਰ \'ਤੇ ਉੱਚੀਆਂ ਰਹਿੰਦੀਆਂ ਹਨ ਤਾਂ ਕਿ ਅਗਲੀ ਕਾਰਵਾਈ ਨੂੰ ਆਸਾਨੀ ਨਾਲ ਦੇਖਿਆ ਜਾ ਸਕੇ।",
+    no_notifications: "ਅਜੇ ਤੱਕ ਕੋਈ ਸੂਚਨਾਵਾਂ ਨਹੀਂ ਹਨ।",
+    unread_chip: "ਨਾ ਪੜ੍ਹਿਆ",
+    mark_read: "ਮਾਰਕ ਰੀਡ"
   }
 };
 
@@ -601,6 +705,19 @@ export const DOCTOR_AVAILABILITY_TRANSLATIONS = {
     format_desc: "সর্বদা 24h বিন্যাস (HH:mm) ব্যবহার করুন।",
     availability: "প্রাপ্যতা",
     availability_desc: "এখানে যোগ করা স্লটগুলি অবিলম্বে আপনার প্রোফাইলে দৃশ্যমান হবে।"
+  },
+  pa: {
+    manage: "ਉਪਲਬਧਤਾ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ", scheduling: "ਤਹਿ",
+    subtitle: "ਆਪਣੇ ਬੁੱਕ ਕਰਨ ਯੋਗ ਸਲਾਹ ਸਲਾਟ ਸੈਟ ਕਰੋ",
+    saving: "ਸੰਭਾਲ ਰਿਹਾ ਹੈ...", save_all: "ਸਾਰੇ ਸਲਾਟ ਸੁਰੱਖਿਅਤ ਕਰੋ",
+    add_new: "ਨਵੇਂ ਸਲਾਟ ਸ਼ਾਮਲ ਕਰੋ", choose_date: "ਮਿਤੀ ਚੁਣੋ",
+    add_time: "ਟਾਈਮ ਸਲਾਟ ਜੋੜੋ", time_placeholder: "ਜਿਵੇਂ ਕਿ 10:30",
+    add: "ਜੋੜੋ", preview_slots: "ਝਲਕ ਸਲਾਟ",
+    empty_preview: "ਆਪਣਾ ਸਮਾਂ-ਸਾਰਣੀ ਬਣਾਉਣਾ ਸ਼ੁਰੂ ਕਰਨ ਲਈ \'ਸ਼ਾਮਲ ਕਰੋ\' \'ਤੇ ਕਲਿੱਕ ਕਰੋ",
+    notes_title: "ਡਾਕਟਰ ਦੇ ਨੋਟ", format: "ਫਾਰਮੈਟ",
+    format_desc: "ਇਕਸਾਰਤਾ ਲਈ ਹਮੇਸ਼ਾ 24h ਫਾਰਮੈਟ (HH:mm) ਦੀ ਵਰਤੋਂ ਕਰੋ।",
+    availability: "ਉਪਲਬਧਤਾ",
+    availability_desc: "ਇੱਥੇ ਸ਼ਾਮਲ ਕੀਤੇ ਗਏ ਸਲਾਟ ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ \'ਤੇ ਮਰੀਜ਼ਾਂ ਨੂੰ ਤੁਰੰਤ ਦਿਖਾਈ ਦੇਣਗੇ।"
   }
 };
 
@@ -853,6 +970,56 @@ export const DOCTOR_SETTINGS_TRANSLATIONS = {
       pause: "বুকিং বিরতি দিন", pause_desc: "রোগীদের থেকে আপনার স্লট সাময়িকভাবে লুকান।", btn_pause: "বুকিং বিরতি দিন",
       disable: "টেলিপরামর্শ প্রাপ্যতা অক্ষম করুন", disable_desc: "পুনরায় সক্ষম না হওয়া পর্যন্ত ভিডিও গ্রহণ করা বন্ধ করুন।", btn_disable: "অক্ষম করুন",
       deactivate: "অ্যাকাউন্ট নিষ্ক্রিয়করণের অনুরোধ করুন", deactivate_desc: "আপনার প্রোফাইল এবং পরামর্শ স্থগিত করা হবে।", btn_deactivate: "নিষ্ক্রিয় করুন"
+    }
+  },
+  pa: {
+    tabs: {
+      account: ['Account', 'Manage your profile, contact and clinic information'],
+      notification: ['Notifications', 'Control when and how patient alerts reach you'],
+      language: ['Language', 'Choose your preferred language and format settings'],
+      region: ['Region & Time', 'Set your timezone, session defaults and local format']
+    },
+    save: "ਬਦਲਾਵ ਬਚਾਓ", saving: "ਸੰਭਾਲ ਰਿਹਾ ਹੈ...",
+    home: "ਘਰ", settings: "ਸੈਟਿੰਗਾਂ",
+    account: {
+      overview: "ਪ੍ਰੋਫਾਈਲ ਦੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ", overview_desc: "ਤੁਹਾਡੇ ਨਾਲ ਬੁਕਿੰਗ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਮਰੀਜ਼ ਦੇ ਵੇਰਵਿਆਂ ਨੂੰ ਅਪਡੇਟ ਕਰੋ",
+      full_name: "ਪੂਰਾ ਨਾਮ", specialty: "ਵਿਸ਼ੇਸ਼ਤਾ", clinic: "ਕਲੀਨਿਕ / ਹਸਪਤਾਲ",
+      email: "ਈਮੇਲ", phone: "ਫ਼ੋਨ", bio: "ਪ੍ਰੋਫੈਸ਼ਨਲ ਬਾਇਓ",
+      verification: "ਤਸਦੀਕ ਸਥਿਤੀ", verified: "ਮੈਡੀਕਲ ਕੌਂਸਲ ਦੀ ਪੁਸ਼ਟੀ",
+      public_name: "ਜਨਤਕ ਡਿਸਪਲੇ ਨਾਮ", save_btn: "ਪ੍ਰੋਫਾਈਲ ਨੂੰ ਸੇਵ ਕਰੋ"
+    },
+    notification: {
+      appointments: "ਮੁਲਾਕਾਤਾਂ",
+      upcoming: "ਆਗਾਮੀ ਮੁਲਾਕਾਤ ਚੇਤਾਵਨੀਆਂ", upcoming_desc: "ਹਰ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਸ਼ੁਰੂ ਹੋਣ ਤੋਂ ਪਹਿਲਾਂ ਤੁਹਾਨੂੰ ਯਾਦ ਕਰਾਓ",
+      booking: "ਨਵੀਆਂ ਬੁਕਿੰਗ ਬੇਨਤੀਆਂ", booking_desc: "ਚੇਤਾਵਨੀ ਜਦੋਂ ਇੱਕ ਮਰੀਜ਼ ਇੱਕ ਸਲਾਟ ਦੀ ਬੇਨਤੀ ਕਰਦਾ ਹੈ",
+      cancel: "ਰੱਦ ਕਰਨਾ ਅਤੇ ਮੁੜ ਸਮਾਂ-ਸਾਰਣੀ", cancel_desc: "ਜਦੋਂ ਮਰੀਜ਼ ਯੋਜਨਾਵਾਂ ਬਦਲਦੇ ਹਨ ਤਾਂ ਸੂਚਿਤ ਰਹੋ",
+      channels: "ਚੈਨਲਾਂ", sms: "SMS ਚੇਤਾਵਨੀਆਂ", sms_desc: "ਤੁਹਾਡੇ ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਨੰਬਰ ਲਈ ਤੁਰੰਤ ਰੀਮਾਈਂਡਰ",
+      push: "ਪੁਸ਼ ਸੂਚਨਾਵਾਂ", push_desc: "ਤੁਹਾਡੀ ਮੌਜੂਦਾ ਡਿਵਾਈਸ \'ਤੇ ਇਨ-ਐਪ ਅਲਰਟ",
+      email: "ਈਮੇਲ ਸੰਖੇਪ", email_desc: "ਰੋਜ਼ਾਨਾ ਅਨੁਸੂਚੀ ਦਾ ਸਾਰ",
+      dnd: "ਪਰੇਸ਼ਾਨ ਨਾ ਕਰੋ", dnd_desc: "ਕਲੀਨਿਕ ਘੰਟਿਆਂ ਦੇ ਬਾਹਰ ਗੈਰ-ਜ਼ਰੂਰੀ ਚੇਤਾਵਨੀਆਂ ਨੂੰ ਚੁੱਪ ਕਰਾਓ", to: "ਨੂੰ"
+    },
+    language: {
+      display: "ਡਿਸਪਲੇ ਭਾਸ਼ਾ", display_desc: "ਆਪਣੇ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਵਰਤੀ ਗਈ ਭਾਸ਼ਾ ਚੁਣੋ",
+      time: "ਸਮਾਂ ਫਾਰਮੈਟ", time_desc: "ਮੁਲਾਕਾਤਾਂ, ਰੀਮਾਈਂਡਰਾਂ ਅਤੇ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਦੇ ਸੰਖੇਪਾਂ ਵਿੱਚ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ",
+      date: "ਮਿਤੀ ਫਾਰਮੈਟ", date_desc: "ਸਮਾਂ-ਸਾਰਣੀ ਅਤੇ ਮਰੀਜ਼ਾਂ ਦੇ ਰਿਕਾਰਡਾਂ ਵਿੱਚ ਤਾਰੀਖਾਂ ਕਿਵੇਂ ਦਿਖਾਈ ਦਿੰਦੀਆਂ ਹਨ",
+      prescription: "ਨੁਸਖੇ ਦੀ ਭਾਸ਼ਾ", prescription_desc: "ਨੁਸਖ਼ੇ ਦੇ ਨੋਟਸ ਅਤੇ ਮਰੀਜ਼ ਹੈਂਡਆਉਟਸ ਲਈ ਡਿਫੌਲਟ ਭਾਸ਼ਾ"
+    },
+    region: {
+      connectivity: "ਕਨੈਕਟੀਵਿਟੀ ਦੀ ਤਿਆਰੀ",
+      connectivity_desc: "ਮੱਧਮ ਨੈੱਟਵਰਕ ਗੁਣਵੱਤਾ ਦੇ ਨਾਲ ਪੇਂਡੂ ਟੈਲੀ-ਸਲਾਹ ਲਈ ਅਨੁਕੂਲਿਤ।",
+      timezone: "ਸਮਾਂ ਖੇਤਰ", timezone_desc: "ਮੁਲਾਕਾਤਾਂ ਅਤੇ ਰੀਮਾਈਂਡਰਾਂ ਲਈ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ",
+      slot_length: "ਪੂਰਵ-ਨਿਰਧਾਰਤ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਸਲਾਟ ਲੰਬਾਈ", slot_length_desc: "ਲਾਗੂ ਹੁੰਦਾ ਹੈ ਜਦੋਂ ਨਵੀਂ ਉਪਲਬਧਤਾ ਬਣਾਈ ਜਾਂਦੀ ਹੈ",
+      auto_confirm: "ਆਟੋ-ਪੁਸ਼ਟੀ ਮਰੀਜ਼ ਬੁਕਿੰਗ", auto_confirm_desc: "ਦਸਤੀ ਪ੍ਰਵਾਨਗੀ ਤੋਂ ਬਿਨਾਂ ਤੁਰੰਤ ਪੁਸ਼ਟੀ ਕਰੋ",
+      low_bandwidth: "ਘੱਟ ਬੈਂਡਵਿਡਥ ਮੋਡ", low_bandwidth_desc: "ਵੀਡੀਓ ਲੋਡ ਘਟਾਓ ਅਤੇ ਆਵਾਜ਼ ਦੀ ਸਥਿਰਤਾ ਨੂੰ ਤਰਜੀਹ ਦਿਓ",
+      audio_fallback: "ਆਡੀਓ ਫਾਲਬੈਕ", audio_fallback_desc: "ਜੇਕਰ ਵੀਡੀਓ ਦੀ ਗੁਣਵੱਤਾ ਘੱਟ ਜਾਂਦੀ ਹੈ ਤਾਂ ਆਟੋਮੈਟਿਕਲੀ ਆਡੀਓ \'ਤੇ ਸਵਿਚ ਕਰੋ",
+      password: "ਪਾਸਵਰਡ", password_desc: "ਆਖਰੀ ਵਾਰ 2 ਮਹੀਨੇ ਪਹਿਲਾਂ ਬਦਲਿਆ ਗਿਆ", change_password: "ਪਾਸਵਰਡ ਬਦਲੋ",
+      biometric: "ਬਾਇਓਮੈਟ੍ਰਿਕ ਲਾਗਇਨ", biometric_desc: "ਸਮਰਥਿਤ ਹੋਣ \'ਤੇ ਡਿਵਾਈਸ ਫਿੰਗਰਪ੍ਰਿੰਟ ਜਾਂ ਫੇਸ ਅਨਲਾਕ ਦੀ ਵਰਤੋਂ ਕਰੋ",
+      login_alerts: "ਲੌਗਇਨ ਚੇਤਾਵਨੀਆਂ", login_alerts_desc: "ਜਦੋਂ ਇੱਕ ਨਵੀਂ ਡਿਵਾਈਸ ਸਾਈਨ ਇਨ ਕਰਦੀ ਹੈ ਤਾਂ ਚੇਤਾਵਨੀ ਪ੍ਰਾਪਤ ਕਰੋ",
+      contact: "ਕਲੀਨਿਕ ਐਮਰਜੈਂਸੀ ਸੰਪਰਕ", edit: "ਸੋਧੋ",
+      controls: "ਅਭਿਆਸ ਨਿਯੰਤਰਣ",
+      pause: "ਔਨਲਾਈਨ ਬੁਕਿੰਗ ਰੋਕੋ", pause_desc: "ਅਸਥਾਈ ਤੌਰ \'ਤੇ ਮਰੀਜ਼ਾਂ ਤੋਂ ਆਪਣੇ ਮੁਲਾਕਾਤ ਸਲੋਟਾਂ ਨੂੰ ਲੁਕਾਓ।", btn_pause: "ਬੁਕਿੰਗ ਰੋਕੋ",
+      disable: "ਟੈਲੀ-ਸਲਾਹ ਦੀ ਉਪਲਬਧਤਾ ਨੂੰ ਅਸਮਰੱਥ ਬਣਾਓ", disable_desc: "ਮੁੜ-ਸਮਰੱਥ ਹੋਣ ਤੱਕ ਵੀਡੀਓ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਨੂੰ ਸਵੀਕਾਰ ਕਰਨਾ ਬੰਦ ਕਰੋ।", btn_disable: "ਅਯੋਗ",
+      deactivate: "ਖਾਤਾ ਬੰਦ ਕਰਨ ਦੀ ਬੇਨਤੀ ਕਰੋ", deactivate_desc: "ਤੁਹਾਡੀ ਪ੍ਰੋਫਾਈਲ, ਸਲਾਟ ਅਤੇ ਆਉਣ ਵਾਲੇ ਸਲਾਹ-ਮਸ਼ਵਰੇ ਨੂੰ ਮੁਅੱਤਲ ਕਰ ਦਿੱਤਾ ਜਾਵੇਗਾ।", btn_deactivate: "ਅਕਿਰਿਆਸ਼ੀਲ ਕਰੋ"
     }
   }
 };

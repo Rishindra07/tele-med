@@ -208,5 +208,47 @@ export const LAYOUT_TRANSLATIONS = {
 
     // Doctor Sidebar
     appointments: "নিয়োগ",
+  },
+  pa: {
+    // General
+    dashboard: "ਡੈਸ਼ਬੋਰਡ",
+    settings: "ਸੈਟਿੰਗਜ਼",
+    logout: "ਲੌਗ ਆਉਟ",
+    language: "ਭਾਸ਼ਾ",
+    profile: "ਪ੍ਰੋਫਾਈਲ",
+
+    // Admin Sidebar
+    overview: "ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+    platform: "ਪਲੇਟਫਾਰਮ",
+    insights_finances: "ਅੰਤਰਦ੍ਰਿਸ਼ਟੀ ਅਤੇ ਵਿੱਤ",
+    system: "ਸਿਸਟਮ",
+    analytics: "ਵਿਸ਼ਲੇਸ਼ਣ",
+    patients: "ਮਰੀਜ਼",
+    doctors: "ਡਾਕਟਰ",
+    pharmacies: "ਫਾਰਮੇਸੀਆਂ",
+    consultations: "ਸਲਾਹ-ਮਸ਼ਵਰੇ",
+    health_records: "ਸਿਹਤ ਰਿਕਾਰਡ",
+    financial: "ਵਿੱਤੀ",
+    reports: "ਰਿਪੋਰਟਾਂ",
+    system_health: "ਸਿਸਟਮ ਸਿਹਤ",
+    user_management: "ਉਪਭੋਗਤਾ ਪ੍ਰਬੰਧਨ",
+    audit_log: "ਆਡਿਟ ਲੌਗ",
+
+    // Pharmacy Sidebar
+    orders: "ਆਰਡਰ",
+    prescriptions: "ਨੁਸखे",
+    inventory: "ਵਸਤੂ ਸੂਚੀ",
+    sales_reports: "ਵਿਕਰੀ ਅਤੇ ਰਿਪੋਰਟਾਂ",
+    expiry_alerts: "ਮਿਆਦ ਪੁੱਗਣ ਦੀਆਂ ਚੇਤਾਵਨੀਆਂ",
+    suppliers: "ਸਪਲਾਇਰ",
+    pharmacy_profile: "ਫਾਰਮੇਸੀ ਪ੍ਰੋਫਾਈਲ",
+
+    // Patient Sidebar
+    my_appointments: "ਮੇਰੀਆਂ ਮੁਲਾਕਾਤਾਂ",
+    symptom_checker: "ਲੱਛਣ ਚੈਕਰ",
+    medical_records: "ਮੈਡੀਕਲ ਰਿਕਾਰਡ",
+
+    // Doctor Sidebar
+    appointments: "ਮੁਲਾਕਾਤਾਂ",
   }
 };
