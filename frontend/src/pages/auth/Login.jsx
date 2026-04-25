@@ -90,7 +90,7 @@ export default function Login() {
       p: { xs: 2, sm: 4 },
       justifyContent: 'center'
     }}>
-      <Container maxWidth="xs">
+      <Container maxWidth="sm">
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           
           <Box sx={{ mb: 4, textAlign: 'center' }}>

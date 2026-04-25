@@ -219,9 +219,9 @@ export default function Register() {
               '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' }
           }}
         >
-          <MenuItem value="patient">Patient (Quick Signup)</MenuItem>
-          <MenuItem value="doctor">Medical Specialist (Two-Step)</MenuItem>
-          <MenuItem value="pharmacist">Authorized Pharmacy (Two-Step)</MenuItem>
+          <MenuItem value="patient">Patient</MenuItem>
+          <MenuItem value="doctor">Medical Specialist</MenuItem>
+          <MenuItem value="pharmacist">Authorized Pharmacy</MenuItem>
         </TextField>
       </Box>
 
@@ -235,49 +235,42 @@ export default function Register() {
         <Typography variant="subtitle2" fontWeight={800} color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1.5, letterSpacing: 0.5 }}>
           <Person fontSize="small" /> PERSONAL IDENTITY
         </Typography>
-        <Grid container spacing={2.5} justifyContent="center">
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              label="Full Legal Name"
-              placeholder="John Doe"
-              {...register("name", { required: "Full Name is required" })}
-              error={!!errors.name}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              label="Phone Contact"
-              placeholder="+91..."
-              {...register("phone", { 
-                  required: "Phone is required",
-                  pattern: { value: /^\+91[6-9]\d{9}$/, message: "Valid mobile number required" }
-              })}
-              error={!!errors.phone}
-              helperText={errors.phone?.message}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              label="Email Address"
-              placeholder="name@example.com"
-              {...register("email", {
-                required: "Email is required",
-                pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email address" }
-              })}
-              error={!!errors.email}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-            />
-          </Grid>
-        </Grid>
+        <Stack spacing={2.5}>
+          <TextField
+            required
+            fullWidth
+            label="Full Legal Name"
+            placeholder="John Doe"
+            {...register("name", { required: "Full Name is required" })}
+            error={!!errors.name}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+          />
+          <TextField
+            required
+            fullWidth
+            label="Phone Contact"
+            placeholder="+91..."
+            {...register("phone", { 
+                required: "Phone is required",
+                pattern: { value: /^\+91[6-9]\d{9}$/, message: "Valid mobile number required" }
+            })}
+            error={!!errors.phone}
+            helperText={errors.phone?.message}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+          />
+          <TextField
+            required
+            fullWidth
+            label="Email Address"
+            placeholder="name@example.com"
+            {...register("email", {
+              required: "Email is required",
+              pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email address" }
+            })}
+            error={!!errors.email}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+          />
+        </Stack>
       </Box>
 
       {(role === 'doctor' || role === 'pharmacist') && (
@@ -294,55 +287,47 @@ export default function Register() {
               <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, color: role === 'doctor' ? ACCENT_TEAL : '#D97706' }}>
                  {role === 'doctor' ? <AssignmentInd /> : <PharmacyIcon />} CORE PROFESSIONAL DETAILS
               </Typography>
-                    <Grid container spacing={2} justifyContent="center">
+                    <Stack spacing={2}>
                         {role === 'doctor' ? (
                             <>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="NMC Reg. License"
-                                        {...register("medicalLicense", { required: true })}
-                                        error={!!errors.medicalLicense}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="Primary Speciality"
-                                        {...register("specialization", { required: true })}
-                                        error={!!errors.specialization}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-                                    />
-                                </Grid>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="NMC Reg. License"
+                                    {...register("medicalLicense", { required: true })}
+                                    error={!!errors.medicalLicense}
+                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+                                />
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Primary Speciality"
+                                    {...register("specialization", { required: true })}
+                                    error={!!errors.specialization}
+                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+                                />
                             </>
                         ) : (
                             <>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="Official Pharmacy Name"
-                                        {...register("pharmacyName", { required: true })}
-                                        error={!!errors.pharmacyName}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="Drug License Number"
-                                        {...register("licenseNumber", { required: true })}
-                                        error={!!errors.licenseNumber}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-                                    />
-                                </Grid>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Official Pharmacy Name"
+                                    {...register("pharmacyName", { required: true })}
+                                    error={!!errors.pharmacyName}
+                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+                                />
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Drug License Number"
+                                    {...register("licenseNumber", { required: true })}
+                                    error={!!errors.licenseNumber}
+                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+                                />
                             </>
                         )}
-                    </Grid>
+                    </Stack>
           </Box>
         </Fade>
       )}
@@ -357,41 +342,37 @@ export default function Register() {
         <Typography variant="subtitle2" fontWeight={800} color="primary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1.5, letterSpacing: 0.5 }}>
           <Security fontSize="small" /> SECURITY ACCESS
         </Typography>
-        <Grid container spacing={2.5} justifyContent="center">
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              label="Secure Password"
-              type={showPassword ? "text" : "password"}
-              {...register("password", { required: "Password is required", minLength: 6 })}
-              error={!!errors.password}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              label="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              {...register("confirmPassword", {
-                validate: (v) => v === getValues("password") || "Passwords do not match"
-              })}
-              error={!!errors.confirmPassword}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-            />
-          </Grid>
-        </Grid>
+        <Stack spacing={2.5}>
+          <TextField
+            required
+            fullWidth
+            label="Secure Password"
+            type={showPassword ? "text" : "password"}
+            {...register("password", { required: "Password is required", minLength: 6 })}
+            error={!!errors.password}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+          />
+          <TextField
+            required
+            fullWidth
+            label="Confirm Password"
+            type={showConfirmPassword ? "text" : "password"}
+            {...register("confirmPassword", {
+              validate: (v) => v === getValues("password") || "Passwords do not match"
+            })}
+            error={!!errors.confirmPassword}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+          />
+        </Stack>
       </Box>
     </Stack>
   );
