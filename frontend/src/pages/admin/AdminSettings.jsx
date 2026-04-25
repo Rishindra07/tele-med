@@ -12,7 +12,7 @@ import {
   TranslateRounded as LangIcon
 } from '@mui/icons-material';
 import AdminLayout from '../../components/AdminLayout';
-import { fetchAdminSettings, updateAdminSettings } from '../../api/adminApi';
+import { fetchAdminSettings, updateAdminSettings, changePassword } from '../../api/adminApi';
 
 const colors = {
   paper: '#ffffff',
@@ -47,6 +47,8 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
 
   const [toggles, setToggles] = useState({
     doctorVerification: true,
@@ -93,6 +95,29 @@ export default function AdminSettings() {
       setSnackbar({ open: true, severity: 'error', message: 'Save failed' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwords.current || !passwords.new) {
+        return setSnackbar({ open: true, message: 'Please fill all fields', severity: 'error' });
+    }
+    if (passwords.new !== passwords.confirm) {
+        return setSnackbar({ open: true, message: 'New passwords do not match', severity: 'error' });
+    }
+    if (passwords.new.length < 6) {
+        return setSnackbar({ open: true, message: 'Password must be at least 6 characters', severity: 'error' });
+    }
+    setSaving(true);
+    try {
+        await changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+        setSnackbar({ open: true, severity: 'success', message: 'Admin password updated successfully!' });
+        setPasswordDialog(false);
+        setPasswords({ current: '', new: '', confirm: '' });
+    } catch (err) {
+        setSnackbar({ open: true, severity: 'error', message: err.response?.data?.message || 'Password change failed' });
+    } finally {
+        setSaving(false);
     }
   };
 
@@ -238,6 +263,7 @@ export default function AdminSettings() {
                     action={<Switch checked={toggles.autoBackup} onChange={() => setToggles({...toggles, autoBackup: !toggles.autoBackup})} color="success" />} 
                 />
                 <SettingRow label="Session Timeout" desc="Auto-logout for administrative inactivity" action={<Typography fontWeight={700}>4 Hours</Typography>} />
+                <Button variant="outlined" fullWidth onClick={() => setPasswordDialog(true)} sx={{ mt: 2, py: 1.5, borderRadius: '12px', borderColor: colors.line, color: colors.text, textTransform: 'none', fontWeight: 700 }}>Update Admin Master Password</Button>
                 <Divider sx={{my: 2}} />
                 <Box sx={{ px: 2.5, py: 1.25, borderRadius: '12px', border: `1px solid ${colors.line}`, bgcolor: colors.paper, fontSize: 17 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -257,6 +283,34 @@ export default function AdminSettings() {
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({...snackbar, open: false})}>
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+
+      {/* Change Password Dialog */}
+      <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <Box sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight={800}>Change Admin Password</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Ensure you use a strong, unique password for system safety</Typography>
+            
+            <Stack spacing={3}>
+                <TextField label="Current Password" type="password" fullWidth value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} />
+                <TextField label="New Password" type="password" fullWidth value={passwords.new} onChange={e => setPasswords({...passwords, new: e.target.value})} />
+                <TextField label="Confirm New Password" type="password" fullWidth value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} />
+            </Stack>
+
+            <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
+                <Button fullWidth onClick={() => setPasswordDialog(false)} sx={{ color: colors.muted, fontWeight: 700, textTransform: 'none' }}>Cancel</Button>
+                <Button 
+                    fullWidth 
+                    variant="contained" 
+                    onClick={handlePasswordChange}
+                    disabled={saving}
+                    startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SecurityIcon />}
+                    sx={{ bgcolor: colors.blue, borderRadius: '12px', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: colors.blue } }}
+                >
+                    {saving ? 'Updating...' : 'Update Password'}
+                </Button>
+            </Stack>
+        </Box>
+      </Dialog>
     </AdminLayout>
   );
 }

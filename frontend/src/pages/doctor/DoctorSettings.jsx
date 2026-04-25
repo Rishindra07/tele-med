@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import DoctorLayout from '../../components/DoctorLayout';
-import { fetchDoctorProfile, updateDoctorProfile, updateDoctorSettings } from '../../api/doctorApi';
+import { fetchDoctorProfile, updateDoctorProfile, updateDoctorSettings, changePassword } from '../../api/doctorApi';
 import { useLanguage } from '../../context/LanguageContext';
 import { DOCTOR_SETTINGS_TRANSLATIONS } from '../../utils/translations/doctor';
 
@@ -89,6 +89,8 @@ export default function DoctorSettings() {
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
   
   const [profile, setProfile] = useState({
     name: '',
@@ -171,6 +173,29 @@ export default function DoctorSettings() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!passwords.current || !passwords.new) {
+        return setSnackbar({ open: true, message: 'Please fill all fields', severity: 'error' });
+    }
+    if (passwords.new !== passwords.confirm) {
+        return setSnackbar({ open: true, message: 'New passwords do not match', severity: 'error' });
+    }
+    if (passwords.new.length < 6) {
+        return setSnackbar({ open: true, message: 'Password must be at least 6 characters', severity: 'error' });
+    }
+    setSaving(true);
+    try {
+        await changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+        setSnackbar({ open: true, severity: 'success', message: 'Password updated successfully!' });
+        setPasswordDialog(false);
+        setPasswords({ current: '', new: '', confirm: '' });
+    } catch (err) {
+        setSnackbar({ open: true, severity: 'error', message: err.response?.data?.message || 'Password change failed' });
+    } finally {
+        setSaving(false);
+    }
+  };
+
   const header = sectionTitles[section] || sectionTitles.account;
 
   const renderPanel = () => {
@@ -242,7 +267,7 @@ export default function DoctorSettings() {
       if (section === 'security') {
           return (
             <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <Row label="Password" desc="Safeguard your medical records with a strong password" action={<Button variant="outlined" sx={{ borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 600, borderColor: c.line, color: c.text }}>Change Password</Button>} />
+                <Row label="Password" desc="Safeguard your medical records with a strong password" action={<Button variant="outlined" onClick={() => setPasswordDialog(true)} sx={{ borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 600, borderColor: c.line, color: c.text }}>Change Password</Button>} />
                 <Row label="Biometric Login" desc="Enable FaceID or Fingerprint authentication on supported devices" action={<Switch checked={toggles.biometric} onChange={(e) => setToggles({...toggles, biometric: e.target.checked})} color="primary" />} />
                 <Row label="Data Synchronization" desc="Auto-sync records between your various workspace devices" action={<Switch checked={toggles.dataSync} onChange={(e) => setToggles({...toggles, dataSync: e.target.checked})} color="primary" />} />
             </Paper>
@@ -313,6 +338,30 @@ export default function DoctorSettings() {
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({...snackbar, open: false})} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snackbar.severity} sx={{ borderRadius: 2, fontWeight: 600, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>{snackbar.message}</Alert>
       </Snackbar>
+
+      {/* Change Password Dialog */}
+      <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)} PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Update Security Password</DialogTitle>
+        <DialogContent sx={{ minWidth: { xs: '100%', sm: 400 }, pt: 2 }}>
+            <Stack spacing={3} sx={{ mt: 1 }}>
+                <TextField label="Current Password" type="password" fullWidth value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} />
+                <TextField label="New Password" type="password" fullWidth value={passwords.new} onChange={e => setPasswords({...passwords, new: e.target.value})} />
+                <TextField label="Confirm New Password" type="password" fullWidth value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} />
+            </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setPasswordDialog(false)} sx={{ color: c.muted, fontWeight: 700, textTransform: 'none' }}>Cancel</Button>
+            <Button 
+                onClick={handlePasswordChange} 
+                variant="contained" 
+                disabled={saving}
+                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SecurityIcon />} 
+                sx={{ bgcolor: c.primary, borderRadius: 2, fontWeight: 800, textTransform: 'none' }}
+            >
+                {saving ? 'Updating...' : 'Update Password'}
+            </Button>
+        </DialogActions>
+      </Dialog>
     </DoctorLayout>
   );
 }

@@ -25,6 +25,10 @@ export const permanentDeleteAccount = async () => {
   return await API.delete('users');
 };
 
+export const changePassword = async (data) => {
+  return await API.put('users/change-password', data);
+};
+
 // Appointments
 export const fetchMyAppointments = async () => {
   return await API.get('appointments/my');

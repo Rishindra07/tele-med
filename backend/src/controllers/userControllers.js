@@ -463,6 +463,33 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current and new passwords are required" });
+    }
+
+    const user = await User.findById(req.user._id).select("+password_hash");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect current password" });
+    }
+
+    user.password_hash = newPassword;
+    await user.save();
+
+    return res.json({ success: true, message: "Password changed successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -473,6 +500,7 @@ module.exports = {
   updatePatientProfile,
   updatePatientSettings,
   updateUserSettings,
+  changePassword,
   deactivateUserAccount,
   deleteUserMedicalData,
   deleteUserAccount,

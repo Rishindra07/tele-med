@@ -27,7 +27,7 @@ import {
 } from '@mui/icons-material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import PatientShell from '../../components/patient/PatientShell';
-import { fetchPatientProfile, updatePatientSettings as savePatientSettings, updatePatientProfile, deactivateAccount, deleteMedicalData, permanentDeleteAccount } from '../../api/patientApi';
+import { fetchPatientProfile, updatePatientSettings as savePatientSettings, updatePatientProfile, deactivateAccount, deleteMedicalData, permanentDeleteAccount, changePassword } from '../../api/patientApi';
 import { useLanguage } from '../../context/LanguageContext';
 
 const colors = {
@@ -203,16 +203,27 @@ export default function PatientSettings() {
   };
 
   const handlePasswordChange = async () => {
-      if (passwords.new !== passwords.confirm) {
-          return setSnackbar({ open: true, message: 'Passwords do not match', severity: 'error' });
+      if (!passwords.old || !passwords.new) {
+          return setSnackbar({ open: true, message: 'Please fill all fields', severity: 'error' });
       }
+      if (passwords.new !== passwords.confirm) {
+          return setSnackbar({ open: true, message: 'New passwords do not match', severity: 'error' });
+      }
+      if (passwords.new.length < 6) {
+          return setSnackbar({ open: true, message: 'Password must be at least 6 characters', severity: 'error' });
+      }
+
       setSaving(true);
       try {
+          await changePassword({
+              currentPassword: passwords.old,
+              newPassword: passwords.new
+          });
           setSnackbar({ open: true, message: 'Password updated successfully', severity: 'success' });
           setPasswordDialog(false);
           setPasswords({ old: '', new: '', confirm: '' });
       } catch (err) {
-          setSnackbar({ open: true, message: 'Password change failed', severity: 'error' });
+          setSnackbar({ open: true, message: err.response?.data?.message || 'Password change failed', severity: 'error' });
       } finally {
           setSaving(false);
       }

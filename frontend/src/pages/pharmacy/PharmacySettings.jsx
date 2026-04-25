@@ -13,7 +13,7 @@ import {
   StoreRounded as StoreIcon
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
-import { fetchPharmacyProfile, updatePharmacyProfile, updatePharmacySettings } from '../../api/pharmacyApi';
+import { fetchPharmacyProfile, updatePharmacyProfile, updatePharmacySettings, changePassword } from '../../api/pharmacyApi';
 
 const colors = {
   bg: '#f8f9fa',
@@ -35,6 +35,8 @@ export default function PharmacySettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, severity: 'success', message: '' });
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
 
   const [profile, setProfile] = useState({
     pharmacyName: '',
@@ -90,6 +92,29 @@ export default function PharmacySettings() {
       setSnackbar({ open: true, severity: 'error', message: 'Save failed' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwords.current || !passwords.new) {
+        return setSnackbar({ open: true, message: 'Please fill all fields', severity: 'error' });
+    }
+    if (passwords.new !== passwords.confirm) {
+        return setSnackbar({ open: true, message: 'New passwords do not match', severity: 'error' });
+    }
+    if (passwords.new.length < 6) {
+        return setSnackbar({ open: true, message: 'Password must be at least 6 characters', severity: 'error' });
+    }
+    setSaving(true);
+    try {
+        await changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+        setSnackbar({ open: true, severity: 'success', message: 'Password updated successfully!' });
+        setPasswordDialog(false);
+        setPasswords({ current: '', new: '', confirm: '' });
+    } catch (err) {
+        setSnackbar({ open: true, severity: 'error', message: err.response?.data?.message || 'Password change failed' });
+    } finally {
+        setSaving(false);
     }
   };
 
@@ -225,7 +250,7 @@ export default function PharmacySettings() {
                          </Box>
                           <Switch checked={toggles.staffPin} onChange={() => setToggles({...toggles, staffPin: !toggles.staffPin})} color="primary" />
                     </Stack>
-                    <Button variant="outlined" sx={{ borderRadius: 2.5, py: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', fontWeight: 700 }}>Update Owner Password</Button>
+                    <Button variant="outlined" onClick={() => setPasswordDialog(true)} sx={{ borderRadius: 2.5, py: 1.5, borderColor: colors.line, color: colors.text, textTransform: 'none', fontWeight: 700 }}>Update Owner Password</Button>
                     <Button variant="contained" color="error" sx={{ borderRadius: 2.5, py: 1.5, textTransform: 'none', fontWeight: 700, boxShadow: 'none' }}>Danger: Request Account Deactivation</Button>
                 </Stack>
             )}
@@ -236,6 +261,34 @@ export default function PharmacySettings() {
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({...snackbar, open: false})}>
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+
+      {/* Change Password Dialog */}
+      <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)} PaperProps={{ sx: { borderRadius: 4, p: 1 } }}>
+        <Box sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight={800} sx={{ mb: 1 }}>Update Owner Password</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>Secure your pharmacy account by updating your credentials</Typography>
+            
+            <Stack spacing={3}>
+                <TextField label="Current Password" type="password" fullWidth value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} />
+                <TextField label="New Password" type="password" fullWidth value={passwords.new} onChange={e => setPasswords({...passwords, new: e.target.value})} />
+                <TextField label="Confirm New Password" type="password" fullWidth value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} />
+            </Stack>
+
+            <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
+                <Button fullWidth onClick={() => setPasswordDialog(false)} sx={{ color: colors.muted, fontWeight: 700, textTransform: 'none' }}>Cancel</Button>
+                <Button 
+                    fullWidth 
+                    variant="contained" 
+                    onClick={handlePasswordChange}
+                    disabled={saving}
+                    startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SecurityIcon />}
+                    sx={{ bgcolor: colors.primary, borderRadius: 2.5, fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: colors.primaryDark } }}
+                >
+                    {saving ? 'Updating...' : 'Update Password'}
+                </Button>
+            </Stack>
+        </Box>
+      </Dialog>
     </PharmacyLayout>
   );
 }

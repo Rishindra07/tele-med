@@ -11,6 +11,7 @@ const {
   updatePatientProfile,
   updatePatientSettings,
   updateUserSettings,
+  changePassword,
   deactivateUserAccount,
   deleteUserMedicalData,
   deleteUserAccount
@@ -30,6 +31,7 @@ router.get("/patient/profile", protect, getPatientProfile);
 router.put("/patient/profile", protect, updatePatientProfile);
 router.put("/patient/settings", protect, updatePatientSettings);
 router.put("/settings", protect, updateUserSettings);
+router.put("/change-password", protect, changePassword);
 router.post("/deactivate", protect, deactivateUserAccount);
 router.delete("/medical-data", protect, deleteUserMedicalData);
 router.delete("/", protect, deleteUserAccount);
