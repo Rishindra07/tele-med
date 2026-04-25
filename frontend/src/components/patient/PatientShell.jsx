@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Avatar, Box, Button, CssBaseline, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Button, CssBaseline, Stack, Typography, IconButton, AppBar, Toolbar, Drawer, useTheme, useMediaQuery } from '@mui/material';
 import { useLanguage } from '../../context/LanguageContext';
 import { PATIENT_SHELL_TRANSLATIONS } from '../../utils/translations/patient';
 import {
@@ -13,7 +13,8 @@ import {
   SearchRounded as SearchIcon,
   SettingsOutlined as SettingsIcon,
   LocalShippingRounded as OrderIcon,
-  PaymentsRounded as PaymentsIcon
+  PaymentsRounded as PaymentsIcon,
+  MenuRounded as MenuIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,6 +51,10 @@ const initials = (name) =>
 
 function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSettingSection = '', children }) {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+  
   const { language, setLanguage } = useLanguage();
   const st = PATIENT_SHELL_TRANSLATIONS[language] || PATIENT_SHELL_TRANSLATIONS['en'];
   const user = useMemo(() => {
@@ -71,6 +76,7 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
   };
 
   const handleNav = (action) => {
+    if (isMobile) setMobileOpen(false);
     if (action === 'dashboard') navigate('/patient');
     if (action === 'appointments') navigate('/patient/appointments');
     if (action === 'records') navigate('/patient/records');
@@ -82,34 +88,8 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
     if (action === 'settings') navigate('/patient/settings');
   };
 
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: colors.bg,
-        color: '#252525',
-        display: 'flex',
-        flexDirection: { xs: 'column', lg: 'row' }
-      }}
-    >
-      <CssBaseline />
-      <Box
-        component="aside"
-        sx={{
-          width: { xs: '100%', lg: 345 },
-          bgcolor: '#fcfbf7',
-          borderRight: { xs: 'none', lg: `1px solid ${colors.line}` },
-          borderBottom: { xs: `1px solid ${colors.line}`, lg: 'none' },
-          display: 'flex',
-          flexDirection: 'column',
-          position: { xs: 'relative', lg: 'sticky' },
-          top: 0,
-          height: { xs: 'auto', lg: '100vh' },
-          maxHeight: { xs: 'none', lg: '100vh' },
-          overflowY: { xs: 'visible', lg: 'auto' },
-          flexShrink: 0
-        }}
-      >
+  const drawerContent = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#fcfbf7' }}>
         <Box sx={{ px: 4, py: 5, borderBottom: `1px solid ${colors.line}` }}>
           <Typography sx={{ fontSize: 26, fontWeight: 700, color: colors.green, fontFamily: 'Georgia, serif' }}>
             {st.brand}
@@ -143,24 +123,6 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                 >
                   <Icon />
                   <Box sx={{ flexGrow: 1, textAlign: 'left' }}>{st.nav[item.navKey]}</Box>
-                  {item.action === 'appointments' && (
-                    <Box
-                      sx={{
-                        minWidth: 26,
-                        height: 26,
-                        px: 1,
-                        borderRadius: 10,
-                        bgcolor: colors.green,
-                        color: '#fff',
-                        display: 'grid',
-                        placeItems: 'center',
-                        fontSize: 14,
-                        fontWeight: 700
-                      }}
-                    >
-                      2
-                    </Box>
-                  )}
                 </Button>
               );
             })}
@@ -187,8 +149,8 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
                   textTransform: 'none',
                   fontSize: 16,
                   color: active ? colors.greenDark : '#3d3d3d',
-          bgcolor: active ? colors.greenSoft : 'transparent',
-          '&:hover': { bgcolor: active ? colors.greenSoft : '#f0f0f0' }
+                  bgcolor: active ? colors.greenSoft : 'transparent',
+                  '&:hover': { bgcolor: active ? colors.greenSoft : '#f0f0f0' }
                 }}
               >
                 {icon}
@@ -303,7 +265,10 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
             ))}
           </Stack>
 
-          <Box sx={{ mt: 3.5, p: 2, borderRadius: 4, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            onClick={() => handleNav('profile')}
+            sx={{ mt: 3.5, p: 2, borderRadius: 4, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', '&:hover': { bgcolor: colors.greenSoft } }}
+          >
           <Avatar
             src={profileImage}
             alt={patientName}
@@ -337,9 +302,59 @@ function PatientShell({ activeItem = 'dashboard', activeSetting = '', activeSett
             {st.logout}
           </Button>
         </Box>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: colors.bg, display: 'flex' }}>
+      <CssBaseline />
+      
+      <AppBar position="fixed" sx={{ bgcolor: '#fff', borderBottom: `1px solid ${colors.line}`, boxShadow: 'none', display: { lg: 'none' } }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <IconButton onClick={() => setMobileOpen(true)} sx={{ color: colors.green }}>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: colors.green, fontFamily: 'Georgia, serif' }}>
+              Seva TeleHealth
+            </Typography>
+          </Stack>
+          <Avatar 
+            onClick={() => handleNav('profile')}
+            src={profileImage} 
+            sx={{ width: 35, height: 35, cursor: 'pointer', bgcolor: colors.greenSoft, color: colors.greenDark }}
+          >
+            {initials(patientName)}
+          </Avatar>
+        </Toolbar>
+      </AppBar>
+
+      <Box component="nav" sx={{ width: { lg: 345 }, flexShrink: 0 }}>
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', lg: 'none' },
+            '& .MuiDrawer-paper': { width: 320, boxSizing: 'border-box' }
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', lg: 'block' },
+            '& .MuiDrawer-paper': { width: 345, boxSizing: 'border-box', borderRight: `1px solid ${colors.line}`, bgcolor: '#fcfbf7' }
+          }}
+          open
+        >
+          {drawerContent}
+        </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
+      <Box component="main" sx={{ flex: 1, width: '100%', pt: { xs: 8, lg: 0 } }}>
         {children}
       </Box>
     </Box>
