@@ -272,16 +272,16 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: colors.bg }}>
       <CssBaseline />
       
-      {/* Top Bar (Always Visible) */}
+      {/* Top Bar (Only visible on Mobile/Tablet) */}
       <AppBar 
         position="fixed" 
         elevation={0}
         sx={{ 
+          display: { xs: 'flex', lg: 'none' }, // HIDE ON DESKTOP
           bgcolor: '#ffffff',
           color: '#202124',
           borderBottom: `1px solid ${colors.line}`,
-          width: { lg: `calc(100% - ${drawerWidth}px)` },
-          ml: { lg: `${drawerWidth}px` },
+          width: '100%',
           zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
@@ -292,7 +292,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { lg: 'none' } }} // Only show on mobile/tablet
+              sx={{ mr: 2 }}
             >
               <MenuIcon />
             </IconButton>
@@ -301,14 +301,9 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
             </Typography>
           </Stack>
           
-          <Stack direction="row" spacing={2} alignItems="center">
-             <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 14, fontWeight: 500 }}>
-               {t.doctor || 'Doctor'}
-             </Typography>
-             <Avatar src={profileImage} sx={{ width: 36, height: 36, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 14, fontWeight: 700 }}>
-               {initials(doctorName)}
-             </Avatar>
-          </Stack>
+          <Avatar src={profileImage} sx={{ width: 32, height: 32, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
+            {initials(doctorName)}
+          </Avatar>
         </Toolbar>
       </AppBar>
 
@@ -351,7 +346,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
           flexGrow: 1, 
           p: { xs: 2, sm: 3 }, 
           width: { lg: `calc(100% - ${drawerWidth}px)` },
-          mt: 8 // Space for the fixed top bar
+          mt: { xs: 8, lg: 0 } // No margin on desktop since top bar is gone
         }}
       >
         {children}

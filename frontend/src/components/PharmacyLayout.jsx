@@ -233,16 +233,16 @@ function PharmacyLayout({ children }) {
     <Box sx={{ minHeight: '100vh', bgcolor: colors.bg, display: 'flex' }}>
       <CssBaseline />
 
-      {/* Top Bar (Always Visible) */}
+      {/* Top Bar (Only visible on Mobile/Tablet) */}
       <AppBar 
         position="fixed" 
         elevation={0}
         sx={{ 
+          display: { xs: 'flex', lg: 'none' }, // HIDE ON DESKTOP
           bgcolor: '#ffffff',
           color: colors.text,
           borderBottom: `1px solid ${colors.line}`,
-          width: { lg: `calc(100% - ${drawerWidth}px)` },
-          ml: { lg: `${drawerWidth}px` },
+          width: '100%',
           zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
@@ -252,7 +252,7 @@ function PharmacyLayout({ children }) {
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { lg: 'none' } }}
+              sx={{ mr: 2 }}
             >
               <MenuIcon />
             </IconButton>
@@ -261,14 +261,9 @@ function PharmacyLayout({ children }) {
             </Typography>
           </Stack>
           
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 13, fontWeight: 500 }}>
-              {t.pharmacy || 'Pharmacy'}
-            </Typography>
-            <Avatar sx={{ width: 34, height: 34, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
-              {initials(pharmacyName)}
-            </Avatar>
-          </Stack>
+          <Avatar sx={{ width: 34, height: 34, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
+            {initials(pharmacyName)}
+          </Avatar>
         </Toolbar>
       </AppBar>
 
@@ -311,7 +306,7 @@ function PharmacyLayout({ children }) {
           flexGrow: 1, 
           p: { xs: 2, sm: 3 }, 
           width: { lg: `calc(100% - ${drawerWidth}px)` },
-          mt: 8
+          mt: { xs: 8, lg: 0 }
         }}
       >
         {children}
