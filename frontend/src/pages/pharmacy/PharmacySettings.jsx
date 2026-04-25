@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Button, Divider,
   TextField, MenuItem, Select, Switch, Slider, FormControl,
-  CircularProgress, Alert, Snackbar
+  CircularProgress, Alert, Snackbar, Dialog
 } from '@mui/material';
 import {
   SettingsRounded as SettingsIcon,

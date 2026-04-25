@@ -266,7 +266,7 @@ export default function PrescriptionForm() {
         {/* Patient Info Section */}
         <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <Grid container spacing={4}>
-            <Grid size={{ xs: 12, md: 7 }}>
+            <Grid item xs={12} md={7}>
               <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
                 <Avatar 
                   sx={{ 
@@ -311,7 +311,7 @@ export default function PrescriptionForm() {
                 sx={premiumTextFieldSx}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 5 }}>
+            <Grid item xs={12} md={5}>
               <Box sx={{ 
                 p: 3, 
                 bgcolor: c.dangerSoft, 
@@ -371,7 +371,7 @@ export default function PrescriptionForm() {
             }}
           >
             <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 5 }}>
+              <Grid item xs={12} md={5}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.medicine_name}</Typography>
                 <Autocomplete
                   freeSolo
@@ -381,7 +381,7 @@ export default function PrescriptionForm() {
                   renderInput={(params) => <TextField {...params} placeholder="e.g. Paracetamol" fullWidth sx={premiumTextFieldSx} />}
                 />
               </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid item xs={12} md={3}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.dosage}</Typography>
                 <TextField 
                   fullWidth 
@@ -391,7 +391,7 @@ export default function PrescriptionForm() {
                   sx={premiumTextFieldSx}
                 />
               </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid item xs={12} md={4}>
                 <Stack direction="row" spacing={1.5} alignItems="flex-end">
                   <Box sx={{ flex: 1 }}>
                     <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.form}</Typography>
@@ -419,7 +419,7 @@ export default function PrescriptionForm() {
                 </Stack>
               </Grid>
               
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid item xs={12} md={4}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.timing}</Typography>
                 <Stack direction="row" spacing={2}>
                   {[
@@ -449,7 +449,7 @@ export default function PrescriptionForm() {
                 </Stack>
               </Grid>
               
-              <Grid size={{ xs: 12, md: 2 }}>
+              <Grid item xs={12} md={2}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.duration}</Typography>
                 <TextField 
                   fullWidth 
@@ -459,7 +459,7 @@ export default function PrescriptionForm() {
                 />
               </Grid>
               
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid item xs={12} md={3}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.frequency}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
@@ -474,7 +474,7 @@ export default function PrescriptionForm() {
                 </FormControl>
               </Grid>
               
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid item xs={12} md={3}>
                 <Typography sx={{ color: c.muted, mb: 1, display: 'block', fontWeight: 700, fontSize: 12, textTransform: 'uppercase' }}>{t.food}</Typography>
                 <FormControl fullWidth sx={premiumTextFieldSx}>
                   <Select
@@ -512,7 +512,7 @@ export default function PrescriptionForm() {
 
         {/* Labs and Follow Up */}
         <Grid container spacing={4} sx={{ mt: 1 }}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid item xs={12} md={6}>
             <Paper elevation={0} sx={{ p: 4, borderRadius: 2, border: `1px solid ${c.line}`, bgcolor: c.paper, height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
               <Typography sx={{ fontSize: 18, fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, color: c.text }}>
                 <span style={{ fontSize: '1.2rem' }}>📋</span> {t.labTests}
@@ -701,11 +701,11 @@ export default function PrescriptionForm() {
              
              {/* Patient Overview */}
              <Grid container spacing={2} sx={{ mb: 5 }}>
-                <Grid size={{ xs: 8 }}>
+                <Grid item xs={8}>
                    <Typography sx={{ fontSize: 18, fontWeight: 700, color: c.text, mb: 0.5 }}>{patientInfo.name}</Typography>
                    <Typography sx={{ fontSize: 14, color: c.muted, fontWeight: 500 }}>AGE: {patientInfo.age}Y • {patientInfo.gender} • ID: {patientInfo.id}</Typography>
                 </Grid>
-                <Grid size={{ xs: 4 }} sx={{ textAlign: 'right' }}>
+                <Grid item xs={4} sx={{ textAlign: 'right' }}>
                    <Typography sx={{ fontSize: 14, color: c.text, fontWeight: 600 }}>Date: {new Date().toLocaleDateString()}</Typography>
                 </Grid>
              </Grid>
@@ -746,14 +746,14 @@ export default function PrescriptionForm() {
              </Box>
 
              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid item xs={12} md={6}>
                    <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.labTests}</Typography>
                    <Stack direction="row" flexWrap="wrap" gap={1}>
                       {labTests.map((t, index) => <Chip key={index} label={t} size="small" sx={{ borderRadius: 1, fontWeight: 600, fontSize: 12 }} variant="outlined" />)}
                       {labTests.length === 0 && <Typography sx={{ fontSize: 14, color: c.muted }}>--</Typography>}
                    </Stack>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid item xs={12} md={6}>
                    <Typography sx={{ fontSize: 11, fontWeight: 800, color: c.muted, textTransform: 'uppercase', mb: 1 }}>{t.followUp}</Typography>
                    <Typography sx={{ fontSize: 16, fontWeight: 700, color: c.text }}>{followUp ? new Date(followUp).toLocaleDateString() : '--'}</Typography>
                 </Grid>
