@@ -36,8 +36,9 @@ const PublicPrescription = () => {
   useEffect(() => {
     const fetchPrescription = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-        const res = await axios.get(`${baseUrl}/doctor/prescriptions/verify/${id}`);
+        const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const formattedBaseUrl = (baseUrl && baseUrl.endsWith('/')) ? baseUrl : `${baseUrl}/`;
+        const res = await axios.get(`${formattedBaseUrl}api/doctor/prescriptions/verify/${id}`);
         if (res.data.success) {
           setPrescription(res.data.prescription);
         } else {
