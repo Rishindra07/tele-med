@@ -152,15 +152,22 @@ export default function VideoCallScreen() {
   }, []);
 
   // WebRTC Connection Setup
+  const iceCandidateQueue = useRef([]);
+  const isRemoteDescriptionSet = useRef(false);
+
   useEffect(() => {
-    if (!stream) return; // Wait until local stream is acquired
+    if (!stream) return;
 
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const socket = io(backendUrl, { withCredentials: true });
     socketRef.current = socket;
 
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ]
     });
     peerConnectionRef.current = pc;
 
@@ -170,9 +177,12 @@ export default function VideoCallScreen() {
     });
 
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
-      setDoctorJoined(true);
-      if (!startTimeRef.current) startTimeRef.current = Date.now();
+      console.log('Remote track received:', event.track.kind);
+      if (event.streams && event.streams[0]) {
+        setRemoteStream(event.streams[0]);
+        setDoctorJoined(true);
+        if (!startTimeRef.current) startTimeRef.current = Date.now();
+      }
     };
 
     pc.onicecandidate = (event) => {
@@ -181,10 +191,19 @@ export default function VideoCallScreen() {
       }
     };
 
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState);
+      if (pc.connectionState === 'failed') {
+        // Try to restart ICE or handle failure
+        console.warn('WebRTC connection failed.');
+      }
+    };
+
     // User tracking & Signaling
     socket.emit('join-room', roomId);
 
     socket.on('user-joined', async () => {
+      console.log('Other user joined. Creating offer...');
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -195,8 +214,17 @@ export default function VideoCallScreen() {
     });
 
     socket.on('offer', async (offer) => {
+      console.log('Offer received. Creating answer...');
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        isRemoteDescriptionSet.current = true;
+        
+        // Process queued candidates
+        while (iceCandidateQueue.current.length > 0) {
+          const candidate = iceCandidateQueue.current.shift();
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('answer', { roomId, answer });
@@ -206,8 +234,16 @@ export default function VideoCallScreen() {
     });
 
     socket.on('answer', async (answer) => {
+      console.log('Answer received. Setting remote description...');
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        isRemoteDescriptionSet.current = true;
+
+        // Process queued candidates
+        while (iceCandidateQueue.current.length > 0) {
+          const candidate = iceCandidateQueue.current.shift();
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
       } catch (err) {
         console.error('Error handling answer', err);
       }
@@ -215,7 +251,11 @@ export default function VideoCallScreen() {
 
     socket.on('ice-candidate', async (candidate) => {
       try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        if (isRemoteDescriptionSet.current) {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+          iceCandidateQueue.current.push(candidate);
+        }
       } catch (err) {
         console.error('Error adding ice candidate', err);
       }
@@ -229,17 +269,23 @@ export default function VideoCallScreen() {
 
     socket.on('end-call', () => {
        setCallEndedByPeer(true);
-       setStream(prev => {
-          if (prev) prev.getTracks().forEach(t => t.stop());
-          return null;
-       });
+       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
        setRemoteStream(null);
+    });
+
+    socket.on('receive-message', (data) => {
+       setMessages(prev => [...prev, data]);
+       if (!chatOpen) {
+          // Play notification sound or show badge?
+       }
     });
 
     socket.on('other-user-disconnected', () => {
        if (!callEndedByPeer) {
           setDoctorJoined(false);
           setRemoteStream(null);
+          // Don't close PC yet, wait for them to come back?
+          // For now, keep it simple.
        }
     });
 
@@ -270,15 +316,8 @@ export default function VideoCallScreen() {
           goodCounterRef.current = 0;
           if (poorCounterRef.current >= 2) {
             setNetworkQuality('poor');
-            // Auto turn off video if poor for a while
             if (!lowBandwidthMode && videoEnabled) {
               setLowBandwidthMode(true);
-              const videoTrack = stream.getVideoTracks()[0];
-              if (videoTrack) {
-                videoTrack.enabled = false;
-                setVideoEnabled(false);
-                socket.emit('toggle-media', { roomId, type: 'video', enabled: false });
-              }
             }
           }
         } else if (currentLoss > 10 || currentRtt > 0.15) {
@@ -290,8 +329,6 @@ export default function VideoCallScreen() {
           poorCounterRef.current = 0;
           if (goodCounterRef.current >= 3) {
             setNetworkQuality('good');
-            // If we were in low bandwidth mode and connection is now strong, maybe alert?
-            // (We won't auto-on back to avoid flickering/surprises, but mark as good)
           }
         }
       }
@@ -301,8 +338,10 @@ export default function VideoCallScreen() {
       socket.disconnect();
       pc.close();
       if (statsIntervalRef.current) clearInterval(statsIntervalRef.current);
+      isRemoteDescriptionSet.current = false;
+      iceCandidateQueue.current = [];
     };
-  }, [stream, roomId, lowBandwidthMode, videoEnabled]);
+  }, [stream, roomId]);
 
   // Scroll chat to bottom
   useEffect(() => {
