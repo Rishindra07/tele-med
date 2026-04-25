@@ -169,6 +169,13 @@ exports.updateDoctorProfile = async (req, res) => {
     if (Array.isArray(consultation_modes)) doctorUpdates.consultation_modes = consultation_modes;
     if (is_available_for_booking !== undefined) doctorUpdates.is_available_for_booking = Boolean(is_available_for_booking);
     if (medicalLicense) doctorUpdates.medicalLicense = String(medicalLicense).trim();
+    
+    // Step 2 Verification fields
+    const { degreeCertificate, registrationCertificate, idProof, profileImage } = req.body;
+    if (degreeCertificate) doctorUpdates.degreeCertificate = degreeCertificate;
+    if (registrationCertificate) doctorUpdates.registrationCertificate = registrationCertificate;
+    if (idProof) doctorUpdates.idProof = idProof;
+    if (profileImage) doctorUpdates.profileImage = profileImage;
 
     const doctor = await Doctor.findOneAndUpdate(
       { user: req.user._id },

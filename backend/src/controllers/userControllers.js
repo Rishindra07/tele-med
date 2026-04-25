@@ -28,30 +28,35 @@ const sanitizeUser = (user) => ({
 
 const registerUser = async (req, res) => {
   try {
-    const { name, full_name, email, password, role } = req.body;
+    const { 
+      name, full_name, email, password, role, 
+      phone, specialization, medicalLicense,
+      pharmacyName, ownerName, licenseNumber
+    } = req.body;
 
-    const resolvedName = (full_name || name || "").trim();
+    const resolvedName = (full_name || name || ownerName || pharmacyName || "").trim();
     const normalizedEmail = normalizeEmail(email);
 
     if (!resolvedName || !normalizedEmail || !password || !role) {
-      return res.status(400).json({ message: "Full name, email, password, and role are required" });
+      return res.status(400).json({ message: "Required fields are missing" });
     }
 
     if (!REGISTRATION_ROLES.includes(role)) {
       return res.status(400).json({ message: "Invalid role selected" });
     }
 
+    // Role-specific restrictions
     if (role === 'pharmacist') {
       const pharmEnrollSetting = await GlobalSetting.findOne({ key: 'newPharmacyEnrollment' });
       if (pharmEnrollSetting && pharmEnrollSetting.value === false) {
-        return res.status(403).json({ message: "Pharmacy enrollment is currently closed by administration." });
+        return res.status(403).json({ message: "Pharmacy enrollment is currently closed." });
       }
     }
 
     if (role === 'patient') {
       const openRegSetting = await GlobalSetting.findOne({ key: 'openRegistration' });
       if (openRegSetting && openRegSetting.value === false) {
-        return res.status(403).json({ message: "Public patient registration is currently restricted. Please contact our support team for a referral." });
+        return res.status(403).json({ message: "Public registration is currently restricted." });
       }
     }
 
@@ -60,12 +65,34 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // Create User
     const user = await User.create({
       full_name: resolvedName,
       email: normalizedEmail,
+      phone: phone || null,
       password_hash: password,
       role
     });
+
+    // Create Profile for Doctor or Pharmacist
+    if (role === 'doctor') {
+      const Doctor = require("../models/Doctor.js");
+      await Doctor.create({
+        user: user._id,
+        specialization: specialization || 'General Physician',
+        medicalLicense: medicalLicense || `PENDING-${Date.now()}`,
+        qualification: 'Pending Verification',
+        hospitalName: 'Unassigned',
+      });
+    } else if (role === 'pharmacist') {
+      const Pharmacy = require("../models/Pharmacy.js");
+      await Pharmacy.create({
+        user: user._id,
+        pharmacyName: pharmacyName || resolvedName,
+        ownerName: ownerName || resolvedName,
+        licenseNumber: licenseNumber || `PENDING-${Date.now()}`,
+      });
+    }
 
     const tokens = await issueAuthTokens(user, req);
 
@@ -77,6 +104,7 @@ const registerUser = async (req, res) => {
       user: sanitizeUser(user)
     });
   } catch (error) {
+    console.error("Registration error:", error);
     return res.status(500).json({ message: error.message });
   }
 };

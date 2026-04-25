@@ -11,7 +11,8 @@ const {
   updateDeliverySettings,
   getIncomingOrders,
   updateOrderStatus,
-  checkStockAndPrice
+  checkStockAndPrice,
+  updatePharmacyProfile
 } = require("../controllers/pharmacyController.js");
 const {
   checkPrescriptionAvailability,
@@ -30,8 +31,7 @@ const {
   addInventoryItem,
   updateInventoryItem,
   deleteInventoryItem,
-  getExpiryAlerts,
-  updatePharmacyProfile
+  getExpiryAlerts
 } = require("../controllers/pharmacyInventoryController.js");
 const {
   getSuppliers,

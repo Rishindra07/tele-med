@@ -328,7 +328,7 @@ function PatientDashboard() {
         amount: orderRes.amount,
         currency: orderRes.currency,
         name: "Seva Telehealth",
-        description: `Consultation with Dr. ${selectedDoctor.user?.full_name || 'Expert'}`,
+        description: `Consultation with Dr. ${(selectedDoctor.user?.full_name || 'Expert').replace(/^(Dr\.|Dr)\s+/i, '')}`,
         order_id: orderRes.orderId,
         handler: async (response) => {
           setPaying(true);
@@ -444,7 +444,7 @@ function PatientDashboard() {
                                   <Avatar sx={{ bgcolor: c.primarySoft, color: c.primaryDark }}>{initials(appt.doctor?.full_name || appt.doctor?.name || 'DR')}</Avatar>
                                   <Box sx={{ flex: 1 }}>
                                      <Stack direction="row" justifyContent="space-between">
-                                        <Typography sx={{ fontSize: 15, fontWeight: 600 }}>Dr. {appt.doctor?.full_name || appt.doctor?.name || 'Doctor'}</Typography>
+                                        <Typography sx={{ fontSize: 15, fontWeight: 600 }}>Dr. {(appt.doctor?.full_name || appt.doctor?.name || 'Doctor').replace(/^(Dr\.|Dr)\s+/i, '')}</Typography>
                                         <Stack direction="column" spacing={0.5} alignItems="flex-end">
                                            <Chip label={dashStatus.toUpperCase()} size="small" sx={{ 
                                              height: 20, 

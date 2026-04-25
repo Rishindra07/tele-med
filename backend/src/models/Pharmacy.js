@@ -38,7 +38,11 @@ const pharmacySchema = new mongoose.Schema(
     },
     pharmacyId: { type: String, unique: true },
     visibleToPatients: { type: Boolean, default: true },
-    deliveryAvailable: { type: Boolean, default: false }
+    deliveryAvailable: { type: Boolean, default: false },
+    licenseCertificate: { type: String, default: null },
+    pharmacistRegNumber: { type: String, trim: true },
+    pharmacistCertificate: { type: String, default: null },
+    shopPhoto: { type: String, default: null }
   },
   { timestamps: true, collection: "pharmacyprofiles" }
 );

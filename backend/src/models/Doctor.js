@@ -62,6 +62,18 @@ const doctorSchema = new mongoose.Schema(
       required: [true, "must provide hospital name"],
       trim: true
     },
+    degreeCertificate: {
+      type: String,
+      default: null
+    },
+    registrationCertificate: {
+      type: String,
+      default: null
+    },
+    idProof: {
+      type: String,
+      default: null
+    },
     consultationFee: {
       type: Number,
       default: 0,

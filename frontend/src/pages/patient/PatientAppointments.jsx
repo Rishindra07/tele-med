@@ -252,7 +252,7 @@ function PatientAppointments() {
         raw: appointment,
         id: appointment._id || `appointment-${index}`,
         doctorId: appointment.doctor?._id || appointment.doctor,
-        doctorName: appointment.doctor?.full_name || appointment.doctor?.name || 'Doctor',
+        doctorName: (appointment.doctor?.full_name || appointment.doctor?.name || 'Doctor').replace(/^(Dr\.|Dr)\s+/i, ''),
         specialization: appointment.specialization || 'General Physician',
         dateLabel: formatDateRel(appointment.appointmentDate),
         timeLabel: appointment.timeSlot || 'Time pending',

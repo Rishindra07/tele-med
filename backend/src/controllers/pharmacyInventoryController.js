@@ -130,17 +130,4 @@ exports.getExpiryAlerts = async (req, res) => {
   }
 };
 
-/* -------- PROFILE UPDATE -------- */
-exports.updatePharmacyProfile = async (req, res) => {
-  try {
-    const pharmacy = await Pharmacy.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: req.body },
-      { new: true }
-    );
-    if (!pharmacy) return res.status(404).json({ message: "Pharmacy not found" });
-    return res.json({ success: true, pharmacy, message: "Profile updated" });
-  } catch (err) {
-    return res.status(500).json({ message: "Failed to update pharmacy profile" });
-  }
-};
+

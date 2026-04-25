@@ -39,9 +39,9 @@ export default function VideoCallScreen() {
   const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
   const isDoctorRole = currentUser?.role === 'doctor';
 
-  const otherPersonName = isDoctorRole
+  const otherPersonName = (isDoctorRole
     ? (appointment?.patient?.full_name || appointment?.patient?.name || 'Patient')
-    : (appointment?.doctor?.full_name || appointment?.doctor?.name || 'Doctor');
+    : (appointment?.doctor?.full_name || appointment?.doctor?.name || 'Doctor')).replace(/^(Dr\.|Dr)\s+/i, '');
     
   const otherPersonAvatar = isDoctorRole
     ? (appointment?.patient?.profileImage || null)

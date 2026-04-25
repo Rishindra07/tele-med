@@ -372,7 +372,7 @@ export default function OrderTracking() {
                           <CheckIcon sx={{ color: colors.success, fontSize: 18 }} />
                           <Typography sx={{ fontSize: 13, color: colors.muted }}>
                             {t.order_contains} {order.prescription?.medications?.length || 0} {t.medications_from} 
-                            <b> Dr. {order.prescription?.doctor?.full_name || 'Medical Specialist'}</b>
+                            <b> Dr. {(order.prescription?.doctor?.full_name || 'Medical Specialist').replace(/^(Dr\.|Dr)\s+/i, '')}</b>
                           </Typography>
                        </Stack>
                        <Button 

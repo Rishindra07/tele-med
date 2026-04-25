@@ -176,3 +176,50 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: "Failed to update order status" });
     }
 };
+
+exports.updatePharmacyProfile = async (req, res) => {
+    try {
+        const {
+            pharmacyName, ownerName, licenseNumber, gstin,
+            address, city, district, pincode, location,
+            phone, email, licenseCertificate, pharmacistRegNumber,
+            pharmacistCertificate, shopPhoto, full_name
+        } = req.body;
+
+        // Update User info if needed
+        if (full_name || phone) {
+            const userUpdates = {};
+            if (full_name) userUpdates.full_name = full_name;
+            if (phone) userUpdates.phone = phone;
+            await User.findByIdAndUpdate(req.user._id, userUpdates);
+        }
+
+        const updates = {};
+        if (pharmacyName) updates.pharmacyName = pharmacyName;
+        if (ownerName) updates.ownerName = ownerName;
+        if (licenseNumber) updates.licenseNumber = licenseNumber;
+        if (gstin) updates.gstin = gstin;
+        if (address) updates.address = address;
+        if (city) updates.city = city;
+        if (district) updates.district = district;
+        if (pincode) updates.pincode = pincode;
+        if (location) updates.location = location;
+        if (phone) updates.phone = phone;
+        if (email) updates.email = email;
+        if (licenseCertificate) updates.licenseCertificate = licenseCertificate;
+        if (pharmacistRegNumber) updates.pharmacistRegNumber = pharmacistRegNumber;
+        if (pharmacistCertificate) updates.pharmacistCertificate = pharmacistCertificate;
+        if (shopPhoto) updates.shopPhoto = shopPhoto;
+
+        const pharmacy = await Pharmacy.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: updates },
+            { new: true, upsert: true }
+        );
+
+        res.json({ success: true, pharmacy, message: "Pharmacy profile updated successfully" });
+    } catch (error) {
+        console.error("Update Pharmacy Profile Error:", error);
+        res.status(500).json({ message: "Failed to update pharmacy profile" });
+    }
+};
