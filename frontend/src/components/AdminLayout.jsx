@@ -115,7 +115,7 @@ export default function AdminLayout({ children }) {
           gap: 1.5,
           px: 2,
           py: 1.2,
-          borderRadius: '12px',
+          borderRadius: 1.5,
           textTransform: 'none',
           fontSize: 14.5,
           color: active ? colors.blueDark : colors.text,

@@ -45,7 +45,7 @@ const PatientLayout = ({ children, title }) => {
               onClick={() => { navigate(item.path); setMobileOpen(false); }}
               sx={{ 
                 mb: 1, 
-                borderRadius: 2, 
+                borderRadius: 1.5, 
                 backgroundColor: selected ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
                 color: selected ? 'primary.main' : 'text.primary',
                 '&:hover': { backgroundColor: 'rgba(37, 99, 235, 0.12)', color: 'primary.main' }

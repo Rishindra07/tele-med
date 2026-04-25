@@ -115,7 +115,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
                       gap: 2,
                       px: 2,
                       py: 1.2,
-                      borderRadius: 3,
+                      borderRadius: 1.5,
                       textTransform: 'none',
                       fontSize: 15.5,
                       fontWeight: active ? 600 : 500,
@@ -153,7 +153,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
                                       gap: 1.5,
                                       px: 1.5,
                                       py: 0.8,
-                                      borderRadius: 2,
+                                      borderRadius: 1.2,
                                       textTransform: 'none',
                                       fontSize: 14,
                                       fontWeight: isActive ? 600 : 500,
@@ -185,7 +185,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
                   gap: 2,
                   px: 2,
                   py: 1.2,
-                  borderRadius: 3,
+                  borderRadius: 1.5,
                   textTransform: 'none',
                   fontSize: 15.5,
                   fontWeight: active ? 600 : 500,
@@ -220,7 +220,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
                 minWidth: 0,
                 px: 1.5,
                 py: 0.5,
-                borderRadius: 2,
+                borderRadius: 1.2,
                 border: `1px solid ${language === lang.code ? colors.primary : '#dadce0'}`,
                 bgcolor: language === lang.code ? colors.primarySoft : 'transparent',
                 color: language === lang.code ? colors.primaryDark : '#5f6368',
@@ -234,7 +234,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
           ))}
         </Stack>
 
-        <Box sx={{ mt: 3, p: 2, borderRadius: 4, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar src={profileImage} alt={doctorName} sx={{ width: 40, height: 40, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700, fontSize: 14 }}>
             {initials(doctorName)}
           </Avatar>
@@ -252,7 +252,7 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
             width: '100%',
             justifyContent: 'center',
             p: 1,
-            borderRadius: 3,
+            borderRadius: 1.5,
             border: `1px solid #dadce0`,
             bgcolor: '#fff',
             color: '#3c4043',
