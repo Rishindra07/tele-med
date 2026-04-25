@@ -231,33 +231,42 @@ export default function AdminLayout({ children }) {
     <Box sx={{ minHeight: '100vh', bgcolor: colors.bg, display: 'flex' }}>
       <CssBaseline />
       
-      {/* Mobile Top Bar */}
+      {/* Top Bar (Always Visible) */}
       <AppBar 
         position="fixed" 
         elevation={0}
         sx={{ 
-          display: { lg: 'none' },
           bgcolor: '#ffffff',
           color: colors.text,
           borderBottom: `1px solid ${colors.line}`,
-          width: '100%'
+          width: { lg: `calc(100% - ${drawerWidth}px)` },
+          ml: { lg: `${drawerWidth}px` },
+          zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap sx={{ fontWeight: 700, color: colors.blue }}>
-            Seva Admin
-          </Typography>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12, fontWeight: 700 }}>
-            AD
-          </Avatar>
+          <Stack direction="row" alignItems="center">
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { lg: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap sx={{ fontWeight: 700, color: colors.blue }}>
+              Seva Admin
+            </Typography>
+          </Stack>
+          
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 13, fontWeight: 600 }}>
+              {t.administrator || 'Administrator'}
+            </Typography>
+            <Avatar sx={{ width: 34, height: 34, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12, fontWeight: 700 }}>
+              AD
+            </Avatar>
+          </Stack>
         </Toolbar>
       </AppBar>
 
@@ -300,7 +309,7 @@ export default function AdminLayout({ children }) {
           flexGrow: 1, 
           p: { xs: 2, sm: 3 }, 
           width: { lg: `calc(100% - ${drawerWidth}px)` },
-          mt: { xs: 8, lg: 0 } 
+          mt: 8
         }}
       >
         {children}
