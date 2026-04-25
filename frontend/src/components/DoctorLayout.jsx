@@ -319,9 +319,16 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
             </Typography>
           </Stack>
           
-          <Avatar src={profileImage} sx={{ width: 32, height: 32, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
-            {initials(doctorName)}
-          </Avatar>
+          <Stack direction="row" spacing={2} alignItems="center">
+             <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 14, fontWeight: 500 }}>
+               {t.doctor || 'Doctor'}
+             </Typography>
+             <IconButton onClick={() => navigate('/doctor/profile')} sx={{ p: 0 }}>
+               <Avatar src={profileImage} sx={{ width: 36, height: 36, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 14, fontWeight: 700 }}>
+                 {initials(doctorName)}
+               </Avatar>
+             </IconButton>
+          </Stack>
         </Toolbar>
       </AppBar>
 

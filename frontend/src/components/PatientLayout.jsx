@@ -137,7 +137,9 @@ const PatientLayout = ({ children, title }) => {
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 600 }}>
             {title || 'Dashboard'}
           </Typography>
-          <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>P</Avatar>
+          <IconButton onClick={() => navigate('/patient/profile')} sx={{ p: 0 }}>
+            <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>P</Avatar>
+          </IconButton>
         </Toolbar>
       </AppBar>
 

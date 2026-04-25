@@ -276,9 +276,16 @@ function PharmacyLayout({ children }) {
             </Typography>
           </Stack>
           
-          <Avatar sx={{ width: 34, height: 34, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
-            {initials(pharmacyName)}
-          </Avatar>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 13, fontWeight: 500 }}>
+              {t.pharmacy || 'Pharmacy'}
+            </Typography>
+            <IconButton onClick={() => navigate('/pharmacy/profile')} sx={{ p: 0 }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: colors.primarySoft, color: colors.primaryDark, fontSize: 12, fontWeight: 700 }}>
+                {initials(pharmacyName)}
+              </Avatar>
+            </IconButton>
+          </Stack>
         </Toolbar>
       </AppBar>
 

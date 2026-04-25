@@ -276,9 +276,16 @@ export default function AdminLayout({ children }) {
             </Typography>
           </Stack>
           
-          <Avatar sx={{ width: 32, height: 32, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12, fontWeight: 700 }}>
-            AD
-          </Avatar>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: colors.muted, fontSize: 13, fontWeight: 600 }}>
+              {t.administrator || 'Administrator'}
+            </Typography>
+            <IconButton onClick={() => navigate('/admin/settings')} sx={{ p: 0 }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: colors.blueSoft, color: colors.blue, fontSize: 12, fontWeight: 700 }}>
+                AD
+              </Avatar>
+            </IconButton>
+          </Stack>
         </Toolbar>
       </AppBar>
 
