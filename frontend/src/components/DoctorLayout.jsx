@@ -234,7 +234,25 @@ function DoctorLayout({ children, activeSettingSection = '' }) {
           ))}
         </Stack>
 
-        <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: '#f8f9fa', border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box 
+          onClick={() => navigate('/doctor/profile')}
+          sx={{ 
+            mt: 3, 
+            p: 2, 
+            borderRadius: 2, 
+            bgcolor: '#f8f9fa', 
+            border: `1px solid ${colors.line}`, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5,
+            cursor: 'pointer',
+            transition: '0.2s',
+            '&:hover': {
+              bgcolor: '#f1f3f4',
+              borderColor: colors.primary
+            }
+          }}
+        >
           <Avatar src={profileImage} alt={doctorName} sx={{ width: 40, height: 40, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700, fontSize: 14 }}>
             {initials(doctorName)}
           </Avatar>

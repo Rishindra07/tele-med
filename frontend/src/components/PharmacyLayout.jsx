@@ -195,7 +195,22 @@ function PharmacyLayout({ children }) {
           ))}
         </Stack>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box 
+          onClick={() => navigate('/pharmacy/profile')}
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5,
+            p: 1.5,
+            borderRadius: 2,
+            cursor: 'pointer',
+            transition: '0.2s',
+            '&:hover': {
+              bgcolor: colors.primarySoft,
+              borderColor: colors.primary
+            }
+          }}
+        >
           <Avatar src={profileImage} alt={pharmacyName} sx={{ width: 44, height: 44, bgcolor: colors.primarySoft, color: colors.primaryDark, fontWeight: 700, fontSize: 15 }}>
             {initials(pharmacyName)}
           </Avatar>

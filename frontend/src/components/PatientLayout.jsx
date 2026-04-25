@@ -60,7 +60,33 @@ const PatientLayout = ({ children, title }) => {
         })}
       </List>
       <Divider />
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Box 
+          onClick={() => navigate('/patient/profile')}
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5, 
+            p: 1.5, 
+            mb: 2,
+            borderRadius: 1.5, 
+            bgcolor: 'rgba(37, 99, 235, 0.04)', 
+            border: '1px solid rgba(37, 99, 235, 0.1)',
+            cursor: 'pointer',
+            transition: '0.2s',
+            '&:hover': {
+              bgcolor: 'rgba(37, 99, 235, 0.08)',
+              borderColor: 'primary.main'
+            }
+          }}
+        >
+          <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14, fontWeight: 700 }}>P</Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>My Profile</Typography>
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>View details</Typography>
+          </Box>
+        </Box>
+
         <Stack direction="row" spacing={0.5} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
           {[
             { code: 'en', label: 'EN' },

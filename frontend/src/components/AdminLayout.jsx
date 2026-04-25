@@ -206,7 +206,24 @@ export default function AdminLayout({ children }) {
           ))}
         </Stack>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.2, borderRadius: '12px', bgcolor: '#fff', border: `1px solid ${colors.line}` }}>
+        <Box 
+          onClick={() => navigate('/admin/settings')}
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5, 
+            p: 1.2, 
+            borderRadius: '12px', 
+            bgcolor: '#fff', 
+            border: `1px solid ${colors.line}`,
+            cursor: 'pointer',
+            transition: '0.2s',
+            '&:hover': {
+              borderColor: colors.blue,
+              bgcolor: colors.blueSoft
+            }
+          }}
+        >
           <Avatar sx={{ width: 36, height: 36, bgcolor: colors.blueSoft, color: colors.blue, fontWeight: 700, fontSize: 14 }}>
             {(adminUser?.full_name || adminUser?.name || 'Admin')
               .split(' ')
