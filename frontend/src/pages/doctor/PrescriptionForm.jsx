@@ -227,9 +227,9 @@ export default function PrescriptionForm() {
       if (res.success) {
         setSnackbar({ open: true, severity: 'success', message: 'Prescription sent successfully!' });
         
-        if (shareType) {
-          handleSendMessage(shareType, res.prescription.prescriptionId);
-        }
+        // if (shareType) {
+        //   handleSendMessage(shareType, res.prescription.prescriptionId);
+        // }
 
         setTimeout(() => navigate('/doctor/appointments'), 1500);
       }
