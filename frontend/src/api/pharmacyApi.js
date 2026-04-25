@@ -43,4 +43,4 @@ export const updateDeliverySettings = async (data) => API.put("pharmacy/delivery
 export const fetchIncomingOrders = async () => API.get("pharmacy/orders");
 export const updateOrderStatus = async (data) => API.put("pharmacy/orders/status", data);
 export const updatePharmacySettings = (settings) => API.put("users/settings", { settings });
-export const changePassword = (data) => API.put("users/change-password", data);
+export const changePassword = (data) => API.post("users/change-password", data);

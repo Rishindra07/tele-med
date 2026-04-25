@@ -59,4 +59,4 @@ export const exportAdminReport = async (type = "overview") => {
 export const fetchAdminSettings = () => API.get("admin/settings");
 
 export const updateAdminSettings = (settings) => API.put("admin/settings", { settings });
-export const changePassword = (data) => API.put("users/change-password", data);
+export const changePassword = (data) => API.post("users/change-password", data);

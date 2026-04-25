@@ -16,4 +16,4 @@ export const rescheduleAppointment = (id, newDate, newTime) =>
   API.patch(`doctor/appointments/${id}/reschedule`, { newDate, newTime });
 export const updateDoctorSettings = (settings) => API.put("users/settings", { settings });
 export const fetchMyAppointments = () => API.get("appointments/my");
-export const changePassword = (data) => API.put("users/change-password", data);
+export const changePassword = (data) => API.post("users/change-password", data);
