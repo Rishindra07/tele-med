@@ -398,9 +398,6 @@ function PatientDashboard() {
             <Box sx={{ px: 2.5, py: 1.25, borderRadius: '16px', border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.muted, fontSize: 15, fontWeight: 500 }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
-            <Button sx={{ minWidth: 44, width: 44, height: 44, borderRadius: '16px', border: `1px solid ${c.line}`, bgcolor: c.paper, color: c.text, position: 'relative' }}>
-              <NotificationIcon fontSize="small" />
-            </Button>
             <Button onClick={() => navigate('/patient/pharmacies')} sx={{ px: 3, py: 1.25, borderRadius: '16px', border: `1px solid ${c.primary}`, color: c.primary, fontSize: 15, fontWeight: 600, textTransform: 'none', '&:hover': { bgcolor: c.primarySoft } }}>
               {t.order_medicines_btn}
             </Button>

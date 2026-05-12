@@ -22,7 +22,6 @@ import {
 import {
   AccessTimeRounded as TimeIcon,
   CalendarMonthRounded as CalendarIcon,
-  NotificationsNoneRounded as NotificationIcon,
   SearchRounded as SearchIcon,
   VideocamRounded as VideoIcon,
   ChatBubbleOutlineRounded as ChatIcon,

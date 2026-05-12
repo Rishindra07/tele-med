@@ -97,6 +97,7 @@ export default function Register() {
   };
 
   const role = watch("role");
+  const passwordValue = watch("password") || "";
 
   const handleFileUpload = async (e, field) => {
     const file = e.target.files[0];
@@ -343,24 +344,90 @@ export default function Register() {
           <Security fontSize="small" /> SECURITY ACCESS
         </Typography>
         <Stack spacing={2.5}>
-          <TextField
-            required
-            fullWidth
-            label="Secure Password"
-            type={showPassword ? "text" : "password"}
-            {...register("password", { required: "Password is required", minLength: 6 })}
-            error={!!errors.password}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
-          />
+          <Box>
+            <TextField
+              required
+              fullWidth
+              label="Secure Password"
+              type={showPassword ? "text" : "password"}
+              {...register("password", { 
+                required: "Password is required", 
+                pattern: {
+                  value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/,
+                  message: "Password must be min 6 chars, 1 cap letter, 1 number, 1 special char"
+                }
+              })}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
+            />
+            <Box sx={{ px: 1, mt: 1.5 }}>
+              {(() => {
+                const reqs = [
+                  { label: "Min 6 chars", met: passwordValue.length >= 6 },
+                  { label: "1 Capital letter", met: /[A-Z]/.test(passwordValue) },
+                  { label: "1 Number", met: /\d/.test(passwordValue) },
+                  { label: "1 Special char", met: /[^a-zA-Z0-9]/.test(passwordValue) }
+                ];
+                const score = reqs.filter(r => r.met).length;
+                const strengthColor = score === 0 ? '#e2e8f0' : score === 1 ? '#ef4444' : score === 2 ? '#f59e0b' : score === 3 ? '#3b82f6' : '#10b981';
+                const strengthLabel = score === 0 ? '' : score === 1 ? 'Weak' : score === 2 ? 'Fair' : score === 3 ? 'Good' : 'Strong';
+
+                return (
+                  <Stack spacing={1.5}>
+                    {passwordValue.length > 0 && (
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75, alignItems: 'center' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.65rem' }}>
+                            Password Strength
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: strengthColor, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.65rem' }}>
+                            {strengthLabel}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 0.5, height: 4 }}>
+                          {[1, 2, 3, 4].map((level) => (
+                            <Box 
+                              key={level} 
+                              sx={{ 
+                                flex: 1, 
+                                bgcolor: level <= score ? strengthColor : alpha('#cbd5e1', 0.3), 
+                                borderRadius: 4,
+                                transition: 'all 0.3s ease-in-out'
+                              }} 
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                    <Grid container spacing={1}>
+                      {reqs.map((req, idx) => (
+                        <Grid item xs={6} key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                          {req.met ? (
+                            <CheckCircle color="success" sx={{ fontSize: 16 }} />
+                          ) : (
+                            <Box sx={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #cbd5e1', boxSizing: 'border-box' }} />
+                          )}
+                          <Typography variant="caption" color={req.met ? "success.main" : "text.secondary"} sx={{ fontWeight: req.met ? 700 : 500, fontSize: '0.7rem' }}>
+                            {req.label}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Stack>
+                );
+              })()}
+            </Box>
+          </Box>
           <TextField
             required
             fullWidth
@@ -370,6 +437,7 @@ export default function Register() {
               validate: (v) => v === getValues("password") || "Passwords do not match"
             })}
             error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: '#fff' } }}
           />
         </Stack>

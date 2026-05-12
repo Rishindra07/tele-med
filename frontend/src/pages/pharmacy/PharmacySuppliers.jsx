@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Box, Typography, Stack, Button, IconButton, Badge, Divider,
+  Box, Typography, Stack, Button, Divider,
   Avatar, Chip, CircularProgress
 } from '@mui/material';
 import {
-  NotificationsNoneRounded as BellIcon,
   AddRounded as AddIcon,
 } from '@mui/icons-material';
 import PharmacyLayout from '../../components/PharmacyLayout';
@@ -159,11 +158,6 @@ export default function PharmacySuppliers() {
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1.1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}<br />{new Date().toLocaleDateString('en-GB', { month: 'long' })}<br />{new Date().getFullYear()}
             </Box>
-            <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ color: '#5f5a52' }} />
-              </Badge>
-            </IconButton>
             <Button 
               startIcon={<AddIcon />}
               variant="contained"

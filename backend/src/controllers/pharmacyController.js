@@ -2,6 +2,31 @@ const Pharmacy = require("../models/Pharmacy");
 const PharmacyStock = require("../models/PharmacyStock");
 const User = require('../models/User');
 const PrescriptionOrder = require("../models/PrescriptionOrder");
+const {
+    createNotification,
+    sendEmail
+} = require("../services/notificationService.js");
+
+const describeOrderStatus = (status) => {
+    switch (status) {
+        case "Pharmacy Accepted":
+            return "Your medicine order has been accepted by the pharmacy.";
+        case "Packed":
+            return "Your medicine order has been packed.";
+        case "Out for Delivery":
+            return "Your medicine order is out for delivery.";
+        case "Delivered":
+            return "Your medicine order has been delivered.";
+        case "Ready for Pickup":
+            return "Your medicine order is ready for pickup.";
+        case "Rejected":
+            return "Your medicine order has been rejected by the pharmacy.";
+        case "Cancelled":
+            return "Your medicine order has been cancelled.";
+        default:
+            return `Your medicine order status has been updated to ${status}.`;
+    }
+};
 
 exports.getAllPharmacies = async (req, res) => {
     try {
@@ -160,7 +185,9 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(400).json({ message: `Invalid status: ${rawStatus}` });
         }
 
-        const order = await PrescriptionOrder.findById(orderId).populate("pharmacy");
+        const order = await PrescriptionOrder.findById(orderId)
+            .populate("pharmacy")
+            .populate("patient", "full_name email phone");
         if (!order) return res.status(404).json({ message: "Order not found" });
 
         // Security check: Only the pharmacy owner can update the status
@@ -170,6 +197,38 @@ exports.updateOrderStatus = async (req, res) => {
 
         order.status = status;
         await order.save();
+
+        const orderCode = String(order._id).slice(-6).toUpperCase();
+        const pharmacyName = order.pharmacy?.pharmacyName || "your pharmacy";
+        const statusMessage = describeOrderStatus(status);
+        const notificationMessage = `${statusMessage} Order #${orderCode} from ${pharmacyName}.`;
+
+        const notificationResults = await Promise.allSettled([
+            createNotification({
+                userId: order.patient?._id || order.patient,
+                title: "Medicine Order Updated",
+                message: notificationMessage,
+                type: "pharmacy",
+                data: {
+                    orderId: order._id,
+                    pharmacyId: order.pharmacy?._id,
+                    status
+                }
+            }),
+            sendEmail({
+                to: order.patient?.email,
+                subject: `Medicine Order ${status} - Seva Telehealth`,
+                text: `Hello ${order.patient?.full_name || "Patient"},\n\n${notificationMessage}\n\nPlease check your dashboard for tracking details.\n\nSeva Telehealth`
+            })
+        ]);
+
+        notificationResults.forEach((result, index) => {
+            if (result.status === "rejected") {
+                console.error(`[ORDER_STATUS] notification task ${index} failed`, result.reason);
+            } else if (result.value && result.value.ok === false) {
+                console.error(`[ORDER_STATUS] notification task ${index} returned failure`, result.value);
+            }
+        });
         
         res.json({ success: true, order });
     } catch (error) {

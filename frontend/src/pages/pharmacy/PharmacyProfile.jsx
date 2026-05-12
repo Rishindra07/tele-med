@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Stack, Button, IconButton, Badge, Divider,
+  Box, Typography, Stack, Button, IconButton, Divider,
   Avatar, Switch, Table, TableBody, TableCell, TableRow, CircularProgress
 } from '@mui/material';
 import {
-  NotificationsNoneRounded as BellIcon,
   EditRounded as EditIcon,
   SettingsRounded as SettingsIcon,
   AddRounded as AddIcon,
@@ -129,11 +128,6 @@ export default function PharmacyProfile() {
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1.1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}<br />{new Date().toLocaleDateString('en-GB', { month: 'long' })}<br />{new Date().getFullYear()}
             </Box>
-            <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ color: '#5f5a52' }} />
-              </Badge>
-            </IconButton>
           </Stack>
         </Stack>
 

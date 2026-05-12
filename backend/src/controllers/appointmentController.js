@@ -226,8 +226,8 @@ exports.bookAppointment = async (req, res) => {
     const patientUser = await User.findById(req.user._id);
 
     const appointmentDateText = normalizedDate.toISOString().split("T")[0];
-    const patientMessage = `Your appointment with Dr. ${doctorUser.full_name || "Doctor"} is scheduled on ${appointmentDateText} at ${slot}.`;
-    const doctorMessage = `New appointment scheduled on ${appointmentDateText} at ${slot} with ${patientUser?.full_name || "a patient"}.`;
+    const patientMessage = `Your slot with Dr. ${doctorUser.full_name || "Doctor"} has been booked for ${appointmentDateText} at ${slot}.`;
+    const doctorMessage = `A slot has been booked with ${patientUser?.full_name || "a patient"} for ${appointmentDateText} at ${slot}.`;
 
     const notificationResults = await Promise.allSettled([
       createNotification({
@@ -244,13 +244,13 @@ exports.bookAppointment = async (req, res) => {
       }),
       sendEmail({
         to: patientUser?.email,
-        subject: "Appointment Scheduled",
-        text: patientMessage
+        subject: "Slot Booked - Seva Telehealth",
+        text: `${patientMessage}\n\nPlease check your dashboard for appointment details.\n\nSeva Telehealth`
       }),
       sendEmail({
         to: doctorUser?.email,
-        subject: "New Appointment",
-        text: doctorMessage
+        subject: "New Slot Booking - Seva Telehealth",
+        text: `${doctorMessage}\n\nPlease check your doctor dashboard for appointment details.\n\nSeva Telehealth`
       })
       // })
       // Placeholder channels intentionally disabled until real providers are added.

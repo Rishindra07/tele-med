@@ -41,6 +41,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Required fields are missing" });
     }
 
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ message: "Password must be min 6 chars, 1 capital letter, 1 number, 1 special character" });
+    }
+
     if (!REGISTRATION_ROLES.includes(role)) {
       return res.status(400).json({ message: "Invalid role selected" });
     }
@@ -469,6 +474,11 @@ const changePassword = async (req, res) => {
     
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: "Current and new passwords are required" });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ message: "Password must be min 6 chars, 1 capital letter, 1 number, 1 special character" });
     }
 
     const user = await User.findById(req.user._id).select("+password_hash");

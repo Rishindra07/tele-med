@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Stack, Button, IconButton, Badge, Divider,
+  Box, Typography, Stack, Button, IconButton, Divider,
   TextField, MenuItem, Select, FormControl, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Snackbar, Alert, CircularProgress
 } from '@mui/material';
 import {
-  NotificationsNoneRounded as BellIcon,
   SearchRounded as SearchIcon,
   AddRounded as AddIcon,
   DeleteOutlineRounded as DeleteIcon,
@@ -226,11 +225,6 @@ export default function PharmacyInventory() {
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
             </Box>
-            <IconButton sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}>
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ color: '#5f5a52' }} />
-              </Badge>
-            </IconButton>
           </Stack>
         </Stack>
 

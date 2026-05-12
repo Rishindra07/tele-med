@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Stack, Button, IconButton, Badge, Divider,
+  Box, Typography, Stack, Button, Divider,
   TextField, MenuItem, Select, FormControl, InputAdornment, Avatar,
   Switch, Slider
 } from '@mui/material';
 import {
-  NotificationsNoneRounded as BellIcon,
   SearchRounded as SearchIcon,
   WarningRounded as WarningIcon,
   ScheduleRounded as ClockIcon,
@@ -155,14 +154,6 @@ export default function PharmacyExpiry() {
             <Box sx={{ bgcolor: colors.soft, color: '#5f5a52', borderRadius: 2.5, px: 2, py: 1, fontSize: 13, lineHeight: 1.25, textAlign: 'center' }}>
               Mon, 23<br />March<br />2026
             </Box>
-            <IconButton 
-              onClick={() => setSnackbar({ open: true, message: `You have ${summary?.critical || 0} critical expiries.`, severity: 'warning' })}
-              sx={{ border: `1px solid ${colors.line}`, bgcolor: '#fff', width: 42, height: 42 }}
-            >
-              <Badge color={summary?.critical > 0 ? "error" : "default"} variant="dot">
-                <BellIcon sx={{ color: '#5f5a52' }} />
-              </Badge>
-            </IconButton>
             <Button 
               onClick={() => setSnackbar({ open: true, message: 'Return list generated for April 2026', severity: 'success' })}
               variant="contained"
