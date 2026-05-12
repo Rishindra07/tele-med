@@ -367,7 +367,7 @@ export default function PatientPharmacies() {
         pharmacyId: selectedPharmacy._id,
         items: orderItems.map(item => ({
           ...item,
-          price: orderStockInfo.find(s => s.name.toLowerCase() === item.name.toLowerCase())?.price || 150
+          price: Number(getOrderStockItem(item.name)?.price ?? 0)
         })),
         deliveryType,
         deliveryAddress: deliveryType === 'HOME' ? deliveryAddress : null,
@@ -519,10 +519,18 @@ export default function PatientPharmacies() {
   const calculateOrderTotal = () => {
     const base = orderStockInfo.reduce((sum, item) => {
        const oItem = orderItems.find(oi => oi.name.toLowerCase() === item.name.toLowerCase());
-       return sum + ((item.price || 150) * (oItem?.quantity || 1));
+       return sum + (Number(item.price || 0) * (oItem?.quantity || 1));
     }, 0);
     const delivery = deliveryType === 'HOME' ? 40 : 0;
     return base + delivery;
+  };
+
+  const getOrderStockItem = (name) => {
+    const normalized = String(name || '').toLowerCase();
+    return orderStockInfo.find((stock) =>
+      String(stock.name || '').toLowerCase() === normalized ||
+      String(stock.matchedMedicineName || '').toLowerCase() === normalized
+    );
   };
 
   const updateOrderItemQuantity = (name, delta) => {
@@ -1153,8 +1161,8 @@ export default function PatientPharmacies() {
                                </Typography>
                              </Box>
                              <Box sx={{ textAlign: 'right' }}>
-                               <Typography sx={{ fontSize: 14, fontWeight: 800, color: colors.primary }}>₹{(item.price || 150) * currentQty}</Typography>
-                               <Typography sx={{ fontSize: 10, color: colors.muted }}>₹{item.price || 150}/unit</Typography>
+                               <Typography sx={{ fontSize: 14, fontWeight: 800, color: colors.primary }}>₹{Number(item.price || 0) * currentQty}</Typography>
+                               <Typography sx={{ fontSize: 10, color: colors.muted }}>₹{Number(item.price || 0)}/unit</Typography>
                              </Box>
                           </Stack>
                         </Box>

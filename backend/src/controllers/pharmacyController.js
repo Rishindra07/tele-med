@@ -28,6 +28,47 @@ const describeOrderStatus = (status) => {
     }
 };
 
+const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const normalizeMedicineName = (value) =>
+    String(value || "")
+        .toLowerCase()
+        .replace(/\b\d+(\.\d+)?\s*(mg|mcg|g|gm|kg|ml|l|iu|units?|%)\b/g, " ")
+        .replace(/\b(tab|tabs|tablet|tablets|cap|caps|capsule|capsules|syrup|inj|injection|cream|ointment|drop|drops)\b/g, " ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+
+const findMatchingStock = (stocks, itemName) => {
+    const itemNameText = String(itemName || "").trim();
+    const normalizedItemName = normalizeMedicineName(itemNameText);
+
+    if (!itemNameText) return null;
+
+    const exactMatch = stocks.find((stock) =>
+        stock.medicineName.toLowerCase() === itemNameText.toLowerCase()
+    );
+    if (exactMatch) return exactMatch;
+
+    if (!normalizedItemName) return null;
+
+    return stocks.find((stock) => {
+        const normalizedStockName = normalizeMedicineName(stock.medicineName);
+        const normalizedGenericName = normalizeMedicineName(stock.genericName);
+
+        return (
+            normalizedStockName === normalizedItemName ||
+            normalizedGenericName === normalizedItemName ||
+            normalizedStockName.includes(normalizedItemName) ||
+            normalizedItemName.includes(normalizedStockName) ||
+            (normalizedGenericName && (
+                normalizedGenericName.includes(normalizedItemName) ||
+                normalizedItemName.includes(normalizedGenericName)
+            ))
+        );
+    }) || null;
+};
+
 exports.getAllPharmacies = async (req, res) => {
     try {
         const { lat, lng } = req.query;
@@ -111,21 +152,40 @@ exports.checkStockAndPrice = async (req, res) => {
             return res.status(400).json({ message: "pharmacyId and items array are required" });
         }
 
-        // Case-insensitive matching for medicine names
-        const itemNames = items.map(item => new RegExp(`^${item.name}$`, "i"));
-        
+        const requestedNames = items
+            .map((item) => String(item.name || "").trim())
+            .filter(Boolean);
+
+        const directNameFilters = requestedNames.map((name) => new RegExp(`^${escapeRegex(name)}$`, "i"));
+        const normalizedNameFilters = requestedNames
+            .map(normalizeMedicineName)
+            .filter(Boolean)
+            .map((name) => new RegExp(escapeRegex(name).replace(/\s+/g, ".*"), "i"));
+
         const stocks = await PharmacyStock.find({
             pharmacy: pharmacyId,
-            medicineName: { $in: itemNames }
-        });
+            ...(directNameFilters.length
+                ? {
+                    $or: [
+                        { medicineName: { $in: directNameFilters } },
+                        { genericName: { $in: directNameFilters } },
+                        { medicineName: { $in: normalizedNameFilters } },
+                        { genericName: { $in: normalizedNameFilters } }
+                    ]
+                }
+                : {})
+        }).lean();
 
         const results = items.map(item => {
-            const stock = stocks.find(s => s.medicineName.toLowerCase() === item.name.toLowerCase());
+            const stock = findMatchingStock(stocks, item.name);
+            const requestedQuantity = Math.max(Number(item.quantity || 1), 1);
+            const available = Number(stock?.quantity || 0);
             return {
                 name: item.name,
-                available: stock ? stock.quantity : 0,
-                price: stock ? stock.mrp : 150, // Default 150 if not found
-                inStock: stock ? stock.quantity >= (item.quantity || 1) : false
+                matchedMedicineName: stock?.medicineName || null,
+                available,
+                price: stock ? Number(stock.mrp || 0) : 0,
+                inStock: stock ? available >= requestedQuantity : false
             };
         });
 

@@ -166,10 +166,18 @@ export default function MedicineOrderFlow() {
       return stockInfo.reduce((sum, item) => {
         const cartItem = cartItems.find(c => c.name.toLowerCase() === item.name.toLowerCase());
         const qty = cartItem ? cartItem.quantity : 1;
-        return sum + (item.price * qty);
+        return sum + (Number(item.price || 0) * qty);
       }, 0) + (deliveryType === 'HOME' ? 40 : 0);
     }
-    return cartItems.reduce((sum, item) => sum + (150 * (item.quantity || 1)), 0) + (deliveryType === 'HOME' ? 40 : 0);
+    return deliveryType === 'HOME' ? 40 : 0;
+  };
+
+  const getStockItem = (name) => {
+    const normalized = String(name || '').toLowerCase();
+    return stockInfo.find((stock) =>
+      String(stock.name || '').toLowerCase() === normalized ||
+      String(stock.matchedMedicineName || '').toLowerCase() === normalized
+    );
   };
 
   const handleSubmitOrder = async (finalPaymentStatus = 'Pending', referenceDetails = null) => {
@@ -181,7 +189,7 @@ export default function MedicineOrderFlow() {
         pharmacyId: selectedPharmacy._id,
         items: cartItems.map((item, idx) => ({
           ...item,
-          price: stockInfo.find(s => s.name === item.name)?.price || 150
+          price: Number(getStockItem(item.name)?.price ?? 0)
         })),
         deliveryType,
         deliveryAddress: address,
@@ -527,7 +535,7 @@ export default function MedicineOrderFlow() {
                         </Box>
                       ) : (
                         cartItems.map((item, i) => {
-                          const info = stockInfo.find(s => s.name.toLowerCase() === item.name.toLowerCase());
+                          const info = getStockItem(item.name);
                           const isOutOfStock = info && info.available === 0;
                           return (
                             <Box key={i} sx={{ p: 2, borderRadius: 2, bgcolor: '#fcfcfc', border: `1px solid ${isOutOfStock ? colors.danger + '40' : colors.line}`, position: 'relative' }}>
@@ -560,8 +568,8 @@ export default function MedicineOrderFlow() {
                                   </Stack>
                                 </Box>
                                 <Box sx={{ textAlign: 'right' }}>
-                                  <Typography variant="h6" fontWeight={800} color={colors.primary}>₹{(info ? info.price : 150) * (item.quantity || 1)}</Typography>
-                                  <Typography variant="caption" sx={{ color: colors.muted }}>₹{info ? info.price : 150} / unit</Typography>
+                                  <Typography variant="h6" fontWeight={800} color={colors.primary}>₹{Number(info?.price || 0) * (item.quantity || 1)}</Typography>
+                                  <Typography variant="caption" sx={{ color: colors.muted }}>₹{Number(info?.price || 0)} / unit</Typography>
                                 </Box>
                               </Stack>
                               
