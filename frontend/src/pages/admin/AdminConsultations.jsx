@@ -163,12 +163,13 @@ export default function AdminConsultations() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
+                color: '#fff',
                 borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
                 fontSize: 15,
-                '&:hover': { bgcolor: colors.blue }
+                '&:hover': { bgcolor: colors.blue, color: '#fff' }
               }}
             >
               Export log

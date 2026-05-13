@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Enter a valid email address"]
     },
+    is_email_verified: {
+      type: Boolean,
+      default: false
+    },
     // Verification fields removed
     preferred_language: {
       type: String,

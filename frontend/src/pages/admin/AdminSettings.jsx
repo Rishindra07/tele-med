@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Button, Divider,
   Avatar, Switch, CircularProgress, Alert, Snackbar,
-  Select, MenuItem, FormControl, InputLabel, TextField
+  Select, MenuItem, TextField, Dialog
 } from '@mui/material';
 import {
   SettingsRounded as SettingsIcon,
@@ -30,6 +30,17 @@ const colors = {
   soft: '#f1f3f4'
 };
 
+const defaultSettings = {
+  doctorVerification: true,
+  openRegistration: true,
+  newPharmacyEnrollment: true,
+  twoFactor: false,
+  autoBackup: true,
+  globalLanguage: 'en',
+  systemTimezone: 'IST',
+  minConsultationFee: 100
+};
+
 function SettingRow({ label, desc, action }) {
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 3, borderBottom: `1px solid ${colors.soft}`, '&:last-child': { borderBottom: 'none' } }}>
@@ -50,13 +61,7 @@ export default function AdminSettings() {
   const [passwordDialog, setPasswordDialog] = useState(false);
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
 
-  const [toggles, setToggles] = useState({
-    doctorVerification: true,
-    openRegistration: true,
-    newPharmacyEnrollment: true,
-    twoFactor: true,
-    autoBackup: true
-  });
+  const [toggles, setToggles] = useState(defaultSettings);
 
   const [adminUser, setAdminUser] = useState({});
 
@@ -67,8 +72,8 @@ export default function AdminSettings() {
         setAdminUser(usr);
         
         const res = await fetchAdminSettings();
-        if (res.data.success) {
-          setToggles(res.data.settings);
+        if (res?.success) {
+          setToggles({ ...defaultSettings, ...(res.settings || {}) });
         }
       } catch (err) {
         console.error(err);
@@ -83,13 +88,25 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await updateAdminSettings(toggles);
-      if (res.data.success) {
+      const normalizedSettings = {
+        ...toggles,
+        doctorVerification: Boolean(toggles.doctorVerification),
+        openRegistration: Boolean(toggles.openRegistration),
+        newPharmacyEnrollment: Boolean(toggles.newPharmacyEnrollment),
+        twoFactor: Boolean(toggles.twoFactor),
+        autoBackup: Boolean(toggles.autoBackup),
+        minConsultationFee: Math.max(Number(toggles.minConsultationFee || 100), 0)
+      };
+      const res = await updateAdminSettings(normalizedSettings);
+      if (res?.success) {
         // Update local storage
         const usr = JSON.parse(localStorage.getItem('user') || '{}');
-        usr.settings = res.data.settings;
+        usr.settings = res.settings || normalizedSettings;
         localStorage.setItem('user', JSON.stringify(usr));
+        setToggles({ ...defaultSettings, ...(res.settings || normalizedSettings) });
         setSnackbar({ open: true, severity: 'success', message: 'Global config saved' });
+      } else {
+        setSnackbar({ open: true, severity: 'error', message: 'Save failed' });
       }
     } catch (err) {
       setSnackbar({ open: true, severity: 'error', message: 'Save failed' });
@@ -115,7 +132,7 @@ export default function AdminSettings() {
         setPasswordDialog(false);
         setPasswords({ current: '', new: '', confirm: '' });
     } catch (err) {
-        setSnackbar({ open: true, severity: 'error', message: err.response?.data?.message || 'Password change failed' });
+        setSnackbar({ open: true, severity: 'error', message: err.message || 'Password change failed' });
     } finally {
         setSaving(false);
     }
@@ -142,7 +159,7 @@ export default function AdminSettings() {
             variant="contained" 
             onClick={handleSave}
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
-            sx={{ bgcolor: colors.blue, px: 4, py: 1.5, borderRadius: '12px', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.blue } }}
+            sx={{ bgcolor: colors.blue, color: '#fff', px: 4, py: 1.5, borderRadius: '12px', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.blue, color: '#fff' } }}
           >
             {saving ? 'Processing...' : 'Save Global Config'}
           </Button>
@@ -304,7 +321,7 @@ export default function AdminSettings() {
                     onClick={handlePasswordChange}
                     disabled={saving}
                     startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SecurityIcon />}
-                    sx={{ bgcolor: colors.blue, borderRadius: '12px', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: colors.blue } }}
+                    sx={{ bgcolor: colors.blue, color: '#fff', borderRadius: '12px', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: colors.blue, color: '#fff' } }}
                 >
                     {saving ? 'Updating...' : 'Update Password'}
                 </Button>

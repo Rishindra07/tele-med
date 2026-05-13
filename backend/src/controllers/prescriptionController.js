@@ -7,6 +7,10 @@ const Prescription = require("../models/Prescription.js");
 const PrescriptionOrder = require("../models/PrescriptionOrder.js");
 const Pharmacy = require("../models/Pharmacy.js");
 const User = require("../models/User.js");
+const {
+  createNotification,
+  sendEmail
+} = require("../services/notificationService.js");
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -35,6 +39,68 @@ const normalizeMedications = (items) => {
       instructions: cleanString(item?.instructions)
     }))
     .filter((item) => item.name);
+};
+
+const formatOrderCode = (orderId) => String(orderId || "").slice(-6).toUpperCase();
+
+const formatOrderItems = (items = []) =>
+  items
+    .map((item) => `${item.name}${item.quantity ? ` x ${item.quantity}` : ""}`)
+    .join(", ");
+
+const notifyMedicineOrderPlaced = async ({ order, patient, pharmacy }) => {
+  if (!order || !patient || !pharmacy) return;
+
+  const orderCode = formatOrderCode(order._id);
+  const pharmacyName = pharmacy.pharmacyName || "your selected pharmacy";
+  const itemSummary = formatOrderItems(order.items);
+  const patientMessage = `Your medicine order #${orderCode} has been placed with ${pharmacyName}.${itemSummary ? ` Items: ${itemSummary}.` : ""}`;
+  const pharmacyMessage = `New medicine order #${orderCode} from ${patient.full_name || patient.name || "a patient"}.${itemSummary ? ` Items: ${itemSummary}.` : ""}`;
+  const pharmacyUserId = pharmacy.user?._id || pharmacy.user;
+  const pharmacyEmail = pharmacy.email || pharmacy.user?.email;
+
+  const notificationResults = await Promise.allSettled([
+    createNotification({
+      userId: patient._id,
+      title: "Medicine Order Placed",
+      message: patientMessage,
+      type: "pharmacy",
+      data: {
+        orderId: order._id,
+        pharmacyId: pharmacy._id,
+        status: order.status
+      }
+    }),
+    sendEmail({
+      to: patient.email,
+      subject: "Medicine Order Placed - Seva Telehealth",
+      text: `Hello ${patient.full_name || patient.name || "Patient"},\n\n${patientMessage}\n\nYou will receive another email whenever the order status changes.\n\nSeva Telehealth`
+    }),
+    createNotification({
+      userId: pharmacyUserId,
+      title: "New Medicine Order",
+      message: pharmacyMessage,
+      type: "pharmacy",
+      data: {
+        orderId: order._id,
+        patientId: patient._id,
+        status: order.status
+      }
+    }),
+    sendEmail({
+      to: pharmacyEmail,
+      subject: `New Medicine Order #${orderCode} - Seva Telehealth`,
+      text: `${pharmacyMessage}\n\nPlease review the order in your pharmacy dashboard and update the status for the patient.\n\nSeva Telehealth`
+    })
+  ]);
+
+  notificationResults.forEach((result, index) => {
+    if (result.status === "rejected") {
+      console.error(`[ORDER_PLACED] notification task ${index} failed`, result.reason);
+    } else if (result.value && result.value.ok === false && result.value.reason !== "not-configured") {
+      console.error(`[ORDER_PLACED] notification task ${index} returned failure`, result.value);
+    }
+  });
 };
 
 const buildSignatureHash = ({
@@ -257,7 +323,7 @@ exports.assignToPharmacy = async (req, res) => {
     }
 
     // Validate Pharmacy
-    const pharmacy = await Pharmacy.findById(pharmacyId);
+    const pharmacy = await Pharmacy.findById(pharmacyId).populate("user", "full_name email phone");
     if (!pharmacy) {
       return res.status(404).json({ message: "Pharmacy not found" });
     }
@@ -291,6 +357,12 @@ exports.assignToPharmacy = async (req, res) => {
       paymentMethod: paymentMethod || (deliveryType === 'HOME' ? 'COD' : 'OFFLINE'),
       paymentStatus: paymentStatus || 'Pending',
       status: "Order Placed"
+    });
+
+    await notifyMedicineOrderPlaced({
+      order,
+      patient: prescription.patient,
+      pharmacy
     });
 
     res.json({
@@ -452,7 +524,7 @@ exports.createAdvancedOrder = async (req, res) => {
       console.warn(`[PRESCRIPTION ORDER] Prescription ${prescriptionId} not found but ID provided.`);
     }
 
-    const pharmacy = await Pharmacy.findById(pharmacyId);
+    const pharmacy = await Pharmacy.findById(pharmacyId).populate("user", "full_name email phone");
     if (!pharmacy) {
       return res.status(404).json({ message: "Pharmacy not found" });
     }
@@ -485,6 +557,13 @@ exports.createAdvancedOrder = async (req, res) => {
           note: "Order has been placed by patient"
         }
       ]
+    });
+
+    const patient = await User.findById(req.user._id).select("full_name name email phone");
+    await notifyMedicineOrderPlaced({
+      order,
+      patient: patient || req.user,
+      pharmacy
     });
 
     res.status(201).json({

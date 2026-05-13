@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   TextField,
   Button,
@@ -40,7 +40,7 @@ import { useForm } from "react-hook-form";
 import { registerUser } from "../../api/authApi.js";
 import { updateDoctorProfile } from "../../api/doctorApi.js";
 import { updatePharmacyProfile } from "../../api/pharmacyApi.js";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 import API from "../../api/axios";
 
@@ -55,7 +55,7 @@ const routeForRole = (role) => {
   return "/patient";
 };
 
-const steps = ["Account Setup", "Verification"];
+const steps = ["Account Setup", "Email OTP", "Verification"];
 
 export default function Register() {
   const {
@@ -65,6 +65,7 @@ export default function Register() {
     setError,
     clearErrors,
     watch,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -73,6 +74,7 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
+  const locationState = useLocation().state;
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -83,6 +85,8 @@ export default function Register() {
   const [uploading, setUploading] = useState({});
   const [location, setLocation] = useState(null);
   const [locationCaptured, setLocationCaptured] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   const captureLocation = () => {
     if (navigator.geolocation) {
@@ -95,6 +99,19 @@ export default function Register() {
       });
     }
   };
+
+  const otpSentRef = useRef(false);
+  useEffect(() => {
+    if (locationState?.email && !otpSentRef.current) {
+      otpSentRef.current = true;
+      setValue("email", locationState.email);
+      setValue("role", locationState.role || 'patient');
+      setActiveStep(1);
+      
+      // Auto-send OTP when jumping from login
+      API.post("/auth/send-otp", { email: locationState.email }).catch(err => console.error("Auto-send OTP failed", err));
+    }
+  }, [locationState, setValue]);
 
   const role = watch("role");
   const passwordValue = watch("password") || "";
@@ -111,8 +128,8 @@ export default function Register() {
       const res = await API.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (res.data?.success) {
-        setUploads({ ...uploads, [field]: res.data.fileUrl });
+      if (res?.success) {
+        setUploads({ ...uploads, [field]: res.fileUrl });
       }
     } catch (err) {
       console.error("Upload failed", err);
@@ -124,6 +141,8 @@ export default function Register() {
   const onSubmit = async (data) => {
     if (activeStep === 0) {
       await handleStepOne(data);
+    } else if (activeStep === 1) {
+      await handleOtpVerification(data);
     } else {
       await handleStepTwo(data);
     }
@@ -150,14 +169,42 @@ export default function Register() {
       const response = await registerUser(payload);
       setRegisteredUser(response.user);
 
-      if (["doctor", "pharmacist"].includes(data.role)) {
+      if (response.needsVerification) {
         setActiveStep(1);
+      } else if (["doctor", "pharmacist"].includes(data.role) && !response.user?.is_approved) {
+        setActiveStep(2);
       } else {
         navigate(routeForRole(response.user.role));
       }
     } catch (err) {
       const message = err.response?.data?.message || err.message || "Registration failed";
       setError("root.serverError", { type: "server", message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpVerification = async (data) => {
+    try {
+      setLoading(true);
+      setOtpError("");
+      
+      console.log("[OTP_FRONTEND] Verifying:", data.email, "with OTP:", otpValue);
+
+      const response = await API.post("/auth/verify-otp", {
+        email: data.email?.trim() || getValues("email")?.trim(),
+        otp: otpValue
+      });
+
+      if (response && response.success) {
+        if (["doctor", "pharmacist"].includes(data.role)) {
+          setActiveStep(2);
+        } else {
+          navigate(routeForRole(data.role));
+        }
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -586,6 +633,55 @@ export default function Register() {
     </Stack>
   );
 
+  const renderOtpStep = () => (
+    <Stack spacing={4} sx={{ animation: 'fadeIn 0.5s ease-out' }}>
+      <Box sx={{ p: 3, bgcolor: alpha(PRIMARY_BLUE, 0.05), borderRadius: 3, textAlign: 'center' }}>
+        <Typography variant="h6" fontWeight={800} gutterBottom color="primary">
+          Verify Your Email
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          We've sent a 6-digit code to <b>{getValues("email")}</b>.
+          Please enter it below to continue.
+        </Typography>
+        
+        <TextField
+          fullWidth
+          label="6-Digit Code"
+          variant="outlined"
+          value={otpValue}
+          onChange={(e) => setOtpValue(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+          error={!!otpError}
+          helperText={otpError}
+          InputProps={{
+            sx: { 
+              borderRadius: 3, 
+              bgcolor: '#fff',
+              textAlign: 'center',
+              fontSize: '1.5rem',
+              letterSpacing: '0.5rem',
+              '& input': { textAlign: 'center' }
+            }
+          }}
+        />
+        
+        <Button 
+          sx={{ mt: 2, fontWeight: 700 }}
+          variant="text"
+          onClick={async () => {
+            try {
+              await API.post("/auth/send-otp", { email: getValues("email") });
+              alert("A new code has been sent to your email.");
+            } catch (err) {
+              alert("Failed to resend code.");
+            }
+          }}
+        >
+          Resend Code
+        </Button>
+      </Box>
+    </Stack>
+  );
+
   return (
     <Box sx={{ 
       minHeight: "100vh", 
@@ -621,10 +717,10 @@ export default function Register() {
             <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg, ${PRIMARY_BLUE}, ${ACCENT_TEAL})` }} />
 
             <Typography variant="h5" align="center" gutterBottom color="#1E293B" fontWeight={800} sx={{ mb: 3 }}>
-              {activeStep === 0 ? "Create Professional Account" : "Identity Verification"}
+              {activeStep === 0 ? "Create Professional Account" : activeStep === 1 ? "Email Verification" : "Identity Verification"}
             </Typography>
             
-            {(role === 'doctor' || role === 'pharmacist') && (
+            {(role === 'doctor' || role === 'pharmacist' || activeStep === 1) && (
               <Stepper activeStep={activeStep} sx={{ mb: 6, gap: 1 }}>
                 {steps.map((label) => (
                   <Step key={label}>
@@ -635,7 +731,7 @@ export default function Register() {
             )}
 
             <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-              {activeStep === 0 ? renderStepOne() : renderStepTwo()}
+              {activeStep === 0 ? renderStepOne() : activeStep === 1 ? renderOtpStep() : renderStepTwo()}
 
               <Button 
                   type="submit" 
@@ -658,6 +754,7 @@ export default function Register() {
               >
                 {loading ? <CircularProgress size={26} color="inherit" /> : 
                  activeStep === 0 ? (["doctor", "pharmacist"].includes(role) ? "Next" : "Register Now") : 
+                 activeStep === 1 ? "Verify & Continue" :
                  "Complete"}
               </Button>
 

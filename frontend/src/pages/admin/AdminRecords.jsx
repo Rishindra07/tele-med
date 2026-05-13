@@ -155,13 +155,14 @@ export default function AdminRecords() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
+                color: '#fff',
                 borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
                 fontSize: 15,
                 fontWeight: 700,
-                '&:hover': { bgcolor: colors.blue }
+                '&:hover': { bgcolor: colors.blue, color: '#fff' }
               }}
             >
               Sync now

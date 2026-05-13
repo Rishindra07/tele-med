@@ -1,15 +1,29 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  Divider,
   Grid,
+  IconButton,
   Paper,
   Stack,
   Typography
 } from '@mui/material';
+import {
+  BadgeRounded as LicenseIcon,
+  CloseRounded as CloseIcon,
+  DescriptionRounded as DocumentIcon,
+  EmailRounded as EmailIcon,
+  LocalHospitalRounded as HospitalIcon,
+  PersonRounded as PersonIcon,
+  PhoneRounded as PhoneIcon,
+  VerifiedUserRounded as VerifiedIcon
+} from '@mui/icons-material';
 import AdminLayout from '../../components/AdminLayout';
 import { approvePendingUser, fetchDoctorsDirectory } from '../../api/adminApi';
 
@@ -31,11 +45,43 @@ const colors = {
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
 
+const documentLabel = (url) => {
+  if (!url) return 'Not uploaded';
+  try {
+    return decodeURIComponent(String(url).split('/').pop() || 'Open document');
+  } catch {
+    return 'Open document';
+  }
+};
+
+const DocumentRow = ({ label, url }) => (
+  <Box sx={{ p: 1.5, borderRadius: 1.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+    <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+        <DocumentIcon sx={{ fontSize: 20, color: url ? colors.blue : colors.muted }} />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>{label}</Typography>
+          <Typography sx={{ fontSize: 12, color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{documentLabel(url)}</Typography>
+        </Box>
+      </Stack>
+      {url ? (
+        <Button component="a" href={url} target="_blank" rel="noreferrer" size="small" sx={{ textTransform: 'none', color: colors.blue, fontWeight: 700 }}>
+          View
+        </Button>
+      ) : (
+        <Chip label="Missing" size="small" sx={{ borderRadius: 1.2, bgcolor: colors.redSoft, color: colors.red, fontWeight: 700 }} />
+      )}
+    </Stack>
+  </Box>
+);
+
 export default function AdminDoctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [approvingId, setApprovingId] = useState('');
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const loadDoctors = async () => {
     try {
@@ -97,6 +143,8 @@ export default function AdminDoctors() {
       setApprovingId(userId);
       await approvePendingUser(userId);
       await loadDoctors();
+      setModalOpen(false);
+      setSelectedDoctor(null);
     } catch (err) {
       setError(err.message || 'Failed to approve doctor');
     } finally {
@@ -122,12 +170,13 @@ export default function AdminDoctors() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
+                color: '#fff',
                 borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
                 fontSize: 15,
-                '&:hover': { bgcolor: colors.blue }
+                '&:hover': { bgcolor: colors.blue, color: '#fff' }
               }}
             >
               Add Doctor
@@ -186,17 +235,33 @@ export default function AdminDoctors() {
                           <Stack direction="row" spacing={1.5} alignItems="center">
                             <Chip label="Pending" size="small" sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: colors.orangeSoft, color: colors.orange }} />
                             <Button
+                              onClick={() => {
+                                setSelectedDoctor(doctor);
+                                setModalOpen(true);
+                              }}
+                              variant="outlined"
+                              sx={{
+                                borderRadius: 1.5,
+                                textTransform: 'none',
+                                borderColor: colors.line,
+                                color: colors.blue,
+                                fontWeight: 700
+                              }}
+                            >
+                              Review
+                            </Button>
+                            <Button
                               onClick={() => handleApprove(doctor.userId)}
                               disabled={approvingId === doctor.userId}
                               variant="contained"
                               sx={{
                                 borderRadius: 1.5,
                                 textTransform: 'none',
-                                bgcolor: colors.greenSoft,
-                                color: colors.green,
+                                bgcolor: colors.blue,
+                                color: '#fff',
                                 fontWeight: 700,
                                 boxShadow: 'none',
-                                '&:hover': { bgcolor: colors.greenSoft, boxShadow: 'none' }
+                                '&:hover': { bgcolor: colors.blue, color: '#fff', boxShadow: 'none' }
                               }}
                             >
                               {approvingId === doctor.userId ? 'Saving...' : 'Approve'}
@@ -276,6 +341,100 @@ export default function AdminDoctors() {
             </Box>
           </>
         )}
+
+        <Dialog
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' } }}
+        >
+          <Box sx={{ p: { xs: 2.5, md: 4 } }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar src={selectedDoctor?.profileImage || undefined} sx={{ width: 56, height: 56, bgcolor: colors.blueSoft, color: colors.blue }}>
+                  <PersonIcon />
+                </Avatar>
+                <Box>
+                  <Typography sx={{ fontSize: 20, fontWeight: 800 }}>{selectedDoctor?.full_name}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted }}>Doctor verification review</Typography>
+                </Box>
+              </Stack>
+              <IconButton onClick={() => setModalOpen(false)} sx={{ bgcolor: colors.soft }}>
+                <CloseIcon />
+              </IconButton>
+            </Stack>
+
+            <Divider sx={{ mb: 3 }} />
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={2}>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <EmailIcon sx={{ color: colors.blue, fontSize: 20 }} />
+                    <Typography sx={{ fontSize: 14, wordBreak: 'break-all' }}>{selectedDoctor?.email || 'No email'}</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <PhoneIcon sx={{ color: colors.blue, fontSize: 20 }} />
+                    <Typography sx={{ fontSize: 14 }}>{selectedDoctor?.phone || 'No phone'}</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <HospitalIcon sx={{ color: colors.blue, fontSize: 20 }} />
+                    <Typography sx={{ fontSize: 14 }}>{selectedDoctor?.hospitalName || 'Hospital not added'}</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <LicenseIcon sx={{ color: colors.blue, fontSize: 20 }} />
+                    <Typography sx={{ fontSize: 14 }}>{selectedDoctor?.medicalLicense || 'License not added'}</Typography>
+                  </Stack>
+                </Stack>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Box sx={{ p: 2, borderRadius: 1.5, bgcolor: colors.soft }}>
+                  <Typography sx={{ fontSize: 13, color: colors.muted, mb: 1 }}>Professional details</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{selectedDoctor?.specialization || 'Specialization pending'}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.75 }}>{selectedDoctor?.qualification || 'Qualification not added'}</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.75 }}>{formatNumber(selectedDoctor?.experience)} years experience</Typography>
+                  <Typography sx={{ fontSize: 13, color: colors.muted, mt: 0.75 }}>Fee: Rs {formatNumber(selectedDoctor?.consultationFee)}</Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography sx={{ fontSize: 15, fontWeight: 800, mb: 1.5 }}>Uploaded verification files</Typography>
+                <Grid container spacing={1.5}>
+                  <Grid item xs={12} md={6}><DocumentRow label="Degree certificate" url={selectedDoctor?.degreeCertificate} /></Grid>
+                  <Grid item xs={12} md={6}><DocumentRow label="Registration certificate" url={selectedDoctor?.registrationCertificate} /></Grid>
+                  <Grid item xs={12} md={6}><DocumentRow label="ID proof" url={selectedDoctor?.idProof} /></Grid>
+                  <Grid item xs={12} md={6}><DocumentRow label="Profile image" url={selectedDoctor?.profileImage} /></Grid>
+                </Grid>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Box sx={{ p: 2, borderRadius: 1.5, border: `1px solid ${colors.line}`, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <VerifiedIcon sx={{ color: selectedDoctor?.is_approved ? colors.green : colors.orange }} />
+                  <Box>
+                    <Typography sx={{ fontSize: 14, fontWeight: 800 }}>Status: {selectedDoctor?.is_approved ? 'Verified doctor' : 'Verification pending'}</Typography>
+                    <Typography sx={{ fontSize: 12.5, color: colors.muted }}>Review license details and uploaded files before approval.</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
+              <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none', color: colors.muted, fontWeight: 700 }}>Close</Button>
+              {!selectedDoctor?.is_approved && (
+                <Button
+                  onClick={() => selectedDoctor && handleApprove(selectedDoctor.userId)}
+                  disabled={!selectedDoctor || approvingId === selectedDoctor.userId}
+                  variant="contained"
+                  sx={{ textTransform: 'none', bgcolor: colors.green, color: '#fff', fontWeight: 800, '&:hover': { bgcolor: colors.green, color: '#fff' } }}
+                >
+                  {approvingId === selectedDoctor?.userId ? 'Approving...' : 'Approve Doctor'}
+                </Button>
+              )}
+            </Stack>
+          </Box>
+        </Dialog>
       </Box>
     </AdminLayout>
   );

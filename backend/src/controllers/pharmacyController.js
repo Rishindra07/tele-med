@@ -339,6 +339,14 @@ exports.updatePharmacyProfile = async (req, res) => {
         res.json({ success: true, pharmacy, message: "Pharmacy profile updated successfully" });
     } catch (error) {
         console.error("Update Pharmacy Profile Error:", error);
+        
+        if (error.code === 11000) {
+            if (error.keyPattern?.licenseNumber) {
+                return res.status(400).json({ message: "This license number is already registered with another pharmacy." });
+            }
+            return res.status(400).json({ message: "Duplicate record detected. This value is already in use." });
+        }
+
         res.status(500).json({ message: "Failed to update pharmacy profile" });
     }
 };

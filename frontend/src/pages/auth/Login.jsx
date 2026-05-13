@@ -67,7 +67,14 @@ export default function Login() {
       if (res.user.role === "pharmacist") navigate("/pharmacy");
       if (res.user.role === "admin") navigate("/admin");
     } catch (err) {
-      const message = err.message || "Login failed";
+      const message = err.response?.data?.message || err.message || "Login failed";
+      const needsVerification = err.response?.data?.needsVerification;
+
+      if (needsVerification) {
+        navigate("/register", { state: { email: data.email, role: err.response?.data?.role || 'patient' } });
+        return;
+      }
+
       if (/email/i.test(message)) {
         setError("email", { type: "server", message });
       } else if (/password|credentials/i.test(message)) {

@@ -167,12 +167,13 @@ export default function AdminDashboard() {
               disabled={refreshing}
               sx={{
                 bgcolor: colors.blue,
+                color: '#fff',
                 borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
                 fontSize: 15,
-                '&:hover': { bgcolor: colors.blue }
+                '&:hover': { bgcolor: colors.blue, color: '#fff' }
               }}
             >
               {refreshing ? t.refreshing : t.refresh}
@@ -241,11 +242,11 @@ export default function AdminDashboard() {
                             minWidth: 94,
                             borderRadius: '12px',
                             textTransform: 'none',
-                            bgcolor: colors.greenSoft,
-                            color: colors.green,
+                            bgcolor: colors.blue,
+                            color: '#fff',
                             fontSize: 13,
                             boxShadow: 'none',
-                            '&:hover': { bgcolor: colors.greenSoft, boxShadow: 'none' }
+                            '&:hover': { bgcolor: colors.blue, color: '#fff', boxShadow: 'none' }
                           }}
                         >
                           {approvingId === user._id ? t.labels.saving : t.labels.approve}

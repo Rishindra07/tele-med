@@ -10,6 +10,7 @@ const SymptomLog = require("../models/SymptomLog.js");
 const SystemLog = require("../models/SystemLog.js");
 const User = require("../models/User.js");
 const GlobalSetting = require("../models/GlobalSetting.js");
+const { sendEmail } = require("../services/notificationService.js");
 
 const startOfDay = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 const startOfMonth = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
@@ -524,11 +525,31 @@ exports.getPendingApprovals = async (req, res) => {
       is_approved: false
     })
       .sort({ createdAt: 1 })
-      .select("full_name email role is_approved createdAt");
+      .select("full_name email phone role is_approved createdAt")
+      .lean();
+
+    const [doctorProfiles, pharmacyProfiles] = await Promise.all([
+      Doctor.find({ user: { $in: users.filter((user) => user.role === "doctor").map((user) => user._id) } })
+        .select("user specialization qualification hospitalName medicalLicense degreeCertificate registrationCertificate idProof profileImage experience consultationFee")
+        .lean(),
+      Pharmacy.find({ user: { $in: users.filter((user) => user.role === "pharmacist").map((user) => user._id) } })
+        .select("user pharmacyName ownerName licenseNumber gstin address city district pincode phone email licenseCertificate pharmacistRegNumber pharmacistCertificate shopPhoto isJanAushadhi deliveryAvailable")
+        .lean()
+    ]);
+
+    const doctorProfileMap = new Map(doctorProfiles.map((profile) => [String(profile.user), profile]));
+    const pharmacyProfileMap = new Map(pharmacyProfiles.map((profile) => [String(profile.user), profile]));
+
+    const enrichedUsers = users.map((user) => ({
+      ...user,
+      profile: user.role === "doctor"
+        ? doctorProfileMap.get(String(user._id)) || null
+        : pharmacyProfileMap.get(String(user._id)) || null
+    }));
 
     res.json({
       success: true,
-      users
+      users: enrichedUsers
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to load pending approvals" });
@@ -542,7 +563,7 @@ exports.getDoctorsDirectory = async (req, res) => {
         .select("full_name email phone is_active is_approved approved_at createdAt")
         .lean(),
       Doctor.find({})
-        .select("user specialization hospitalName medicalLicense rating consultationFee experience qualification")
+        .select("user specialization hospitalName medicalLicense rating consultationFee experience qualification bio degreeCertificate registrationCertificate idProof profileImage consultation_modes languages is_available_for_booking")
         .lean(),
       Consultation.aggregate([
         { $group: { _id: "$doctor", consultations: { $sum: 1 } } }
@@ -574,6 +595,14 @@ exports.getDoctorsDirectory = async (req, res) => {
         consultationFee: profile?.consultationFee || 0,
         experience: profile?.experience || 0,
         qualification: profile?.qualification || null,
+        bio: profile?.bio || null,
+        degreeCertificate: profile?.degreeCertificate || null,
+        registrationCertificate: profile?.registrationCertificate || null,
+        idProof: profile?.idProof || null,
+        profileImage: profile?.profileImage || null,
+        consultation_modes: profile?.consultation_modes || [],
+        languages: profile?.languages || [],
+        is_available_for_booking: profile?.is_available_for_booking ?? true,
         totalConsultations: consultationMap.get(String(user._id)) || 0,
         totalPrescriptions: prescriptionMap.get(String(user._id)) || 0
       };
@@ -596,7 +625,7 @@ exports.getPharmaciesDirectory = async (req, res) => {
         .select("full_name email phone is_active is_approved approved_at createdAt")
         .lean(),
       Pharmacy.find({})
-        .select("user pharmacyName licenseNumber location distanceKm isJanAushadhi openTime closeTime phone")
+        .select("user pharmacyName ownerName licenseNumber gstin location distanceKm isJanAushadhi openTime closeTime phone email address city district pincode licenseCertificate pharmacistRegNumber pharmacistCertificate shopPhoto deliveryAvailable")
         .lean(),
       PharmacyStock.aggregate([
         {
@@ -672,11 +701,24 @@ exports.getPharmaciesDirectory = async (req, res) => {
         approved_at: user?.approved_at || null,
         createdAt: user?.createdAt || profile.createdAt,
         pharmacyName: profile.pharmacyName,
+        ownerName: profile.ownerName || null,
         licenseNumber: profile.licenseNumber,
+        gstin: profile.gstin || null,
+        address: profile.address || null,
+        city: profile.city || null,
+        district: profile.district || null,
+        pincode: profile.pincode || null,
+        profilePhone: profile.phone || null,
+        profileEmail: profile.email || null,
         isJanAushadhi: profile.isJanAushadhi,
+        deliveryAvailable: profile.deliveryAvailable,
         location: profile.location || {},
         distanceKm: profile.distanceKm,
         operatingHours: [profile.openTime, profile.closeTime].filter(Boolean).join(" - ") || null,
+        licenseCertificate: profile.licenseCertificate || null,
+        pharmacistRegNumber: profile.pharmacistRegNumber || null,
+        pharmacistCertificate: profile.pharmacistCertificate || null,
+        shopPhoto: profile.shopPhoto || null,
         totalStockItems: stock?.totalStockItems || 0,
         lowStockItems: stock?.lowStockItems || 0,
         outOfStockItems: stock?.outOfStockItems || 0,
@@ -1422,6 +1464,30 @@ exports.approveUser = async (req, res) => {
     user.approved_at = new Date();
     await user.save();
 
+    // Send email notification asynchronously
+    const roleName = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    sendEmail({
+      to: user.email,
+      subject: `Account Approved - Seva TeleHealth`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h2 style="color: #2c3e50; text-align: center;">Welcome to Seva TeleHealth!</h2>
+          <p>Dear ${user.full_name},</p>
+          <p>We are pleased to inform you that your registration as a <strong>${roleName}</strong> on Seva TeleHealth has been <strong>approved</strong>.</p>
+          <p>You can now log in to your dashboard and start using the platform's features.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0] : 'http://localhost:5173'}" style="background-color: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Your Dashboard</a>
+          </div>
+          <p>If you have any questions or need assistance, please feel free to contact our support team.</p>
+          <p>Best regards,<br>The Seva TeleHealth Team</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="font-size: 0.8em; color: #777; text-align: center;">
+            This is an automated email. Please do not reply directly to this message.
+          </p>
+        </div>
+      `
+    }).catch(err => console.error("Email notification failed:", err));
+
     res.json({
       success: true,
       message: "User approved successfully",
@@ -1702,6 +1768,7 @@ exports.getGlobalSettings = async (req, res) => {
       twoFactor: false,
       autoBackup: true,
       globalLanguage: 'en',
+      systemTimezone: 'IST',
       minConsultationFee: 100
     };
 
@@ -1721,7 +1788,19 @@ exports.updateGlobalSettings = async (req, res) => {
       return res.status(400).json({ message: "Invalid settings payload" });
     }
 
-    const updatePromises = Object.entries(settings).map(([key, value]) => {
+    const normalizedSettings = {
+      ...settings,
+      doctorVerification: Boolean(settings.doctorVerification),
+      openRegistration: Boolean(settings.openRegistration),
+      newPharmacyEnrollment: Boolean(settings.newPharmacyEnrollment),
+      twoFactor: Boolean(settings.twoFactor),
+      autoBackup: Boolean(settings.autoBackup),
+      globalLanguage: settings.globalLanguage || 'en',
+      systemTimezone: settings.systemTimezone || 'IST',
+      minConsultationFee: Math.max(Number(settings.minConsultationFee || 100), 0)
+    };
+
+    const updatePromises = Object.entries(normalizedSettings).map(([key, value]) => {
       return GlobalSetting.findOneAndUpdate(
         { key },
         { key, value, updatedBy: req.user._id, category: 'general' },
@@ -1734,7 +1813,7 @@ exports.updateGlobalSettings = async (req, res) => {
     res.json({
       success: true,
       message: "Global settings updated successfully",
-      settings
+      settings: normalizedSettings
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to update global settings" });

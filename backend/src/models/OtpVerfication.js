@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
 const otpSchema = new mongoose.Schema({
-    phone: {
+    email: {
         type: String,
-        required: true
+        required: true,
+        lowercase: true,
+        trim: true
     },
     otp: {
         type: String,
@@ -17,6 +19,6 @@ const otpSchema = new mongoose.Schema({
 
 otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const OtpVerification = mongoose.model('OtpVerification',otpSchema);
+const OtpVerification = mongoose.model('OtpVerification', otpSchema);
 
 module.exports = OtpVerification;

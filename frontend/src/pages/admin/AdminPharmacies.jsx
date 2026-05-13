@@ -24,7 +24,8 @@ import {
   BadgeRounded as LicenseIcon,
   VerifiedUserRounded as VerifiedIcon,
   TimelineRounded as PerformanceIcon,
-  MapRounded as MapIcon
+  MapRounded as MapIcon,
+  DescriptionRounded as DocumentIcon
 } from '@mui/icons-material';
 import AdminLayout from '../../components/AdminLayout';
 import { approvePendingUser, fetchPharmaciesDirectory } from '../../api/adminApi';
@@ -46,6 +47,36 @@ const colors = {
 };
 
 const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0));
+
+const documentLabel = (url) => {
+  if (!url) return 'Not uploaded';
+  try {
+    return decodeURIComponent(String(url).split('/').pop() || 'Open document');
+  } catch {
+    return 'Open document';
+  }
+};
+
+const DocumentRow = ({ label, url }) => (
+  <Box sx={{ p: 1.5, borderRadius: 1.5, border: `1px solid ${colors.line}`, bgcolor: colors.paper }}>
+    <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+        <DocumentIcon sx={{ fontSize: 20, color: url ? colors.blue : colors.muted }} />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>{label}</Typography>
+          <Typography sx={{ fontSize: 12, color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{documentLabel(url)}</Typography>
+        </Box>
+      </Stack>
+      {url ? (
+        <Button component="a" href={url} target="_blank" rel="noreferrer" size="small" sx={{ textTransform: 'none', color: colors.blue, fontWeight: 700 }}>
+          View
+        </Button>
+      ) : (
+        <Chip label="Missing" size="small" sx={{ borderRadius: 1.2, bgcolor: colors.redSoft, color: colors.red, fontWeight: 700 }} />
+      )}
+    </Stack>
+  </Box>
+);
 
 export default function AdminPharmacies() {
   const [pharmacies, setPharmacies] = useState([]);
@@ -95,6 +126,8 @@ export default function AdminPharmacies() {
       setApprovingId(userId);
       await approvePendingUser(userId);
       await loadPharmacies();
+      setModalOpen(false);
+      setSelectedPharmacy(null);
     } catch (err) {
       setError(err.message || 'Failed to approve pharmacy');
     } finally {
@@ -120,13 +153,14 @@ export default function AdminPharmacies() {
               variant="contained"
               sx={{
                 bgcolor: colors.blue,
+                color: '#fff',
                 borderRadius: '12px',
                 px: 3,
                 py: 1.25,
                 textTransform: 'none',
                 fontSize: 15,
                 fontWeight: 700,
-                '&:hover': { bgcolor: colors.blue }
+                '&:hover': { bgcolor: colors.blue, color: '#fff' }
               }}
             >
               Add Pharmacy
@@ -196,34 +230,15 @@ export default function AdminPharmacies() {
                         <Chip label={pharmacy.is_approved ? 'Active' : 'Pending'} size="small" sx={{ borderRadius: 1.5, fontWeight: 700, bgcolor: pharmacy.is_approved ? colors.greenSoft : colors.orangeSoft, color: pharmacy.is_approved ? colors.green : colors.orange }} />
                       </Box>
                       <Box sx={{ width: { xs: '100%', lg: '11%' }, textAlign: { lg: 'right' }, mt: { xs: 1, lg: 0 } }}>
-                        {!pharmacy.is_approved ? (
-                          <Button 
-                            onClick={() => handleApprove(pharmacy.userId)} 
-                            disabled={approvingId === pharmacy.userId}
-                            variant="contained"
-                            sx={{ 
-                              borderRadius: 1.5, 
-                              textTransform: 'none',
-                              bgcolor: colors.greenSoft,
-                              color: colors.green,
-                              fontWeight: 700,
-                              boxShadow: 'none',
-                              '&:hover': { bgcolor: colors.greenSoft, boxShadow: 'none' }
-                            }}
-                          >
-                            {approvingId === pharmacy.userId ? 'Saving...' : 'Approve'}
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => {
-                              setSelectedPharmacy(pharmacy);
-                              setModalOpen(true);
-                            }} 
-                            sx={{ borderRadius: 1.5, textTransform: 'none', color: colors.blue, fontWeight: 700 }}
-                          >
-                            View
-                          </Button>
-                        )}
+                        <Button
+                          onClick={() => {
+                            setSelectedPharmacy(pharmacy);
+                            setModalOpen(true);
+                          }}
+                          sx={{ borderRadius: 1.5, textTransform: 'none', color: colors.blue, fontWeight: 700 }}
+                        >
+                          {pharmacy.is_approved ? 'View' : 'Review'}
+                        </Button>
                       </Box>
                     </Box>
                   ))}
@@ -237,8 +252,22 @@ export default function AdminPharmacies() {
                     <Stack spacing={2}>
                       {pendingPharmacies.length ? pendingPharmacies.map((item) => (
                         <Box key={item.pharmacyId} sx={{ p: 1.8, borderRadius: '12px', bgcolor: colors.soft }}>
-                          <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{item.pharmacyName}</Typography>
-                          <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.4 }}>{item.email || item.phone || 'No contact'}</Typography>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{item.pharmacyName}</Typography>
+                              <Typography sx={{ fontSize: 12.5, color: colors.muted, mt: 0.4 }}>{item.email || item.phone || 'No contact'}</Typography>
+                            </Box>
+                            <Button
+                              onClick={() => {
+                                setSelectedPharmacy(item);
+                                setModalOpen(true);
+                              }}
+                              size="small"
+                              sx={{ textTransform: 'none', color: colors.blue, fontWeight: 700 }}
+                            >
+                              Review
+                            </Button>
+                          </Stack>
                         </Box>
                       )) : <Typography sx={{ color: colors.muted, fontSize: 14.5 }}>No pending pharmacy approvals.</Typography>}
                     </Stack>
@@ -267,14 +296,14 @@ export default function AdminPharmacies() {
         <Dialog 
           open={modalOpen} 
           onClose={() => setModalOpen(false)}
-          maxWidth="sm"
+          maxWidth="md"
           fullWidth
           PaperProps={{ sx: { borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' } }}
         >
           <Box sx={{ p: 4 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
               <Stack direction="row" spacing={2} alignItems="center">
-                <Avatar sx={{ bgcolor: colors.blueSoft, color: colors.blue }}>
+                <Avatar src={selectedPharmacy?.shopPhoto || undefined} sx={{ bgcolor: colors.blueSoft, color: colors.blue }}>
                   <PharmacyIcon />
                 </Avatar>
                 <Box>
@@ -293,17 +322,21 @@ export default function AdminPharmacies() {
               <Grid item xs={12} sm={6}>
                 <Stack spacing={2.5}>
                   <Box>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>OWNER</Typography>
+                    <Typography fontWeight={600}>{selectedPharmacy?.ownerName || selectedPharmacy?.full_name || 'N/A'}</Typography>
+                  </Box>
+                  <Box>
                     <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>CONTACT EMAIL</Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <EmailIcon sx={{ fontSize: 18, color: colors.blue }} />
-                      <Typography fontWeight={600} sx={{ wordBreak: 'break-all' }}>{selectedPharmacy?.email || 'N/A'}</Typography>
+                      <Typography fontWeight={600} sx={{ wordBreak: 'break-all' }}>{selectedPharmacy?.profileEmail || selectedPharmacy?.email || 'N/A'}</Typography>
                     </Stack>
                   </Box>
                   <Box>
                     <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>PHONE NUMBER</Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <PhoneIcon sx={{ fontSize: 18, color: colors.blue }} />
-                      <Typography fontWeight={600}>{selectedPharmacy?.phone || 'N/A'}</Typography>
+                      <Typography fontWeight={600}>{selectedPharmacy?.profilePhone || selectedPharmacy?.phone || 'N/A'}</Typography>
                     </Stack>
                   </Box>
                   <Box>
@@ -313,22 +346,23 @@ export default function AdminPharmacies() {
                       <Typography fontWeight={600}>{selectedPharmacy?.licenseNumber || 'N/A'}</Typography>
                     </Stack>
                   </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: colors.muted, mb: 0.5, display: 'block' }}>PHARMACIST REG. NO.</Typography>
+                    <Typography fontWeight={600}>{selectedPharmacy?.pharmacistRegNumber || 'N/A'}</Typography>
+                  </Box>
                 </Stack>
               </Grid>
 
               <Grid item xs={12} sm={6}>
                 <Box sx={{ p: 3, borderRadius: '12px', bgcolor: colors.soft }}>
-                  <Typography variant="caption" sx={{ color: colors.muted, mb: 2, display: 'block' }}>PLATFORM PERFORMANCE</Typography>
+                  <Typography variant="caption" sx={{ color: colors.muted, mb: 2, display: 'block' }}>BUSINESS DETAILS</Typography>
                   <Stack spacing={3}>
-                    <Box>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                        <Typography variant="body2" fontWeight={700}>Fulfillment</Typography>
-                        <Typography variant="body2" fontWeight={800} color={colors.blue}>{selectedPharmacy?.fulfillmentRate || 0}%</Typography>
-                      </Stack>
-                      <Box sx={{ height: 6, bgcolor: colors.paper, borderRadius: 3, overflow: 'hidden' }}>
-                        <Box sx={{ width: `${selectedPharmacy?.fulfillmentRate || 0}%`, height: '100%', bgcolor: colors.blue }} />
-                      </Box>
-                    </Box>
+                    <Typography variant="body2" fontWeight={700}>{selectedPharmacy?.address || 'Address not added'}</Typography>
+                    <Typography variant="body2" sx={{ color: colors.muted }}>
+                      {[selectedPharmacy?.city, selectedPharmacy?.district, selectedPharmacy?.pincode].filter(Boolean).join(', ') || 'Location details not added'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: colors.muted }}>GSTIN: {selectedPharmacy?.gstin || 'N/A'}</Typography>
+                    <Typography variant="body2" sx={{ color: colors.muted }}>Delivery: {selectedPharmacy?.deliveryAvailable ? 'Available' : 'Not available'}</Typography>
                     <Stack direction="row" spacing={2} alignItems="center">
                       <PerformanceIcon sx={{ color: colors.muted }} />
                       <Box>
@@ -338,6 +372,15 @@ export default function AdminPharmacies() {
                     </Stack>
                   </Stack>
                 </Box>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography sx={{ fontSize: 15, fontWeight: 800, mb: 1.5 }}>Uploaded verification files</Typography>
+                <Grid container spacing={1.5}>
+                  <Grid item xs={12} md={4}><DocumentRow label="License certificate" url={selectedPharmacy?.licenseCertificate} /></Grid>
+                  <Grid item xs={12} md={4}><DocumentRow label="Pharmacist certificate" url={selectedPharmacy?.pharmacistCertificate} /></Grid>
+                  <Grid item xs={12} md={4}><DocumentRow label="Shop photo" url={selectedPharmacy?.shopPhoto} /></Grid>
+                </Grid>
               </Grid>
 
               <Grid item xs={12}>
@@ -351,14 +394,19 @@ export default function AdminPharmacies() {
               </Grid>
             </Grid>
 
-            <Button 
-              fullWidth 
-              variant="contained" 
-              onClick={() => setModalOpen(false)}
-              sx={{ mt: 4, py: 1.5, borderRadius: '12px', bgcolor: colors.blue, textTransform: 'none', fontWeight: 700 }}
-            >
-              Close Profile
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="flex-end" sx={{ mt: 4 }}>
+              <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none', color: colors.muted, fontWeight: 700 }}>Close</Button>
+              {!selectedPharmacy?.is_approved && (
+                <Button
+                  variant="contained"
+                  onClick={() => selectedPharmacy && handleApprove(selectedPharmacy.userId)}
+                  disabled={!selectedPharmacy || approvingId === selectedPharmacy.userId}
+                  sx={{ py: 1.2, px: 3, borderRadius: '12px', bgcolor: colors.green, color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: colors.green, color: '#fff' } }}
+                >
+                  {approvingId === selectedPharmacy?.userId ? 'Approving...' : 'Approve Pharmacy'}
+                </Button>
+              )}
+            </Stack>
           </Box>
         </Dialog>
       </Box>

@@ -153,10 +153,10 @@ exports.updateDoctorProfile = async (req, res) => {
     if (hospitalName) doctorUpdates.hospitalName = String(hospitalName).trim();
     if (consultationFee !== undefined) {
       const minFeeSetting = await GlobalSetting.findOne({ key: 'minConsultationFee' });
-      const minFee = minFeeSetting ? Number(minFeeSetting.value) : 100;
+      const minFee = Number(minFeeSetting?.value ?? 100);
       
       const newFee = Number(consultationFee);
-      if (newFee < minFee) {
+      if (Number.isNaN(newFee) || newFee < minFee) {
         return res.status(400).json({ 
           message: `Consultation fee cannot be lower than the global minimum of ₹${minFee}` 
         });
@@ -186,6 +186,14 @@ exports.updateDoctorProfile = async (req, res) => {
     return res.json({ success: true, doctor, message: "Profile updated successfully" });
   } catch (error) {
     console.error("[DOCTOR] profile update failed", error);
+    
+    if (error.code === 11000) {
+      if (error.keyPattern?.medicalLicense) {
+        return res.status(400).json({ message: "This medical license is already registered with another doctor." });
+      }
+      return res.status(400).json({ message: "Duplicate record detected. This value is already in use." });
+    }
+
     return res.status(500).json({ message: "Failed to update doctor profile" });
   }
 };

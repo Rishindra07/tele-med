@@ -3,6 +3,7 @@ const User = require("../models/User.js");
 const Patient = require("../models/Patient.js");
 const RefreshToken = require("../models/RefreshToken.js");
 const GlobalSetting = require("../models/GlobalSetting.js");
+const OtpVerification = require("../models/OtpVerfication.js");
 const { sendEmail } = require("../services/notificationService.js");
 const {
   createAccessToken,
@@ -11,8 +12,29 @@ const {
 } = require("../utils/tokenUtils.js");
 
 const REGISTRATION_ROLES = ["patient", "doctor", "pharmacist", "admin"];
+const DEFAULT_GLOBAL_SETTINGS = {
+  doctorVerification: true,
+  openRegistration: true,
+  newPharmacyEnrollment: true,
+  twoFactor: false,
+  autoBackup: true,
+  globalLanguage: "en",
+  minConsultationFee: 100,
+  systemTimezone: "IST"
+};
 
 const normalizeEmail = (email) => (email ? email.trim().toLowerCase() : null);
+
+const getGlobalSettings = async () => {
+  const settingsList = await GlobalSetting.find({});
+  return settingsList.reduce(
+    (acc, setting) => ({
+      ...acc,
+      [setting.key]: setting.value
+    }),
+    { ...DEFAULT_GLOBAL_SETTINGS }
+  );
+};
 
 const sanitizeUser = (user) => ({
   id: user._id,
@@ -27,91 +49,137 @@ const sanitizeUser = (user) => ({
 });
 
 const registerUser = async (req, res) => {
-  try {
-    const { 
-      name, full_name, email, password, role, 
-      phone, specialization, medicalLicense,
-      pharmacyName, ownerName, licenseNumber
-    } = req.body;
+    let createdUser = null;
+    try {
+      const { 
+        name, full_name, email, password, role, 
+        phone, specialization, medicalLicense,
+        pharmacyName, ownerName, licenseNumber
+      } = req.body;
 
-    const resolvedName = (full_name || name || ownerName || pharmacyName || "").trim();
-    const normalizedEmail = normalizeEmail(email);
+      const resolvedName = (full_name || name || ownerName || pharmacyName || "").trim();
+      const normalizedEmail = normalizeEmail(email);
 
-    if (!resolvedName || !normalizedEmail || !password || !role) {
-      return res.status(400).json({ message: "Required fields are missing" });
-    }
-
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({ message: "Password must be min 6 chars, 1 capital letter, 1 number, 1 special character" });
-    }
-
-    if (!REGISTRATION_ROLES.includes(role)) {
-      return res.status(400).json({ message: "Invalid role selected" });
-    }
-
-    // Role-specific restrictions
-    if (role === 'pharmacist') {
-      const pharmEnrollSetting = await GlobalSetting.findOne({ key: 'newPharmacyEnrollment' });
-      if (pharmEnrollSetting && pharmEnrollSetting.value === false) {
-        return res.status(403).json({ message: "Pharmacy enrollment is currently closed." });
+      if (!resolvedName || !normalizedEmail || !password || !role) {
+        return res.status(400).json({ message: "Required fields are missing" });
       }
-    }
 
-    if (role === 'patient') {
-      const openRegSetting = await GlobalSetting.findOne({ key: 'openRegistration' });
-      if (openRegSetting && openRegSetting.value === false) {
-        return res.status(403).json({ message: "Public registration is currently restricted." });
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+      if (!passwordRegex.test(password)) {
+        return res.status(400).json({ message: "Password must be min 6 chars, 1 capital letter, 1 number, 1 special character" });
       }
-    }
 
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
+      if (!REGISTRATION_ROLES.includes(role)) {
+        return res.status(400).json({ message: "Invalid role selected" });
+      }
 
-    // Create User
-    const user = await User.create({
-      full_name: resolvedName,
-      email: normalizedEmail,
-      phone: phone || null,
-      password_hash: password,
-      role
-    });
+      const globalSettings = await getGlobalSettings();
 
-    // Create Profile for Doctor or Pharmacist
-    if (role === 'doctor') {
-      const Doctor = require("../models/Doctor.js");
-      await Doctor.create({
-        user: user._id,
-        specialization: specialization || 'General Physician',
-        medicalLicense: medicalLicense || `PENDING-${Date.now()}`,
-        qualification: 'Pending Verification',
-        hospitalName: 'Unassigned',
+      // Role-specific restrictions
+      if (role === 'pharmacist') {
+        if (globalSettings.newPharmacyEnrollment === false) {
+          return res.status(403).json({ message: "Pharmacy enrollment is currently closed." });
+        }
+      }
+
+      if (role === 'patient') {
+        if (globalSettings.openRegistration === false) {
+          return res.status(403).json({ message: "Public registration is currently restricted." });
+        }
+      }
+
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
+      // Create User
+      createdUser = await User.create({
+        full_name: resolvedName,
+        email: normalizedEmail,
+        phone: phone || null,
+        password_hash: password,
+        role,
+        is_approved: ["doctor", "pharmacist"].includes(role) && globalSettings.doctorVerification === false
       });
-    } else if (role === 'pharmacist') {
-      const Pharmacy = require("../models/Pharmacy.js");
-      await Pharmacy.create({
-        user: user._id,
-        pharmacyName: pharmacyName || resolvedName,
-        ownerName: ownerName || resolvedName,
-        licenseNumber: licenseNumber || `PENDING-${Date.now()}`,
+
+      // Create Profile for Doctor or Pharmacist
+      if (role === 'doctor') {
+        const Doctor = require("../models/Doctor.js");
+        await Doctor.create({
+          user: createdUser._id,
+          specialization: specialization || 'General Physician',
+          medicalLicense: medicalLicense || `PENDING-${Date.now()}`,
+          qualification: 'Pending Verification',
+          hospitalName: 'Unassigned',
+        });
+      } else if (role === 'pharmacist') {
+        const Pharmacy = require("../models/Pharmacy.js");
+        await Pharmacy.create({
+          user: createdUser._id,
+          pharmacyName: pharmacyName || resolvedName,
+          ownerName: ownerName || resolvedName,
+          licenseNumber: licenseNumber || `PENDING-${Date.now()}`,
+        });
+      }
+
+      const tokens = await issueAuthTokens(createdUser, req);
+
+      // Send OTP for email verification
+      try {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60000);
+        
+        // Ensure no stale records exist
+        await OtpVerification.deleteMany({ email: normalizedEmail });
+        
+        await OtpVerification.create({ 
+          email: normalizedEmail, 
+          otp, 
+          expiresAt 
+        });
+        
+        await sendEmail({
+          to: normalizedEmail,
+          subject: "Verification Code - Seva TeleHealth",
+          html: `<div style="font-family: Arial, sans-serif; padding: 20px;"><h2>Verify Your Email</h2><p>Your code: <b>${otp}</b></p></div>`
+        });
+      } catch (otpErr) {
+        console.error("Auto-OTP failed:", otpErr);
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: `${role} registration successful. Please verify your email.`,
+        needsVerification: true,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user: sanitizeUser(createdUser)
       });
+    } catch (error) {
+      // Cleanup: If user was created but profile failed, delete the user
+      if (createdUser) {
+        await User.findByIdAndDelete(createdUser._id).catch(err => console.error("Cleanup failed:", err));
+      }
+
+      console.error("Registration error:", error);
+      
+      // Handle duplicate key error (Mongo E11000)
+      if (error.code === 11000) {
+        if (error.keyPattern?.medicalLicense) {
+          return res.status(400).json({ message: "This medical license is already registered with another doctor." });
+        }
+        if (error.keyPattern?.email) {
+          return res.status(400).json({ message: "Email already registered" });
+        }
+        if (error.keyPattern?.licenseNumber) {
+            return res.status(400).json({ message: "This pharmacy license number is already registered." });
+        }
+        return res.status(400).json({ message: "A record with this information already exists." });
+      }
+
+      return res.status(500).json({ message: error.message || "Registration failed" });
     }
-
-    const tokens = await issueAuthTokens(user, req);
-
-    return res.status(201).json({
-      success: true,
-      message: `${role} registration successful.`,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: sanitizeUser(user)
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    return res.status(500).json({ message: error.message });
-  }
 };
 
 const loginUser = async (req, res) => {
@@ -138,18 +206,23 @@ const loginUser = async (req, res) => {
       user.reactivated_at = new Date();
     }
 
+    if (user.is_email_verified === false) {
+      return res.status(403).json({ 
+        message: "Email not verified. Please verify your email first.",
+        needsVerification: true 
+      });
+    }
+
     if (["doctor", "pharmacist"].includes(user.role) && !user.is_approved) {
-      const docVerifySetting = await GlobalSetting.findOne({ key: 'doctorVerification' });
-      const isMandatory = docVerifySetting ? docVerifySetting.value !== false : true;
-      
-      if (isMandatory) {
+      const globalSettings = await getGlobalSettings();
+
+      if (globalSettings.doctorVerification !== false) {
         return res.status(403).json({ message: "Complete your profile and wait for admin approval." });
-      } else {
-        // Auto-approve if verification is not mandatory
-        user.is_approved = true;
-        user.approved_at = new Date();
-        await user.save();
       }
+
+      user.is_approved = true;
+      user.approved_at = new Date();
+      await user.save();
     }
 
     user.last_login_at = new Date();
@@ -500,6 +573,107 @@ const changePassword = async (req, res) => {
   }
 };
 
+const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: "Valid email is required" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+    console.log(`[OTP_SEND] Generated OTP ${otp} for ${normalizedEmail}`);
+
+    // Ensure no stale records exist
+    await OtpVerification.deleteMany({ email: normalizedEmail });
+
+    // Store NEW OTP
+    await OtpVerification.create({ 
+      email: normalizedEmail, 
+      otp, 
+      expiresAt 
+    });
+
+    // Send Email
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Verification Code - Seva TeleHealth",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+          <h2 style="color: #2563EB; text-align: center;">Verify Your Email</h2>
+          <p>Hello,</p>
+          <p>Your verification code for Seva TeleHealth is:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2563EB; background: #f0f4ff; padding: 10px 20px; border-radius: 5px;">${otp}</span>
+          </div>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this code, please ignore this email.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="font-size: 0.8em; color: #777; text-align: center;">Seva TeleHealth Team</p>
+        </div>
+      `
+    });
+
+    res.json({ success: true, message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
+};
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    const cleanOtp = String(otp || "").trim();
+
+    console.log(`[OTP_VERIFY] Searching for: ${normalizedEmail} with OTP: "${cleanOtp}"`);
+    
+    if (!normalizedEmail || !cleanOtp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    // Explicitly search by email first
+    const otpRecord = await OtpVerification.findOne({ email: normalizedEmail }).sort({ expiresAt: -1 });
+
+    if (!otpRecord) {
+      console.log(`[OTP_VERIFY] NO RECORD found for email: ${normalizedEmail}`);
+      return res.status(400).json({ message: "No verification code found for this email.", debug: "NO_RECORD" });
+    }
+
+    console.log(`[OTP_VERIFY] Found record for ${normalizedEmail}. Database OTP: "${otpRecord.otp}", Input OTP: "${cleanOtp}"`);
+
+    if (otpRecord.otp !== cleanOtp) {
+      console.log(`[OTP_VERIFY] MISMATCH for ${normalizedEmail}`);
+      return res.status(400).json({ message: "Invalid code. Please check your email.", debug: "MISMATCH", dbValue: otpRecord.otp, inValue: cleanOtp });
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      console.log(`[OTP_VERIFY] OTP expired for ${normalizedEmail}`);
+      return res.status(400).json({ message: "OTP has expired. Please request a new one.", debug: "EXPIRED" });
+    }
+
+    // Mark user as verified if they exist
+    const user = await User.findOne({ email: normalizedEmail });
+    if (user) {
+      user.is_email_verified = true;
+      await user.save();
+    }
+
+    // Delete OTP after successful verification
+    await OtpVerification.deleteOne({ _id: otpRecord._id });
+
+    res.json({ success: true, message: "Email verified successfully" });
+  } catch (error) {
+    console.error("Verify OTP error:", error);
+    res.status(500).json({ message: "Verification failed" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -514,5 +688,7 @@ module.exports = {
   deactivateUserAccount,
   deleteUserMedicalData,
   deleteUserAccount,
-  createAccessToken
+  createAccessToken,
+  sendOtp,
+  verifyOtp
 };
