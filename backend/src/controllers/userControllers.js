@@ -90,7 +90,18 @@ const registerUser = async (req, res) => {
 
       const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
-        return res.status(400).json({ message: "Email already registered" });
+        if (existingUser.is_email_verified === false) {
+          // Delete unverified user and profiles to allow re-registration
+          await User.findByIdAndDelete(existingUser._id);
+          const PatientModel = require("../models/Patient.js");
+          const DoctorModel = require("../models/Doctor.js");
+          const PharmacyModel = require("../models/Pharmacy.js");
+          await PatientModel.deleteOne({ user: existingUser._id });
+          await DoctorModel.deleteOne({ user: existingUser._id });
+          await PharmacyModel.deleteOne({ user: existingUser._id });
+        } else {
+          return res.status(400).json({ message: "Email already registered" });
+        }
       }
 
       // Create User

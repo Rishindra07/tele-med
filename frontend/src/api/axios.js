@@ -6,7 +6,7 @@ const formattedBaseURL = apiURL.endsWith('/') ? apiURL : `${apiURL}/`;
 
 const API = axios.create({
   baseURL: formattedBaseURL,
-  timeout: 10000,
+  timeout: 60000, // Increased to 60s for Render free tier cold starts
   headers: {
     "Content-Type": "application/json",
   },
